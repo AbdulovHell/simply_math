@@ -147,7 +147,10 @@ int input_to_analize(var_const *input_var_const, int current_size_of_vect)
 					input_var_const[temp_size_of_vect] = var_const("1", brakets_counter, high_pointer, NULL);
 					if ((brakets_counter + 1) < (strtod(input_var_const[current_size_of_vect].point_left[0].var_id.c_str(), &temp) + input_var_const[current_size_of_vect].point_left[0].var))
 					{
+						high_pointer = input_var_const[current_size_of_vect].point_left;
+						input_var_const[temp_size_of_vect].point_left = high_pointer;
 						input_var_const[current_size_of_vect].point_left = &input_var_const[temp_size_of_vect];
+												
 					}
 					else
 					{
@@ -181,6 +184,8 @@ int input_to_analize(var_const *input_var_const, int current_size_of_vect)
 
 					if ((brakets_counter + 2) < (strtod(input_var_const[current_size_of_vect].point_left[0].var_id.c_str(), &temp) + input_var_const[current_size_of_vect].point_left[0].var))
 					{
+						high_pointer = input_var_const[current_size_of_vect].point_left;
+						input_var_const[temp_size_of_vect].point_left = high_pointer;
 						input_var_const[current_size_of_vect].point_left = &input_var_const[temp_size_of_vect];
 					}
 					else
@@ -213,6 +218,8 @@ int input_to_analize(var_const *input_var_const, int current_size_of_vect)
 					input_var_const[temp_size_of_vect] = var_const("3", brakets_counter, high_pointer, NULL);
 					if ((brakets_counter + 3) < (strtod(input_var_const[current_size_of_vect].point_left[0].var_id.c_str(), &temp) + input_var_const[current_size_of_vect].point_left[0].var))
 					{
+						high_pointer = input_var_const[current_size_of_vect].point_left;
+						input_var_const[temp_size_of_vect].point_left = high_pointer;
 						input_var_const[current_size_of_vect].point_left = &input_var_const[temp_size_of_vect];
 					}
 					else
@@ -427,6 +434,8 @@ int input_to_analize(var_const *input_var_const, int current_size_of_vect)
 						input_var_const[temp_size_of_vect] = var_const("1", brakets_counter, high_pointer, NULL);
 						if ((brakets_counter + 1) < (strtod(input_var_const[current_size_of_vect].point_left[0].var_id.c_str(), &temp) + input_var_const[current_size_of_vect].point_left[0].var))
 						{
+							high_pointer = input_var_const[current_size_of_vect].point_left;
+							input_var_const[temp_size_of_vect].point_left = high_pointer;
 							input_var_const[current_size_of_vect].point_left = &input_var_const[temp_size_of_vect];
 						}
 						else
@@ -459,7 +468,7 @@ int main()
 
 	vector<var_const> general_var_const(30);
 	//general_var_const.reserve(30);
-
+	//array<var_const, 1> general_var_const;
 	cout << "Size: " << general_var_const.capacity() << "  " << sizeof(general_var_const) << endl;
 
 	var_const pi = var_const("pi", 3.1415926535897932384626433832);

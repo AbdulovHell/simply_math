@@ -8,6 +8,29 @@
 
 using namespace std;
 
+bool VerifyInput(char* input) {
+	char* EndStr = &input[strlen(input)];
+	char* cursor = input;
+	int len = strlen(input);
+	int left_bracket = 0, right_bracket = 0;
+
+	for (int i = 0;i < len;i++)
+		switch (input[i]) {
+		case '(':
+			left_bracket++;
+			break;
+		case ')':
+			right_bracket++;
+			break;
+		default:
+
+		}
+
+	while (cursor < EndStr) {
+		
+	}
+}
+
 class var_const {
 public:
 	var_const()

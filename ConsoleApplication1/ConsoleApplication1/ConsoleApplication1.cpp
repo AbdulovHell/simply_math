@@ -2,11 +2,110 @@
 //
 
 #include <iostream>
+#include <stdlib.h>
 #include <stdio.h>
+#include <conio.h>
 #include <string>
 #include <vector>
+#include <malloc.h> 
 
 using namespace std;
+
+char* err_str(int pos) {
+	char* str = (char*)malloc(pos + 1);
+	for (int i = 0;i < pos;i++)
+		str[i] = ' ';
+	str[pos] = 0;
+	str[pos - 1] = '^';
+	return str;
+}
+
+bool VerifyInput(char* input) {
+	//char* EndStr = &input[strlen(input)];
+	//char* cursor = input;
+	int len = strlen(input);
+	int left_bracket = 0, right_bracket = 0, ravno = 0;
+
+	return true;
+	//херня, над переделать, добавить еще A-Z,a-z и т.д. else if кучи мб
+	for (int i = 0;i < len;i++)
+		switch (input[i]) {
+		case '(':
+			left_bracket++;
+			break;
+		case ')':
+			right_bracket++;
+			break;
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+		case '+':
+		case '-':
+		case '*':
+		case '/':
+		case '.':
+			break;
+		case '=':
+			ravno++;
+			break;
+		default:
+			printf("\nBad symbol, '%c':\n", input[i]);
+			printf(input);
+			printf("\n");
+			printf(err_str(i));
+			printf("\n");
+			return false;
+		}
+
+	if (left_bracket != right_bracket) {
+		printf("\n ( and ) error.\n");
+		return false;
+	}
+	if (ravno > 1) {
+		printf("\n'='>1 error.\n");
+		return false;
+	}
+	/*
+	while (cursor < EndStr) {
+
+	}*/
+	return true;
+}
+char* SafeInput() {
+#define MEMRATE 10
+	char* buf = (char*)malloc(MEMRATE);
+	char a;
+	int len = 0;
+	int mem_commited = MEMRATE;
+
+	for (int i = 0;i < MEMRATE;i++)
+		buf[i] = 0;
+
+	do {
+		a = _getche();
+		if (a == '\r')
+			break;
+		buf[len] = a;
+		len++;
+		if (len >= mem_commited - 1) {
+			char* temp = buf;
+			buf = (char*)realloc(buf, mem_commited + MEMRATE);
+			//free(temp); НЕ РАБОТАЕТ! не пойму, что не так... мне кажется что-то со студией, т.к. на работе в другом проекте, где я вообще не использую free,
+			//всеравно вылетает, потому что ее видимо юзает сам сборшик мусора
+			mem_commited += MEMRATE;
+		}
+
+	} while (1);
+	buf[len] = 0;
+	return buf;
+}
 
 class var_const {
 public:
@@ -55,7 +154,7 @@ public:
 			return recursion(pointer[0].point_left) / recursion(pointer[0].point_right);
 			/*case '4':
 			return pow(recursion(pointer[0].point_left), recursion(pointer[0].point_right));
-			*/ 2^(3/5)
+			*/
 		}
 	}
 
@@ -73,27 +172,35 @@ public:
 
 int input_to_analize(var_const *input_var_const, int current_size_of_vect)
 {
-	string input;
-	cin >> input;
-	
-	
+	/*
+	string sInput;
+	cin >> sInput;
 
-	int temp_size_of_vect = current_size_of_vect;
-	char* charinput = (char*)malloc(input.size());
-	strcpy(charinput, input.c_str());
 
-	char* pDest = charinput;	//start pointer
-	char* endPtr = charinput + input.size() - 1;	//end pointer
+	char* input = (char*)malloc(sInput.size());
+	strcpy(input, sInput.c_str());
+	*/
+	///новый вариант, пробелы кушает, память динамическая, но пока free не работает и надо как-то учесть, что стирать то нельзя)
+	///вот если бы переделать уже с графическим интерфейсом...
+	char* input = SafeInput();
+	if (!VerifyInput(input))
+		return -1;
+	///
+	int input_size = strlen(input);
+
+	char* pDest = input;	//start pointer
+	char* endPtr = input + strlen(input) - 1;	//end pointer
 	char *temp = NULL;
 
+	int temp_size_of_vect = current_size_of_vect;
 	var_const *high_pointer = NULL;
 	var_const *low_pointer = NULL;
 
-	char* varnameDest = strstr(charinput, "=");
+	char* varnameDest = strstr(input, "=");
 
-	char *varname = (char*)malloc(varnameDest - charinput + 1);
-	memcpy(varname, charinput, varnameDest - charinput);
-	varname[varnameDest - charinput] = 0;
+	char *varname = (char*)malloc(varnameDest - input + 1);
+	memcpy(varname, input, varnameDest - input);
+	varname[varnameDest - input] = 0;
 
 	input_var_const[current_size_of_vect].copy(var_const(varname, 0));
 
@@ -129,7 +236,7 @@ int input_to_analize(var_const *input_var_const, int current_size_of_vect)
 						high_pointer = input_var_const[current_size_of_vect].point_left;
 						input_var_const[temp_size_of_vect].point_left = high_pointer;
 						input_var_const[current_size_of_vect].point_left = &input_var_const[temp_size_of_vect];
-												
+
 					}
 					else
 					{
@@ -444,19 +551,21 @@ int input_to_analize(var_const *input_var_const, int current_size_of_vect)
 
 int main()
 {
-
-	vector<var_const> general_var_const(30);
+	//верни все как было, или переделай под новый вариант. почитай документацию по vector
+	//vector<var_const> general_var_const(1);
 	//general_var_const.reserve(30);
-	//array<var_const, 1> general_var_const;
-	cout << "Size: " << general_var_const.capacity() << "  " << sizeof(general_var_const) << endl;
+
+	//cout << "Size: " << general_var_const.capacity() << "  " << sizeof(general_var_const) << endl;
 
 	var_const pi = var_const("pi", 3.1415926535897932384626433832);
 	var_const e = var_const("e", 2.71828182846);
 
-	general_var_const[0].copy(pi);
-	general_var_const[1].copy(e);
+	//general_var_const[0].copy(pi);
+	//general_var_const[1].copy(e);
 
-
+	//general_var_const.push_back(pi);		//добавление нового элемента в конец
+	//general_var_const.push_back(e);
+	vector<var_const> general_var_const = { pi,e };
 
 	int check = input_to_analize(general_var_const.data(), 2);
 

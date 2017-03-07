@@ -55,7 +55,7 @@ public:
 			return recursion(pointer[0].point_left) / recursion(pointer[0].point_right);
 			/*case '4':
 			return pow(recursion(pointer[0].point_left), recursion(pointer[0].point_right));
-			*/
+			*/ 2^(3/5)
 		}
 	}
 
@@ -75,6 +75,8 @@ int input_to_analize(var_const *input_var_const, int current_size_of_vect)
 {
 	string input;
 	cin >> input;
+	
+	
 
 	int temp_size_of_vect = current_size_of_vect;
 	char* charinput = (char*)malloc(input.size());

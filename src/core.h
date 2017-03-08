@@ -29,7 +29,7 @@ namespace Project {
 			double processing(var_const *pointer)
 			{
 				char operation = pointer[0].var_id[0];
-				switch (operation) {				
+				switch (operation) {
 				case'+':
 					return processing(pointer[0].point_left) + processing(pointer[0].point_right);
 				case '*':
@@ -49,7 +49,7 @@ namespace Project {
 				if ((pointer[0].var_id == "+") || (pointer[0].var_id == "*") || (pointer[0].var_id == "/"))
 				{
 					return "(" + expression_processing(pointer[0].point_left) + " " + pointer[0].var_id + " " + expression_processing(pointer[0].point_right) + ")";
-				}				
+				}
 				else if (pointer[0].var_id == "0")
 				{
 					return to_string(pointer[0].var);
@@ -57,7 +57,7 @@ namespace Project {
 				else
 				{
 					return pointer[0].var_id;
-				}				
+				}
 			}
 
 		public:
@@ -118,16 +118,16 @@ namespace Project {
 				switch (operation)
 				{
 				case '+':
-					return 1 + (int)var;					
+					return 1 + (int)var;
 				case '*':
-					return 2 + (int)var;					
+					return 2 + (int)var;
 				case '/':
-					return 3 + (int)var;					
+					return 3 + (int)var;
 				default:
 					return 0;
-				}				
+				}
 			}
-			
+
 
 			string expresion()
 			{
@@ -145,7 +145,7 @@ namespace Project {
 			}
 
 
-			string var_id;				
+			string var_id;
 			double var;
 			var_const *point_left;		//левый рукав
 			var_const *point_right;		//правый рукав
@@ -154,7 +154,15 @@ namespace Project {
 
 		var_const pi = var_const("pi", 3.1415926535897932384626433832);
 		var_const e = var_const("e", 2.71828182846);
-		
+
+		vector<var_const>* input_var_const;
+
+		void Init() {
+			input_var_const = new vector<var_const>;
+			input_var_const->push_back(pi);
+			input_var_const->push_back(e);
+		}
+
 		char* input_to_analize(char* input)
 		{
 			char* error_str = Project::Input::VerifyInput(input);
@@ -166,10 +174,6 @@ namespace Project {
 			char* pDest = input;	//start pointer
 			char* endPtr = input + strlen(input) - 1;	//end pointer
 			char *temp = NULL;
-
-			vector<var_const>* input_var_const = new vector<var_const>;
-			input_var_const->push_back(pi);
-			input_var_const->push_back(e);
 
 			var_const *high_pointer = NULL;
 			var_const *low_pointer = NULL;
@@ -186,7 +190,7 @@ namespace Project {
 
 			int temp_size_of_vect;
 			pDest = varnameDest + 1;
-			var_const *k = &input_var_const->at(current_size_of_vect);	
+			var_const *k = &input_var_const->at(current_size_of_vect);
 
 			int brakets_counter = 0;
 			while (pDest <= endPtr) {
@@ -199,8 +203,8 @@ namespace Project {
 					if (high_pointer == low_pointer)
 					{
 						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
-						input_var_const->push_back(var_const("+", brakets_counter, low_pointer, NULL, &input_var_const->at(current_size_of_vect))); 
-						 //левый рукав текущей вычисляемой константы указывает на созданную операцию
+						input_var_const->push_back(var_const("+", brakets_counter, low_pointer, NULL, &input_var_const->at(current_size_of_vect)));
+						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						input_var_const->at(current_size_of_vect).point_left = &input_var_const->at(temp_size_of_vect);
 						high_pointer = &input_var_const->at(temp_size_of_vect);// верхний указатель -- на созданную операцию
 					}
@@ -211,13 +215,13 @@ namespace Project {
 						if (high_pointer[0].get_priority() <= (brakets_counter + 1))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-							input_var_const->push_back(var_const("+", brakets_counter, low_pointer, NULL, high_pointer));  
+							input_var_const->push_back(var_const("+", brakets_counter, low_pointer, NULL, high_pointer));
 							high_pointer[0].point_right = &input_var_const->at(temp_size_of_vect);  //правый рукав предыдущей -> на созданную
 							high_pointer = &input_var_const->at(temp_size_of_vect);                 //верхний указатель -> на созданную операцию
 						}
 						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
 						else
-						{							
+						{
 							//если приоритет операции с наименьшим приоритетом (на которую указывает левый рукав констанны)  !БОЛЬШЕ! или равен приоритету текущей (получена операция с наименьшим приоритетом)
 							if (input_var_const->at(current_size_of_vect).point_left[0].get_priority() >= (brakets_counter + 1))
 							{
@@ -226,18 +230,18 @@ namespace Project {
 								//воротник предыдущей легчайшей операции -> на новую операцию
 								input_var_const->at(current_size_of_vect).point_left[0].point_collar = &input_var_const->at(temp_size_of_vect);
 								//указываем левым рукавом константы на созданную операцию
-								input_var_const->at(current_size_of_vect).point_left = &input_var_const->at(temp_size_of_vect);								
+								input_var_const->at(current_size_of_vect).point_left = &input_var_const->at(temp_size_of_vect);
 							}
 
 							//если приоритет операции с наименьшим приоритетом (на которую указывает левый рукав констанны)  !МЕНЬШЕ! приоритета текущей, 
 							//т.е. операция приоритено ГДЕ-ТО между последней и наилегчайшей
-							
+
 							else
 							{
 								//получаем указатель на первую операцию в текущей ветке, которая имеет приоритет меньше или равный приоритету текущей 
 								high_pointer = high_pointer[0].prioritize(brakets_counter + 1);
 								//записываем операцию, левый рукав -> правый рукав найденной операции. Воротник -> на саму найденную операцию
-								input_var_const->push_back(var_const("+", brakets_counter,high_pointer[0].point_right,NULL, high_pointer));
+								input_var_const->push_back(var_const("+", brakets_counter, high_pointer[0].point_right, NULL, high_pointer));
 								//воротник правого рукава (!) найденной операции -> созданную операцию
 								high_pointer[0].point_right[0].point_collar = &input_var_const->at(temp_size_of_vect);
 								//правый рукав найденной операции -> созданную операцию
@@ -305,7 +309,7 @@ namespace Project {
 							high_pointer = &input_var_const->at(temp_size_of_vect);  //верхний указатель на созданную операцию
 
 						}
-					}					
+					}
 					pDest++;
 				}
 				else if (*pDest == '/')
@@ -375,8 +379,8 @@ namespace Project {
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						//создание элемента класса и запись числа, воротник -> на конст
-						input_var_const->push_back(var_const("0", strtod(pDest, &pDest), &input_var_const->at(current_size_of_vect))); 
-						 //оба указателя -> на число, тебуется для проверки условия при записи операции
+						input_var_const->push_back(var_const("0", strtod(pDest, &pDest), &input_var_const->at(current_size_of_vect)));
+						//оба указателя -> на число, тебуется для проверки условия при записи операции
 						high_pointer = &input_var_const->at(temp_size_of_vect);
 						low_pointer = &input_var_const->at(temp_size_of_vect);
 						//левый рукав вычисляемой константы -> созданную структуру с числом.
@@ -395,7 +399,7 @@ namespace Project {
 							temp_size_of_vect = input_var_const->size(); //счётчик прохода по массиву увеличивается ещё раз для записи самого числа
 							 //создание элемента класса и запись числа, воротник -> на пред операцию
 							input_var_const->push_back(var_const("0", strtod(pDest, &pDest), high_pointer));
-							 //нижний указатель -> на созданное число
+							//нижний указатель -> на созданное число
 							low_pointer = &input_var_const->at(temp_size_of_vect);
 							//Правый рукав предшествующей операции на созданное число
 							high_pointer[0].point_right = low_pointer;
@@ -439,7 +443,7 @@ namespace Project {
 								if (high_pointer[0].get_priority() <= (brakets_counter + 1))
 								{
 									//записываем операцию, левый рукав -> на предыдущее число, воротник на пред операцию
-									input_var_const->push_back(var_const("+", brakets_counter, low_pointer, NULL, high_pointer));  
+									input_var_const->push_back(var_const("+", brakets_counter, low_pointer, NULL, high_pointer));
 									high_pointer[0].point_right = &input_var_const->at(temp_size_of_vect);  //правый рукав предыдущей -> на созданную
 									high_pointer = &input_var_const->at(temp_size_of_vect);                 //верхний указатель -> на созданную операцию
 								}
@@ -458,10 +462,10 @@ namespace Project {
 
 
 									}
-									
+
 									//если приоритет операции с наименьшим приоритетом (на которую указывает левый рукав констанны)  !МЕНЬШЕ! приоритета текущей, 
 									//т.е. операция приоритено ГДЕ-ТО между последней и наилегчайшей
-									
+
 									else
 									{
 										//получаем указатель на первую операцию в текущей ветке, которая имеет приоритет меньше или равный приоритету текущей 
@@ -498,9 +502,9 @@ namespace Project {
 				}
 				else if ((*pDest == '1') || (*pDest == '2') || (*pDest == '3') || (*pDest == '4') || (*pDest == '5') || (*pDest == '6') || (*pDest == '7') || (*pDest == '8') || (*pDest == '9') || (*pDest == '0'))
 				{                   //любое число имеет id "0"
-					temp_size_of_vect = input_var_const->size();	
-					
-					 // если данное число первое (и возможно единственное) в записи выражения
+					temp_size_of_vect = input_var_const->size();
+
+					// если данное число первое (и возможно единственное) в записи выражения
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						//создание элемента класса и запись числа, воротник -> константу
@@ -515,7 +519,7 @@ namespace Project {
 					else
 					{
 						//создание элемента класса и запись числа, воротник -> пред операцию 
-						input_var_const->push_back(var_const("0", strtod(pDest, &pDest),high_pointer));
+						input_var_const->push_back(var_const("0", strtod(pDest, &pDest), high_pointer));
 						//нижний указатель -> на созданное число
 						low_pointer = &input_var_const->at(temp_size_of_vect);
 						//Правый рукав предшествующей операции на созданное число
@@ -527,7 +531,8 @@ namespace Project {
 			input_var_const->at(current_size_of_vect).arithmetic();
 			//cout << input_var_const->at(current_size_of_vect).var_id << " = " << input_var_const->at(current_size_of_vect).var << endl;
 			//тут выводится изначальное выражение
-			cout << input_var_const->at(current_size_of_vect).expresion()<<endl;
+			//TODO: не.надо.так.делать.оно не будет работать в гуи. доформируй вывод в output
+			//cout << input_var_const->at(current_size_of_vect).expresion()<<endl;
 			int output_size = input_var_const->at(current_size_of_vect).var_id.size() + std::to_string(input_var_const->at(current_size_of_vect).var).size() + 50;
 			char* output = (char*)malloc(output_size);
 			for (int i = 0;i < output_size;i++)
@@ -537,7 +542,7 @@ namespace Project {
 			strcat(output, " = ");
 			strcat(output, std::to_string(input_var_const->at(current_size_of_vect).var).c_str());
 
-			return output;	
+			return output;
 		}
 
 	}

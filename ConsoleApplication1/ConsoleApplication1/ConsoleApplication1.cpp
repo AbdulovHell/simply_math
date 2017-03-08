@@ -8,7 +8,8 @@
 int main()
 {
 	using namespace std;
-
+	
+	Project::Core::Init();
 	do {
 		cout << "Input:" << endl;
 		string sInput;

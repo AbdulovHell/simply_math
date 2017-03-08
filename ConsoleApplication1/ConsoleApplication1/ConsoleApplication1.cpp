@@ -20,91 +20,42 @@ char* err_str(int pos) {
 	return str;
 }
 
-bool VerifyInput(char* input) {
+char* VerifyInput(char* input) {	//возвращает строку, описывающую ошибку, иначе nullptr, 0 кароч.
 	//char* EndStr = &input[strlen(input)];
 	//char* cursor = input;
 	int len = strlen(input);
 	int left_bracket = 0, right_bracket = 0, ravno = 0;
+	char buf[300];
 
-	return true;
-	//херня, над переделать, добавить еще A-Z,a-z и т.д. else if кучи мб
 	for (int i = 0;i < len;i++)
-		switch (input[i]) {
-		case '(':
+		if (input[i] == '(')
 			left_bracket++;
-			break;
-		case ')':
+		else if (input[i] == ')')
 			right_bracket++;
-			break;
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
-		case '+':
-		case '-':
-		case '*':
-		case '/':
-		case '.':
-			break;
-		case '=':
+		else if (input[i] == '=')
 			ravno++;
-			break;
-		default:
-			printf("\nBad symbol, '%c':\n", input[i]);
-			printf(input);
-			printf("\n");
-			printf(err_str(i));
-			printf("\n");
-			return false;
+		else if ((input[i] >= 0x2A && input[i] <= 0x39) || (input[i] >= 0x41 && input[i] <= 0x5A) || (input[i] >= 0x61 && input[i] <= 0x7A)) {}
+		else {
+			sprintf(buf,"\nBad symbol, '%c':\n", input[i]);
+			strcat(buf,input);
+			strcat(buf,"\n");
+			strcat(buf,err_str(i));
+			strcat(buf,"\n");
+			return buf;
 		}
-
-	if (left_bracket != right_bracket) {
-		printf("\n ( and ) error.\n");
-		return false;
-	}
-	if (ravno > 1) {
-		printf("\n'='>1 error.\n");
-		return false;
-	}
-	/*
-	while (cursor < EndStr) {
-
-	}*/
-	return true;
-}
-char* SafeInput() {
-#define MEMRATE 10
-	char* buf = (char*)malloc(MEMRATE);
-	char a;
-	int len = 0;
-	int mem_commited = MEMRATE;
-
-	for (int i = 0;i < MEMRATE;i++)
-		buf[i] = 0;
-
-	do {
-		a = _getche();
-		if (a == '\r')
-			break;
-		buf[len] = a;
-		len++;
-		if (len >= mem_commited - 1) {
-			char* temp = buf;
-			buf = (char*)realloc(buf, mem_commited + MEMRATE);
-			//free(temp); НЕ РАБОТАЕТ! не пойму, что не так... мне кажется что-то со студией, т.к. на работе в другом проекте, где я вообще не использую free,
-			//всеравно вылетает, потому что ее видимо юзает сам сборшик мусора
-			mem_commited += MEMRATE;
+		if (left_bracket != right_bracket) {
+			sprintf(buf,"\n ( and ) error.\n");
+			return buf;
 		}
+		if (ravno > 1) {
+			sprintf(buf,"\n'='>1 error.\n");
+			return buf;
+		}
+		/*
+		while (cursor < EndStr) {
 
-	} while (1);
-	buf[len] = 0;
-	return buf;
+		}*/
+		return NULL;
 }
 
 class var_const {
@@ -182,8 +133,8 @@ int input_to_analize(var_const *input_var_const, int current_size_of_vect)
 	*/
 	///новый вариант, пробелы кушает, память динамическая, но пока free не работает и надо как-то учесть, что стирать то нельзя)
 	///вот если бы переделать уже с графическим интерфейсом...
-	char* input = SafeInput();
-	if (!VerifyInput(input))
+	char* error_str = VerifyInput(input);
+	if (error_str!=NULL)
 		return -1;
 	///
 	int input_size = strlen(input);

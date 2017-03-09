@@ -520,8 +520,8 @@ namespace Project {
 					p_var = (char*)malloc(strpbrk(pDest, ")+-*/^") - pDest + 1);
 					strncpy(p_var, pDest,2*(strpbrk(pDest, ")+-*/^") - pDest));
 					p_var[strpbrk(pDest, ")+-*/^") - pDest] = 0;
-					
-					for (count = 0; count <= temp_size_of_vect; count++)
+					//проходим по вектору, ищем переменную/конст/функц с таким именем
+					for (count = 0; count < temp_size_of_vect; count++)
 					{
 						id = strstr(&input_var_const->at(count).var_id[0], "@");
 						if (id != NULL)
@@ -529,7 +529,9 @@ namespace Project {
 							prefix = (char*)malloc(5 * sizeof(char));
 							strcpy(prefix, &input_var_const->at(count).var_id[0]);
 							prefix[5] = 0;
-							if ((strcoll(prefix, "const") == NULL) || (strcoll(prefix, "varbl") == NULL))
+							if (strcoll(prefix, "const") == NULL)
+							{
+								//если найдена константа
 								if ((strcoll(id + 1, p_var) == NULL))
 								{
 									if ((high_pointer == NULL) && (low_pointer == NULL))
@@ -547,11 +549,52 @@ namespace Project {
 										//Правый рукав предшествующей операции на конст или перем из массива
 										high_pointer[0].point_right = low_pointer;
 									}
-									
+									count += temp_size_of_vect;  //не имеет смысла считать дальше
 								}
-							
+							}
+							//если найдена переменная
+							else if (strcoll(prefix, "varbl") == NULL)
+							{												
+								if (strcoll(id + 1, p_var) == NULL) 
+									//и она соответствует переменной на которую указывает функция
+									if (strcoll(id + 1, &input_var_const->at(current_size_of_vect).point_right[0].var_id[6]) == NULL)
+									{
+										if ((high_pointer == NULL) && (low_pointer == NULL))
+										{
+											//оба указателя -> на конст или перем из массива, тебуется для проверки условия при записи операции
+											high_pointer = &input_var_const->at(count);
+											low_pointer = &input_var_const->at(count);
+											//левый рукав вычисляемой константы -> созданную структуру с числом.
+											input_var_const->at(current_size_of_vect).point_left = &input_var_const->at(count);
+										}
+										else
+										{
+											//нижний указатель -> на конст или перем из массива
+											low_pointer = &input_var_const->at(count);
+											//Правый рукав предшествующей операции на конст или перем из массива
+											high_pointer[0].point_right = low_pointer;
+										}
+										count += temp_size_of_vect;  //не имеет смысла считать дальше
+									}
+									//и она не соответствует переменной на которую указывает функция
+									else
+									{
+										//ошибка, мы ничего не знаем о функциях нескольких аргументов и тп
+									}
+								
+							}
+							else if (strcoll(prefix, "funct") == NULL)
+							{
+								//если найдена функция
+								if (strcoll(id + 1, p_var) == NULL)
+								{
+									//пока ошибка. в данном случая это вложение одной функции в другую, необходимо проверять соответствие переменных в обеих
+								}
+							}
 						}
 					}
+					if()
+					pDest++;
 				}
 			}
 			general_var_const->at(current_size_of_vect).arithmetic();

@@ -46,9 +46,16 @@ namespace Project {
 
 			string expression_processing(var_const *pointer)
 			{
-				if ((pointer[0].var_id == "+") || (pointer[0].var_id == "*") || (pointer[0].var_id == "/"))
+				if ((pointer[0].var_id == "*") || (pointer[0].var_id == "/"))
 				{
-					return "(" + expression_processing(pointer[0].point_left) + " " + pointer[0].var_id + " " + expression_processing(pointer[0].point_right) + ")";
+					return expression_processing(pointer[0].point_left) + " " + pointer[0].var_id + " " + expression_processing(pointer[0].point_right);
+				}
+				else if (pointer[0].var_id == "+")
+				{
+					if ((pointer[0].point_collar[0].var_id == "*") || (pointer[0].point_collar[0].var_id == "/"))
+						return "(" + expression_processing(pointer[0].point_left) + " " + pointer[0].var_id + " " + expression_processing(pointer[0].point_right) + ")";
+					else
+						return expression_processing(pointer[0].point_left) + " " + pointer[0].var_id + " " + expression_processing(pointer[0].point_right);
 				}
 				else if (pointer[0].var_id == "0")
 				{
@@ -152,46 +159,27 @@ namespace Project {
 			var_const *point_collar;	//воротник
 		};
 
-		var_const pi = var_const("pi", 3.1415926535897932384626433832);
-		var_const e = var_const("e", 2.71828182846);
+		var_const pi = var_const("const@pi", 3.1415926535897932384626433832);
+		var_const e = var_const("const@e", 2.71828182846);
 
-		vector<var_const>* input_var_const;
+		vector<var_const>* general_var_const;
 
 		void Init() {
-			input_var_const = new vector<var_const>;
-			input_var_const->push_back(pi);
-			input_var_const->push_back(e);
+			general_var_const = new vector<var_const>;
+			general_var_const->push_back(pi);
+			general_var_const->push_back(e);
 		}
 
-		char* input_to_analize(char* input)
+
+		char* filling_vector(char* pDest, char* endPtr, vector<var_const> *input_var_const,int current_size_of_vect)
 		{
-			char* error_str = Project::Input::VerifyInput(input);
-			if (error_str != NULL)
-				return error_str;
-
-			int input_size = strlen(input);
-
-			char* pDest = input;	//start pointer
-			char* endPtr = input + strlen(input) - 1;	//end pointer
-			char *temp = NULL;
-
+			int temp_size_of_vect;
+			int count;
 			var_const *high_pointer = NULL;
 			var_const *low_pointer = NULL;
-
-			char* varnameDest = strstr(input, "=");
-
-			char *varname = (char*)malloc(varnameDest - input + 1);
-			memcpy(varname, input, varnameDest - input);
-			varname[varnameDest - input] = 0;
-
-			int current_size_of_vect = input_var_const->size(); //равен 2, значит является индексом третьего элемента
-			input_var_const->push_back(var_const(varname, 0));
-			input_var_const->reserve(input_size * 2 + current_size_of_vect);
-
-			int temp_size_of_vect;
-			pDest = varnameDest + 1;
-			var_const *k = &input_var_const->at(current_size_of_vect);
-
+			char* p_var;
+			char* prefix;
+			char* id;
 			int brakets_counter = 0;
 			while (pDest <= endPtr) {
 
@@ -397,7 +385,7 @@ namespace Project {
 							input_var_const->at(current_size_of_vect).point_left = &input_var_const->at(temp_size_of_vect);//левый рукав текущей вычисляемой константы указывает на созданную операцию
 							high_pointer = &input_var_const->at(temp_size_of_vect);// верхний указатель -- на созданную операцию
 							temp_size_of_vect = input_var_const->size(); //счётчик прохода по массиву увеличивается ещё раз для записи самого числа
-							 //создание элемента класса и запись числа, воротник -> на пред операцию
+																		 //создание элемента класса и запись числа, воротник -> на пред операцию
 							input_var_const->push_back(var_const("0", strtod(pDest, &pDest), high_pointer));
 							//нижний указатель -> на созданное число
 							low_pointer = &input_var_const->at(temp_size_of_vect);
@@ -418,7 +406,7 @@ namespace Project {
 									high_pointer[0].point_right = &input_var_const->at(temp_size_of_vect);
 									high_pointer = &input_var_const->at(temp_size_of_vect);// верхний указатель -- на созданную операцию
 									temp_size_of_vect = input_var_const->size(); //счётчик прохода по массиву увеличивается ещё раз для записи самого числа
-									 //создание элемента класса и запись числа, воротник на созданную операцию
+																				 //создание элемента класса и запись числа, воротник на созданную операцию
 									input_var_const->push_back(var_const("0", strtod(pDest, &pDest), high_pointer));
 									//нижний указатель -> на созданное число
 									low_pointer = &input_var_const->at(temp_size_of_vect);
@@ -480,7 +468,7 @@ namespace Project {
 									high_pointer = &input_var_const->at(temp_size_of_vect);  //верхний указатель на созданную операцию			
 								}
 								temp_size_of_vect = input_var_const->size(); //счётчик прохода по массиву увеличивается ещё раз для записи самого числа
-								//создание элемента класса и запись числа, воротник -> пред операцию
+																			 //создание элемента класса и запись числа, воротник -> пред операцию
 								input_var_const->push_back(var_const("0", strtod(pDest, &pDest), high_pointer));
 								//нижний указатель -> на созданное число
 								low_pointer = &input_var_const->at(temp_size_of_vect);
@@ -526,24 +514,183 @@ namespace Project {
 						high_pointer[0].point_right = low_pointer;
 					}
 				}
+				else
+				{
+					temp_size_of_vect = input_var_const->size();
+					p_var = (char*)malloc(strpbrk(pDest, ")+-*/^") - pDest + 1);
+					strncpy(p_var, pDest,2*(strpbrk(pDest, ")+-*/^") - pDest));
+					p_var[strpbrk(pDest, ")+-*/^") - pDest] = 0;
+					
+					for (count = 0; count <= temp_size_of_vect; count++)
+					{
+						id = strstr(&input_var_const->at(count).var_id[0], "@");
+						if (id != NULL)
+						{
+							prefix = (char*)malloc(5 * sizeof(char));
+							strcpy(prefix, &input_var_const->at(count).var_id[0]);
+							prefix[5] = 0;
+							if ((strcoll(prefix, "const") == NULL) || (strcoll(prefix, "varbl") == NULL))
+								if ((strcoll(id + 1, p_var) == NULL))
+								{
+									if ((high_pointer == NULL) && (low_pointer == NULL))
+									{
+										//оба указателя -> на конст или перем из массива, тебуется для проверки условия при записи операции
+										high_pointer = &input_var_const->at(count);
+										low_pointer = &input_var_const->at(count);
+										//левый рукав вычисляемой константы -> созданную структуру с числом.
+										input_var_const->at(current_size_of_vect).point_left = &input_var_const->at(count);
+									}
+									else
+									{
+										//нижний указатель -> на конст или перем из массива
+										low_pointer = &input_var_const->at(count);
+										//Правый рукав предшествующей операции на конст или перем из массива
+										high_pointer[0].point_right = low_pointer;
+									}
+									
+								}
+							
+						}
+					}
+				}
 			}
-
-			input_var_const->at(current_size_of_vect).arithmetic();
-			//cout << input_var_const->at(current_size_of_vect).var_id << " = " << input_var_const->at(current_size_of_vect).var << endl;
-			//тут выводится изначальное выражение
-			//TODO: не.надо.так.делать.оно не будет работать в гуи. доформируй вывод в output
-			//cout << input_var_const->at(current_size_of_vect).expresion()<<endl;
-			int output_size = input_var_const->at(current_size_of_vect).var_id.size() + std::to_string(input_var_const->at(current_size_of_vect).var).size() + 50;
+			general_var_const->at(current_size_of_vect).arithmetic();
+			int output_size = general_var_const->at(current_size_of_vect).var_id.size() + std::to_string(general_var_const->at(current_size_of_vect).var).size() + 50;
 			char* output = (char*)malloc(output_size);
-			for (int i = 0;i < output_size;i++)
+			for (int i = 0; i < output_size; i++)
 				output[i] = 0;
-
-			strcpy(output, input_var_const->at(current_size_of_vect).var_id.c_str());
+			//потому что иногда я хочу видеть эту строку сразу
+			cout << input_var_const->at(current_size_of_vect).expresion()<<endl;
+			strcpy(output, general_var_const->at(current_size_of_vect).var_id.c_str());
 			strcat(output, " = ");
-			strcat(output, std::to_string(input_var_const->at(current_size_of_vect).var).c_str());
+			strcat(output, std::to_string(general_var_const->at(current_size_of_vect).var).c_str());
 
 			return output;
 		}
 
+		char* input_to_analize(char* input)
+		{
+			char* error_str = Project::Input::VerifyInput(input);
+			if (error_str != NULL)
+				return error_str;
+
+			int input_size = strlen(input);
+			int size_of_vect;
+			int count;
+			int  brackets_left = 0;
+			int brackets_right = 0;
+			char* point_start = input;	//start pointer
+			char* point_end = input + strlen(input) - 1;	//end pointer			
+								
+			char* equal_right = strstr(input, "="); // равно и справа от равно
+			char* temp;
+			char *equal_left = (char*)malloc(equal_right - input + 1); //слева от равно
+			memcpy(equal_left, input, equal_right - input);
+			equal_left[equal_right - input] = 0;
+
+			//если справа после равно ничего нет
+			if (equal_right == point_end)
+			{
+
+			}
+			//если справа что-то есть
+			//если слева есть операции
+			else if (strpbrk(equal_left, "+*/^") != NULL)
+			{
+			
+			}
+			//если слева есть минус
+			else if (strstr(equal_left, "-") != NULL)
+			{
+
+			}
+			//нет операцийскобки
+			else if (strstr(equal_left, "(") != NULL)
+			{
+				if (strstr(equal_left, ")") == NULL)
+				{
+					                                 //error
+				}
+				else 
+				{
+					temp = equal_left;
+					while (temp <= equal_right)
+					{
+						if (strstr(temp, "(") != NULL)
+						{
+							brackets_left++;
+							temp = strstr(temp, "(") + 1;
+						}
+					}
+					temp = equal_left;
+					while(temp <= equal_right)
+					{
+						if (strstr(temp, ")") != NULL)
+						{
+							brackets_right++;
+							temp = strstr(temp, ")") + 1;
+						}							
+					}
+					if ((brackets_left > 1)||(brackets_right > 1)||(brackets_right != brackets_left))
+					{
+						//error
+					}
+					//слева от равно нет операций, но есть одна правая и одна левая скобка и нет цифр
+					else if (strpbrk(equal_left, "0123456789") == NULL)
+					{
+						//записываем переменную - всё, что стоит в скобках
+						//необходимо будет добавить условие, проверяющее существует ли уже данная переменная в массиве
+						//если существует - ничего не записывать - только указать нувую функцию на неё
+						size_of_vect = general_var_const->size();
+						temp = (char*)malloc(strstr(temp, ")") - strstr(temp, "(") + 7);
+						strcpy(temp, "varbl@");
+						strcat(temp, strstr(equal_left, "(") + 1);
+						temp[strstr(temp, ")") - temp] = 0;
+						general_var_const->push_back(var_const(temp, 0));
+						free(temp);
+						//записываем функцию, указываем правым рукавом  на созданную переменную						
+						size_of_vect = general_var_const->size();
+						temp = (char*)malloc(equal_right - input + 7);
+						strcpy(temp, "funct@");
+						strcat(temp, equal_left);
+						general_var_const->push_back(var_const(temp, 0));
+						general_var_const->reserve(input_size * 2 + size_of_vect);
+						free(temp);
+						general_var_const->at(size_of_vect).point_right = &general_var_const->at(size_of_vect - 1);
+						general_var_const->at(size_of_vect - 1).point_collar = &general_var_const->at(size_of_vect);
+						point_start = equal_right + 1;
+
+						return filling_vector(point_start, point_end, general_var_const, size_of_vect);
+
+					}
+					//слева от равно нет операций, но есть одна правая и одна левая скобка и цифры
+					else
+					{
+						//тут надо разобраться с последовательностью условий
+						//эта ветка для вычисления значения функции в точке (запись вида f(3.5)), когда функция f уже определена
+						//по идее нужно это проверять только когда после равно ничего нет, т.е. просто считать и выводить результат
+						//но это может быть присвоение, например f(3.5) = t (впрочем можно запретить такой синтаксис)
+					}
+				}
+			}
+			else if (strpbrk(equal_left, "0123456789") != NULL)
+			{
+
+			}
+			//слева от равно стоят только буквы 
+			else
+			{
+				size_of_vect = general_var_const->size();
+				temp = (char*)malloc(equal_right - input + 7);
+				strcpy(temp, "const@");
+				strcat(temp, equal_left);
+				general_var_const->push_back(var_const(temp, 0));
+				general_var_const->reserve(input_size * 2 + size_of_vect);
+				free(temp);
+				point_start = equal_right + 1;
+
+				return filling_vector(point_start, point_end, general_var_const, size_of_vect);
+			}
+		}
 	}
 }

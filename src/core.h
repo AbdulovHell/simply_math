@@ -134,7 +134,29 @@ namespace Project {
 					return 0;
 				}
 			}
-
+			
+			string read(string arg)
+			{
+				char* id = strstr(&var_id[0], "@");
+				char* temp = (char*)malloc(5*sizeof(char));
+				if (id != NULL)
+				{
+					if (arg == "type")
+					{
+						strncpy(temp, &var_id[0], 5);
+						temp[5] = 0;
+						return temp;
+					}
+					else if (arg == "name")
+					{
+						return id + 1;
+					}
+				}
+				else
+				{
+					return var_id;
+				}
+			}
 
 			string expresion()
 			{
@@ -178,8 +200,7 @@ namespace Project {
 			var_const *high_pointer = NULL;
 			var_const *low_pointer = NULL;
 			char* p_var;
-			char* prefix;
-			char* id;
+			char* temp;
 			int brakets_counter = 0;
 			while (pDest <= endPtr) {
 
@@ -517,22 +538,25 @@ namespace Project {
 				else
 				{
 					temp_size_of_vect = input_var_const->size();
-					p_var = (char*)malloc(strpbrk(pDest, ")+-*/^") - pDest + 1);
-					strncpy(p_var, pDest,2*(strpbrk(pDest, ")+-*/^") - pDest));
-					p_var[strpbrk(pDest, ")+-*/^") - pDest] = 0;
+					temp = strpbrk(pDest, ")+-*/^");
+					if (temp != NULL)
+					{
+						p_var = (char*)malloc(temp - pDest + 1);
+						strncpy(p_var, pDest, temp - pDest);
+						p_var[temp - pDest] = 0;
+					}
+					else
+					{
+						p_var = (char*)malloc(endPtr - pDest + 1);
+						strcpy(p_var, pDest);						
+					}
 					//проходим по вектору, ищем переменную/конст/функц с таким именем
 					for (count = 0; count < temp_size_of_vect; count++)
-					{
-						id = strstr(&input_var_const->at(count).var_id[0], "@");
-						if (id != NULL)
-						{
-							prefix = (char*)malloc(5 * sizeof(char));
-							strcpy(prefix, &input_var_const->at(count).var_id[0]);
-							prefix[5] = 0;
-							if (strcoll(prefix, "const") == NULL)
+					{						
+							if (input_var_const->at(count).read("type") == "const")
 							{
 								//если найдена константа
-								if ((strcoll(id + 1, p_var) == NULL))
+								if (p_var == input_var_const->at(count).read("name"))
 								{
 									if ((high_pointer == NULL) && (low_pointer == NULL))
 									{
@@ -549,15 +573,15 @@ namespace Project {
 										//Правый рукав предшествующей операции на конст или перем из массива
 										high_pointer[0].point_right = low_pointer;
 									}
-									count += temp_size_of_vect;  //не имеет смысла считать дальше
+									break;  //не имеет смысла считать дальше
 								}
 							}
 							//если найдена переменная
-							else if (strcoll(prefix, "varbl") == NULL)
+							else if (input_var_const->at(count).read("type") == "varbl")
 							{												
-								if (strcoll(id + 1, p_var) == NULL) 
+								if (p_var == input_var_const->at(count).read("name"))
 									//и она соответствует переменной на которую указывает функция
-									if (strcoll(id + 1, &input_var_const->at(current_size_of_vect).point_right[0].var_id[6]) == NULL)
+									if (input_var_const->at(current_size_of_vect).point_right == &input_var_const->at(count))
 									{
 										if ((high_pointer == NULL) && (low_pointer == NULL))
 										{
@@ -574,7 +598,7 @@ namespace Project {
 											//Правый рукав предшествующей операции на конст или перем из массива
 											high_pointer[0].point_right = low_pointer;
 										}
-										count += temp_size_of_vect;  //не имеет смысла считать дальше
+										break;  //не имеет смысла считать дальше
 									}
 									//и она не соответствует переменной на которую указывает функция
 									else
@@ -583,18 +607,18 @@ namespace Project {
 									}
 								
 							}
-							else if (strcoll(prefix, "funct") == NULL)
+							else if (input_var_const->at(count).read("type") == "funct")
 							{
 								//если найдена функция
-								if (strcoll(id + 1, p_var) == NULL)
+								if (p_var == input_var_const->at(count).read("name"))
 								{
 									//пока ошибка. в данном случая это вложение одной функции в другую, необходимо проверять соответствие переменных в обеих
 								}
 							}
-						}
 					}
-					if()
-					pDest++;
+					
+					
+					pDest+=strlen(p_var);
 				}
 			}
 			general_var_const->at(current_size_of_vect).arithmetic();

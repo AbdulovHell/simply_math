@@ -63,7 +63,7 @@ namespace Project {
 				}
 				else
 				{
-					return pointer[0].var_id;
+					return pointer[0].read("name");
 				}
 			}
 
@@ -138,29 +138,51 @@ namespace Project {
 			string read(string arg)
 			{
 				char* id = strstr(&var_id[0], "@");
-				char* temp = (char*)malloc(5*sizeof(char));
+				char* out = (char*)malloc(5*sizeof(char));
+				char* temp = NULL;
 				if (id != NULL)
 				{
 					if (arg == "type")
 					{
-						strncpy(temp, &var_id[0], 5);
-						temp[5] = 0;
-						return temp;
+						strncpy(out, var_id.c_str(), 5);
+						out[5] = 0;
+						return out;
 					}
 					else if (arg == "name")
 					{
 						return id + 1;
 					}
+					else if (arg == "func")
+					{
+						strncpy(out, var_id.c_str(), 5);
+						out[5] = 0;						
+						if (out == "funct")
+						{
+							free(out);
+							temp = strstr(&var_id[0], "(");
+							out = (char*)malloc(temp - (id + 1));
+							strncpy(out, id + 1, temp - (id + 1));
+							return out;
+						}
+						else //if ((out == "const")||(out == "varbl"))
+						{
+							return id + 1;
+						}
+					}
+					else
+					{
+						return "fuck up";
+					}
 				}
 				else
 				{
 					return var_id;
-				}
+				}				
 			}
 
 			string expresion()
 			{
-				return var_id + " = " + expression_processing(point_left);
+				return read("name") + " = " + expression_processing(point_left);
 			}
 
 			var_const *prioritize(int current_priority)
@@ -193,7 +215,7 @@ namespace Project {
 		}
 
 
-		char* filling_vector(char* pDest, char* endPtr, vector<var_const> *input_var_const,int current_size_of_vect)
+		var_const* filling_vector(char* pDest, char* endPtr, vector<var_const> *input_var_const,int current_size_of_vect)
 		{
 			int temp_size_of_vect;
 			int count;
@@ -544,6 +566,7 @@ namespace Project {
 						p_var = (char*)malloc(temp - pDest + 1);
 						strncpy(p_var, pDest, temp - pDest);
 						p_var[temp - pDest] = 0;
+						temp = NULL;
 					}
 					else
 					{
@@ -612,27 +635,104 @@ namespace Project {
 								//если найдена функция
 								if (p_var == input_var_const->at(count).read("name"))
 								{
-									//пока ошибка. в данном случая это вложение одной функции в другую, необходимо проверять соответствие переменных в обеих
+									break;//пока ошибка. в данном случая это вложение одной функции в другую, необходимо проверять соответствие переменных в обеих
 								}
 							}
 					}
-					
-					
+					//если в массиве нет ничего с таким именем, найдена новая переменная
+					if (count == temp_size_of_vect)
+					{
+						temp = (char*)malloc(6 * sizeof(char) + strlen(p_var));
+						strcpy(temp, "varbl@");
+						strcat(temp, p_var);
+						if ((high_pointer == NULL) && (low_pointer == NULL))
+						{
+							input_var_const->push_back(var_const(temp, 0, &input_var_const->at(current_size_of_vect)));
+							//оба указателя -> на конст или перем из массива, тебуется для проверки условия при записи операции
+							high_pointer = &input_var_const->at(temp_size_of_vect);
+							low_pointer = &input_var_const->at(temp_size_of_vect);
+							//левый рукав вычисляемой константы -> созданную структуру с числом.
+							input_var_const->at(current_size_of_vect).point_left = &input_var_const->at(count);
+						}
+						else
+						{
+							input_var_const->push_back(var_const(temp, 0, &input_var_const->at(current_size_of_vect)));
+							//нижний указатель -> на конст или перем из массива
+							low_pointer = &input_var_const->at(temp_size_of_vect);
+							//Правый рукав предшествующей операции на конст или перем из массива
+							high_pointer[0].point_right = low_pointer;
+						}
+						//free(temp);
+						if (input_var_const->at(current_size_of_vect).read("type") == "const")
+						{
+							temp = (char*)malloc(7 * sizeof(char) + strlen(p_var) + strlen(input_var_const->at(current_size_of_vect).read("name").c_str()));
+							strcpy(temp, "funct@");
+							strcat(temp, &input_var_const->at(current_size_of_vect).read("name")[0]);
+							strcat(temp, "(");
+							strcat(temp, p_var);
+							strcat(temp, ")");
+							input_var_const->at(current_size_of_vect).var_id = temp;
+							input_var_const->at(current_size_of_vect).point_right = &input_var_const->at(temp_size_of_vect);
+							//free(temp);
+						}
+						else if(input_var_const->at(current_size_of_vect).read("type") == "equat")//пока оставлю это здесь для будущей реализации уравнений
+						{
+							
+						}
+						else
+						{
+							//случай, когда мы попали на функцию, которая указывает на другую, уже заданную переменную,
+							//н-р ввод f(x)=t+1, пока ошибка ввода - мы не умеем функции нескольких переменных
+						}
+
+					}
 					pDest+=strlen(p_var);
+					//free(p_var);
+					//free(temp);
 				}
 			}
-			general_var_const->at(current_size_of_vect).arithmetic();
-			int output_size = general_var_const->at(current_size_of_vect).var_id.size() + std::to_string(general_var_const->at(current_size_of_vect).var).size() + 50;
-			char* output = (char*)malloc(output_size);
-			for (int i = 0; i < output_size; i++)
-				output[i] = 0;
-			//потому что иногда я хочу видеть эту строку сразу
-			cout << input_var_const->at(current_size_of_vect).expresion()<<endl;
-			strcpy(output, general_var_const->at(current_size_of_vect).var_id.c_str());
-			strcat(output, " = ");
-			strcat(output, std::to_string(general_var_const->at(current_size_of_vect).var).c_str());
+			return &input_var_const->at(current_size_of_vect);
+		}
 
-			return output;
+		char* analized_output(char* _pDest, char* _endPtr, vector<var_const> *_input_var_const, int _current_size_of_vect)
+		{
+			var_const* current_type = filling_vector(_pDest, _endPtr, _input_var_const, _current_size_of_vect);
+			string expr;
+			int output_size;
+			if (current_type->read("type") == "const")
+			{
+				current_type->arithmetic();
+				expr = current_type->expresion();
+				output_size = strlen(&current_type->var_id[0]) + strlen(&to_string(current_type->var)[0]) + 10 + strlen(expr.c_str());
+				char* output = (char*)malloc(output_size);
+				for (int i = 0; i < output_size; i++)
+					output[i] = 0;
+				strcpy(output, expr.c_str());
+				strcat(output,"\n");
+				strcat(output, current_type->read("name").c_str());
+				strcat(output, " = ");
+				strcat(output, std::to_string(current_type->var).c_str());
+				return output;
+			}	
+			else if (current_type->read("type") == "funct")
+			{				
+				expr = current_type->expresion();
+				output_size = strlen(&current_type->var_id[0]) + strlen(&to_string(current_type->var)[0]) + 10 + strlen(expr.c_str());
+				char* output = (char*)malloc(output_size);
+				for (int i = 0; i < output_size; i++)
+					output[i] = 0;
+				strcpy(output, expr.c_str());
+				strcat(output, "\n");
+				//strcat(output, current_type->read("name").c_str());
+				//strcat(output, " = ");
+				//strcat(output, std::to_string(current_type->var).c_str());
+				return output;
+			}
+			
+			
+			//потому что иногда я хочу видеть эту строку сразу
+			//cout << input_var_const->at(current_size_of_vect).expresion() << endl;
+			
 		}
 
 		char* input_to_analize(char* input)
@@ -727,7 +827,7 @@ namespace Project {
 						general_var_const->at(size_of_vect - 1).point_collar = &general_var_const->at(size_of_vect);
 						point_start = equal_right + 1;
 
-						return filling_vector(point_start, point_end, general_var_const, size_of_vect);
+						return analized_output(point_start, point_end, general_var_const, size_of_vect);
 
 					}
 					//слева от равно нет операций, но есть одна правая и одна левая скобка и цифры
@@ -746,17 +846,49 @@ namespace Project {
 			}
 			//слева от равно стоят только буквы 
 			else
-			{
+			{				
 				size_of_vect = general_var_const->size();
-				temp = (char*)malloc(equal_right - input + 7);
-				strcpy(temp, "const@");
-				strcat(temp, equal_left);
-				general_var_const->push_back(var_const(temp, 0));
-				general_var_const->reserve(input_size * 2 + size_of_vect);
-				free(temp);
-				point_start = equal_right + 1;
-
-				return filling_vector(point_start, point_end, general_var_const, size_of_vect);
+				for (count = 0; count < size_of_vect; count++)
+				{
+					if (equal_left == general_var_const->at(count).read("func"))
+					{
+						if (general_var_const->at(count).read("type") == "const")
+						{
+							point_start = equal_right + 1;
+							return analized_output(point_start, point_end, general_var_const, count);
+						}
+						else if (general_var_const->at(count).read("type") == "varbl")
+						{
+							temp = (char*)malloc(equal_right - input + 7);
+							strcpy(temp, "const@");
+							strcat(temp, equal_left);
+							general_var_const->at(count).var_id = temp;
+							point_start = equal_right + 1;
+							free(temp);
+							return analized_output(point_start, point_end, general_var_const, count);
+						}
+						else if (general_var_const->at(count).read("type") == "funct")
+						{
+							point_start = equal_right + 1;
+							return analized_output(point_start, point_end, general_var_const, count);
+						}
+						else
+						{
+							return "fuck up";//кто знает что ещё тут может быть
+						}
+					}
+				}
+				if (count == size_of_vect)
+				{
+					temp = (char*)malloc(equal_right - input + 7);
+					strcpy(temp, "const@");
+					strcat(temp, equal_left);
+					general_var_const->push_back(var_const(temp, 0));
+					general_var_const->reserve(input_size * 2 + size_of_vect);
+					free(temp);
+					point_start = equal_right + 1;
+					return analized_output(point_start, point_end, general_var_const, size_of_vect);
+				}				
 			}
 		}
 	}

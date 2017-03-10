@@ -440,6 +440,7 @@ namespace Project {
 						{
 							//если операци€ вычитани€ стоит в записи после операции, сто€щей перед скобкой (т.е. вычитание стоит в скобках)
 							if (brakets_counter > high_pointer[0].var)
+							{
 								//если предыдуща€ операци€ заполнена до конца (правый рукав на что-то указывает)
 								if (high_pointer[0].point_right != NULL)
 								{
@@ -467,6 +468,7 @@ namespace Project {
 									//ѕравый рукав предшествующей операции на созданное число. 
 									high_pointer[0].point_right = low_pointer;
 								}
+							}
 							//если операци€ вычитани€ стоит в записи после операции, сто€щей внутри одних и тех же скобок (или вообще без них)
 							else
 							{
@@ -477,6 +479,7 @@ namespace Project {
 									input_var_const->push_back(var_const("+", brakets_counter, low_pointer, NULL, high_pointer));
 									high_pointer[0].point_right = &input_var_const->at(temp_size_of_vect);  //правый рукав предыдущей -> на созданную
 									high_pointer = &input_var_const->at(temp_size_of_vect);                 //верхний указатель -> на созданную операцию
+								
 								}
 								//если приоритет предыдущей обработанной операции !ЅќЋ№Ў≈! чем приоритет текущей
 								else
@@ -490,8 +493,6 @@ namespace Project {
 										input_var_const->at(current_size_of_vect).point_left[0].point_collar = &input_var_const->at(temp_size_of_vect);
 										//указываем левым рукавом константы на созданную операцию
 										input_var_const->at(current_size_of_vect).point_left = &input_var_const->at(temp_size_of_vect);
-
-
 									}
 
 									//если приоритет операции с наименьшим приоритетом (на которую указывает левый рукав констанны)  !ћ≈Ќ№Ў≈! приоритета текущей, 
@@ -859,12 +860,12 @@ namespace Project {
 						}
 						else if (general_var_const->at(count).read("type") == "varbl")
 						{
-							temp = (char*)malloc(equal_right - input + 7);
+							/*temp = (char*)malloc(equal_right - input + 7);
 							strcpy(temp, "const@");
 							strcat(temp, equal_left);
-							general_var_const->at(count).var_id = temp;
+							general_var_const->at(count).var_id = temp;*/
 							point_start = equal_right + 1;
-							free(temp);
+							//free(temp);
 							return analized_output(point_start, point_end, general_var_const, count);
 						}
 						else if (general_var_const->at(count).read("type") == "funct")

@@ -1,7 +1,12 @@
+///Macros
+#define GET_FRAC(var) ((double)((double)var-(int)var))
+#define GET_INTGR(var) ((int)var)
+///
+
 #include <iostream>
 #include <string>
 #include <vector>
-#include "input.h"
+#include "IO.h"
 
 namespace Project {
 	namespace Core {
@@ -195,9 +200,20 @@ namespace Project {
 				var = processing(point_left);
 			}
 
+			
+			enum class variable_type {
+				INTEGER,
+				FRACTIONAL,
+				IMAGINARY,
+				REAL,
+				RE_IM,
+				EXP	//5E+10 5*10^10
+			};
 
 			string var_id;
 			double var;
+			double var_im;
+			int exp;
 			var_const *point_left;		//левый рукав
 			var_const *point_right;		//правый рукав
 			var_const *point_collar;	//воротник
@@ -738,7 +754,7 @@ namespace Project {
 
 		char* input_to_analize(char* input)
 		{
-			char* error_str = Project::Input::VerifyInput(input);
+			char* error_str = Project::IO::VerifyInput(input);
 			if (error_str != NULL)
 				return error_str;
 

@@ -714,6 +714,7 @@ namespace Project {
 				strcat(output, " = ");
 				strcat(output, std::to_string(current_type->var).c_str());
 				return output;
+				//kjgljhtgh
 			}	
 			else if (current_type->read("type") == "funct")
 			{				

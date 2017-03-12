@@ -57,12 +57,34 @@ namespace Project {
 			return str;
 		}
 
+        char* Xchar (char *str)
+        {
+        int i,j;
+        int z=strlen(str);
+        int cnt=0;
+        for(i=0;i<z;i++)
+        {
+        if (str[i]==' ')
+        {
+        cnt++;
+        for (j=i;j<z-1; ++j)
+        {
+            str[j]=str[j+1];
+        }
+        }
+        }
+        str[z-cnt]='\0';
+        return str;
+        }
+
 		char* VerifyInput(char* input) {	//возвращает строку, описывающую ошибку, иначе NULL.
 			//char* EndStr = &input[strlen(input)];
 			//char* cursor = input;
 			int len = strlen(input);
 			int left_bracket = 0, right_bracket = 0, ravno = 0;
 			char buf[300];
+
+            Xchar(input);
 
 			for (int i = 0;i < len;i++)
 				if (input[i] == '(')

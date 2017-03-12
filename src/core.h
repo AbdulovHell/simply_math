@@ -849,7 +849,7 @@ namespace Project {
 						}
 						else
 						{
-							return "fuck up";//кто знает что ещё тут может быть
+                                                        return (char*)"fuck up";//кто знает что ещё тут может быть
 						}
 					}
 				}

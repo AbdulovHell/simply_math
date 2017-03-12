@@ -16,6 +16,8 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::on_startButton_clicked(){
+    //char *a=(char*)malloc(50);
+    //strcpy(a,Project::IO::to_char_string(0.125,Project::IO::var_type::TOWER,0));
     QString str=ui->inputText->toPlainText();
     int size=str.toStdString().size();
     char* input=(char*)malloc(size+1);

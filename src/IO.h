@@ -23,17 +23,23 @@ namespace Project {
 				return false;
 		}
 
-		int isntPeriodical(double num) {
+        int isntPeriodical(double num) {    //возвращает количество знаков после запятой, -1 если дробь условно бесконечно переодическая
 			num = GET_FRAC(num);
-			int z = 0;
+            int z = 0,temp=0;
 			while (true) {
-				
+                num=num*10.0;
+                temp=num;
+                if(temp){
+                    z++;
+                    num=GET_FRAC(num);
+                }else
+                    break;
 				if (z > 30) {
-					z = 0;
+                    z = -1;
 					break;
 				}
 			}
-			return 0;
+            return z;
 		}
 
 		enum class var_type {
@@ -168,8 +174,23 @@ namespace Project {
 				break;
 			case var_type::TOWER:
 				temp = var;	//целая часть
-				frac = GET_FRAC(var);
-
+                frac = GET_FRAC(var);   //дробная
+                int decs=isntPeriodical(frac);
+                if(decs==-1){
+                    sprintf(buf,"not implement");
+                    break;
+                }
+                int u=frac*pow(10,decs);
+                int d=pow(10,decs);
+                reduce(&u,&d);
+                u=u+d*temp;
+                sprintf(buf,"%d\n",u);
+                char tempbuf[20];
+                memset(tempbuf,0,20);
+                sprintf(tempbuf,"---\n");
+                strcat(buf,tempbuf);
+                sprintf(tempbuf,"%d\n",d);
+                strcat(buf,tempbuf);
 				break;
 			}
 			return buf;

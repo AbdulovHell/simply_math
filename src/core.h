@@ -12,6 +12,7 @@ namespace Project {
 	namespace Core {
 
 		using namespace std;
+		using namespace Project::IO;
 
 		class var_const {
 		private:
@@ -64,7 +65,7 @@ namespace Project {
 				}
 				else if (pointer->var_id == "0")
 				{
-					return to_string(pointer->var);
+					return to_string(pointer->var,var_type::FRACTIONAL,2);
 				}
 				else
 				{
@@ -675,7 +676,7 @@ namespace Project {
 			{
 				_current_elment->arithmetic();
 				expr = _current_elment->expresion();
-				output_size = strlen(_current_elment->var_id.c_str()) + strlen(to_string(_current_elment->var).c_str()) + 10 + strlen(expr.c_str());
+				output_size = strlen(_current_elment->var_id.c_str()) + strlen(to_string(_current_elment->var, var_type::FRACTIONAL,2).c_str()) + 10 + strlen(expr.c_str());
 				char* output = (char*)malloc(output_size);
 				for (int i = 0; i < output_size; i++)
 					output[i] = 0;
@@ -683,14 +684,14 @@ namespace Project {
 				strcat(output,"\n");
 				strcat(output, _current_elment->read("name").c_str());
 				strcat(output, " = ");
-				strcat(output, std::to_string(_current_elment->var).c_str());
+				strcat(output, to_string(_current_elment->var, var_type::FRACTIONAL, 2).c_str());
 				return output;
 				
 			}	
 			else if (_current_elment->read("type") == "funct")
 			{				
 				expr = _current_elment->expresion();
-				output_size = strlen(_current_elment->var_id.c_str()) + strlen(to_string(_current_elment->var).c_str()) + 10 + strlen(expr.c_str());
+				output_size = strlen(_current_elment->var_id.c_str()) + strlen(to_string(_current_elment->var, var_type::FRACTIONAL, 2).c_str()) + 10 + strlen(expr.c_str());
 				char* output = (char*)malloc(output_size);
 				for (int i = 0; i < output_size; i++)
 					output[i] = 0;
@@ -698,7 +699,7 @@ namespace Project {
 				strcat(output, "\n");
 				//strcat(output, _current_elment->read("name").c_str());
 				//strcat(output, " = ");
-				//strcat(output, std::to_string(_current_elment->var).c_str());
+				//strcat(output, to_string(_current_elment->var, var_type::FRACTIONAL,2).c_str());
 				return output;
 			}
 			

@@ -33,6 +33,7 @@ namespace Project {
 					break;
 				}
 			}
+			return 0;
 		}
 
 		enum class var_type {

@@ -248,8 +248,7 @@ namespace Project {
 					if (high_pointer == low_pointer)
 					{
 						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
-						current_elment->point_left = &var_const("+", brakets_counter, low_pointer, NULL, current_elment);
-						current_elment->point_left->var_id = "+";
+						current_elment->point_left = new var_const("+", brakets_counter, low_pointer, NULL, current_elment);						
 						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_elment->point_left;
 					}
@@ -260,8 +259,7 @@ namespace Project {
 						if (high_pointer->get_priority() <= (brakets_counter + 1))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-							high_pointer->point_right = &var_const("+", brakets_counter, low_pointer, NULL, high_pointer);	
-							high_pointer->point_right->var_id = "+";
+							high_pointer->point_right = new var_const("+", brakets_counter, low_pointer, NULL, high_pointer);								
 							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
 						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
@@ -271,8 +269,7 @@ namespace Project {
 							if (current_elment->point_left->get_priority() >= (brakets_counter + 1))
 							{
 								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-								high_pointer = &var_const("+", brakets_counter, current_elment->point_left, NULL, current_elment);
-								high_pointer->var_id = "+";
+								high_pointer = new var_const("+", brakets_counter, current_elment->point_left, NULL, current_elment);								
 								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_elment->point_left->point_collar = high_pointer;
 								//указываем левым рукавом константы на созданную операцию
@@ -288,8 +285,7 @@ namespace Project {
 								high_pointer = high_pointer->prioritize(brakets_counter + 1);
 								//записываем операцию, левый рукав -> правый рукав найденной операции. Воротник -> на саму найденную операцию
 								//воротник правого рукава (!) найденной операции -> созданную операцию
-								high_pointer->point_right->point_collar = &var_const("+", brakets_counter, high_pointer->point_right, NULL, high_pointer);
-								high_pointer->point_right->point_collar->var_id = "+";
+								high_pointer->point_right->point_collar = new var_const("+", brakets_counter, high_pointer->point_right, NULL, high_pointer);								
 								//правый рукав найденной операции -> созданную операцию
 								high_pointer->point_right = high_pointer->point_right->point_collar;
 								high_pointer = high_pointer->point_right;
@@ -304,8 +300,7 @@ namespace Project {
 					if (high_pointer == low_pointer)
 					{
 						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
-						current_elment->point_left = &var_const("*", brakets_counter, low_pointer, NULL, current_elment);
-						current_elment->point_left->var_id = "*";
+						current_elment->point_left = new var_const("*", brakets_counter, low_pointer, NULL, current_elment);						
 						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_elment->point_left;
 					}
@@ -316,8 +311,7 @@ namespace Project {
 						if (high_pointer->get_priority() <= (brakets_counter + 2))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-							high_pointer->point_right = &var_const("*", brakets_counter, low_pointer, NULL, high_pointer);
-							high_pointer->point_right->var_id = "*";
+							high_pointer->point_right = new var_const("*", brakets_counter, low_pointer, NULL, high_pointer);							
 							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
 						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
@@ -327,8 +321,8 @@ namespace Project {
 							if (current_elment->point_left->get_priority() >= (brakets_counter + 2))
 							{
 								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-								high_pointer = &var_const("*", brakets_counter, current_elment->point_left, NULL, current_elment);
-								high_pointer->var_id = "*";
+								high_pointer = new var_const("*", brakets_counter, current_elment->point_left, NULL, current_elment);
+								
 								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_elment->point_left->point_collar = high_pointer;
 								//указываем левым рукавом константы на созданную операцию
@@ -344,8 +338,7 @@ namespace Project {
 								high_pointer = high_pointer->prioritize(brakets_counter + 2);
 								//записываем операцию, левый рукав -> правый рукав найденной операции. Воротник -> на саму найденную операцию
 								//воротник правого рукава (!) найденной операции -> созданную операцию
-								high_pointer->point_right->point_collar = &var_const("*", brakets_counter, high_pointer->point_right, NULL, high_pointer);
-								high_pointer->point_right->point_collar->var_id = "*";
+								high_pointer->point_right->point_collar = new var_const("*", brakets_counter, high_pointer->point_right, NULL, high_pointer);								
 								//правый рукав найденной операции -> созданную операцию
 								high_pointer->point_right = high_pointer->point_right->point_collar;
 								high_pointer = high_pointer->point_right;
@@ -360,8 +353,7 @@ namespace Project {
 					if (high_pointer == low_pointer)
 					{
 						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
-						current_elment->point_left = &var_const("/", brakets_counter, low_pointer, NULL, current_elment);
-						current_elment->point_left->var_id = "/";
+						current_elment->point_left = new var_const("/", brakets_counter, low_pointer, NULL, current_elment);						
 						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_elment->point_left;
 					}
@@ -372,8 +364,7 @@ namespace Project {
 						if (high_pointer->get_priority() <= (brakets_counter + 3))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-							high_pointer->point_right = &var_const("/", brakets_counter, low_pointer, NULL, high_pointer);
-							high_pointer->point_right->var_id = "/";
+							high_pointer->point_right = new var_const("/", brakets_counter, low_pointer, NULL, high_pointer);							
 							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
 						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
@@ -383,8 +374,7 @@ namespace Project {
 							if (current_elment->point_left->get_priority() >= (brakets_counter + 3))
 							{
 								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-								high_pointer = &var_const("/", brakets_counter, current_elment->point_left, NULL, current_elment);
-								high_pointer->var_id = "/";
+								high_pointer = new var_const("/", brakets_counter, current_elment->point_left, NULL, current_elment);								
 								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_elment->point_left->point_collar = high_pointer;
 								//указываем левым рукавом константы на созданную операцию
@@ -400,8 +390,7 @@ namespace Project {
 								high_pointer = high_pointer->prioritize(brakets_counter + 3);
 								//записываем операцию, левый рукав -> правый рукав найденной операции. Воротник -> на саму найденную операцию
 								//воротник правого рукава (!) найденной операции -> созданную операцию
-								high_pointer->point_right->point_collar = &var_const("/", brakets_counter, high_pointer->point_right, NULL, high_pointer);
-								high_pointer->point_right->point_collar->var_id = "/";
+								high_pointer->point_right->point_collar = new var_const("/", brakets_counter, high_pointer->point_right, NULL, high_pointer);								
 								//правый рукав найденной операции -> созданную операцию
 								high_pointer->point_right = high_pointer->point_right->point_collar;
 								high_pointer = high_pointer->point_right;
@@ -417,8 +406,7 @@ namespace Project {
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						//создание элемента класса и запись числа, воротник -> константу
-						current_elment->point_left = &var_const("0", strtod(pDest, &pDest), current_elment);
-						current_elment->point_left->var_id = "0";
+						current_elment->point_left = new var_const("0", strtod(pDest, &pDest), current_elment);						
 						//оба указателя -> на число, тебуется для проверки условия при записи операции
 						low_pointer = current_elment->point_left;
 						high_pointer = low_pointer;
@@ -430,11 +418,9 @@ namespace Project {
 						if (high_pointer == low_pointer)
 						{
 							//сначала записываем операцию, левый рукав -> на предыдущее число, воротник на конст
-							current_elment->point_left = &var_const("+", brakets_counter, low_pointer, NULL, current_elment);
-							current_elment->point_left->var_id = "+";
+							current_elment->point_left = new var_const("+", brakets_counter, low_pointer, NULL, current_elment);							
 							high_pointer = current_elment->point_left;							
-							high_pointer->point_right = &var_const("0", strtod(pDest, &pDest), high_pointer);
-							high_pointer->point_right->var_id = "0";
+							high_pointer->point_right = new var_const("0", strtod(pDest, &pDest), high_pointer);							
 							low_pointer = high_pointer->point_right;
 						}
 						//если ранее были другие операции
@@ -447,14 +433,12 @@ namespace Project {
 								if (high_pointer->point_right != NULL)
 								{
 									//сначала записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-									high_pointer->point_right = &var_const("+", brakets_counter, low_pointer, NULL, high_pointer);
-									high_pointer->point_right->var_id = "+";
+									high_pointer->point_right = new var_const("+", brakets_counter, low_pointer, NULL, high_pointer);									
 									high_pointer = high_pointer->point_right;
 									
 									 //создание элемента класса и запись числа, воротник на созданную операцию
 									 //Правый рукав предшествующей операции на созданное число
-									high_pointer->point_right = &var_const("0", strtod(pDest, &pDest), high_pointer);
-									high_pointer->point_right->var_id = "0";
+									high_pointer->point_right = new var_const("0", strtod(pDest, &pDest), high_pointer);									
 									//нижний указатель -> на созданное число
 									low_pointer = high_pointer->point_right;	
 								}
@@ -464,8 +448,7 @@ namespace Project {
 								{
 									//создание элемента класса и запись числа, воротник на пред операцию
 									//Правый рукав предшествующей операции на созданное число. 
-									high_pointer->point_right = &var_const("0", strtod(pDest, &pDest), high_pointer);
-									high_pointer->point_right->var_id = "0";
+									high_pointer->point_right = new var_const("0", strtod(pDest, &pDest), high_pointer);									
 									//нижний указатель -> на созданное число
 									low_pointer = high_pointer->point_right;	
 								}
@@ -477,8 +460,7 @@ namespace Project {
 								if (high_pointer->get_priority() <= (brakets_counter + 1))
 								{
 									//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-									high_pointer->point_right = &var_const("+", brakets_counter, low_pointer, NULL, high_pointer);
-									high_pointer->point_right->var_id = "+";
+									high_pointer->point_right = new var_const("+", brakets_counter, low_pointer, NULL, high_pointer);									
 									high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 								}
 								//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
@@ -488,8 +470,7 @@ namespace Project {
 									if (current_elment->point_left->get_priority() >= (brakets_counter + 1))
 									{
 										//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-										high_pointer = &var_const("+", brakets_counter, current_elment->point_left, NULL, current_elment);
-										high_pointer->var_id = "+";
+										high_pointer = new var_const("+", brakets_counter, current_elment->point_left, NULL, current_elment);										
 										//воротник предыдущей легчайшей операции -> на новую операцию
 										current_elment->point_left->point_collar = high_pointer;
 										//указываем левым рукавом константы на созданную операцию
@@ -505,8 +486,7 @@ namespace Project {
 										high_pointer = high_pointer->prioritize(brakets_counter + 1);
 										//записываем операцию, левый рукав -> правый рукав найденной операции. Воротник -> на саму найденную операцию
 										//воротник правого рукава (!) найденной операции -> созданную операцию
-										high_pointer->point_right->point_collar = &var_const("+", brakets_counter, high_pointer->point_right, NULL, high_pointer);
-										high_pointer->point_right->point_collar->var_id = "+";
+										high_pointer->point_right->point_collar = new var_const("+", brakets_counter, high_pointer->point_right, NULL, high_pointer);										
 										//правый рукав найденной операции -> созданную операцию
 										high_pointer->point_right = high_pointer->point_right->point_collar;
 										high_pointer = high_pointer->point_right;
@@ -515,8 +495,7 @@ namespace Project {
 								
 								 //создание элемента класса и запись числа, воротник -> пред операцию
 								 //Правый рукав предшествующей операции на созданное число
-								high_pointer->point_right = &var_const("0", strtod(pDest, &pDest), high_pointer);
-								high_pointer->point_right->var_id = "0";
+								high_pointer->point_right = new var_const("0", strtod(pDest, &pDest), high_pointer);								
 								//нижний указатель -> на созданное число
 								low_pointer = high_pointer->point_right;
 							}
@@ -539,8 +518,7 @@ namespace Project {
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						//создание элемента класса и запись числа, воротник -> константу
-						current_elment->point_left = &var_const("0", strtod(pDest, &pDest), current_elment);
-						current_elment->point_left->var_id = "0";
+						current_elment->point_left = new var_const("0", strtod(pDest, &pDest), current_elment);						
 						//оба указателя -> на число, тебуется для проверки условия при записи операции
 						low_pointer = current_elment->point_left;
 						high_pointer = low_pointer;							
@@ -549,8 +527,7 @@ namespace Project {
 					else
 					{
 						//создание элемента класса и запись числа, воротник -> пред операцию 
-						high_pointer->point_right = &var_const("0", strtod(pDest, &pDest), high_pointer);
-						high_pointer->point_right->var_id = "0";
+						high_pointer->point_right = new var_const("0", strtod(pDest, &pDest), high_pointer);						
 						low_pointer = high_pointer->point_right ;
 					}
 				}
@@ -642,8 +619,7 @@ namespace Project {
 						strcat(temp, p_var);
 						if ((high_pointer == NULL) && (low_pointer == NULL))
 						{
-							general_var_const->push_back(&var_const(temp, 0, current_elment));
-							general_var_const->at(temp_size_of_vect)->var_id = temp;
+							general_var_const->push_back(new var_const(temp, 0, current_elment));							
 							//оба указателя -> на конст или перем из массива, тебуется для проверки условия при записи операции
 							high_pointer = general_var_const->at(temp_size_of_vect);
 							low_pointer = general_var_const->at(temp_size_of_vect);
@@ -652,8 +628,7 @@ namespace Project {
 						}
 						else
 						{
-							general_var_const->push_back(&var_const(temp, 0, current_elment));
-							general_var_const->at(temp_size_of_vect)->var_id = temp;
+							general_var_const->push_back(new var_const(temp, 0, current_elment));							
 							//нижний указатель -> на конст или перем из массива
 							low_pointer = general_var_const->at(temp_size_of_vect);
 							//Правый рукав предшествующей операции на конст или перем из массива
@@ -769,7 +744,7 @@ namespace Project {
 			{
 
 			}
-			//нет операцийскобки
+			//нет операций, только скобки
 			else if (strstr(equal_left, "(") != NULL)
 			{
 				if (strstr(equal_left, ")") == NULL)
@@ -811,16 +786,15 @@ namespace Project {
 						strcpy(temp, "varbl@");
 						strcat(temp, strstr(equal_left, "(") + 1);
 						temp[strstr(temp, ")") - temp] = 0;
-						general_var_const->push_back(&var_const(temp, 0));
-						general_var_const->at(general_var_const->size() - 1)->var_id = temp;
+						general_var_const->push_back(new var_const(temp, 0));						
 						free(temp);
 						//записываем функцию, указываем правым рукавом  на созданную переменную						
 						size_of_vect = general_var_const->size();
 						temp = (char*)malloc(equal_right - input + 7);
 						strcpy(temp, "funct@");
 						strcat(temp, equal_left);
-						general_var_const->push_back(&var_const(temp, 0));
-						general_var_const->at(general_var_const->size() - 1)->var_id = temp;
+						general_var_const->push_back(new var_const(temp, 0));
+						
 						//general_var_const->reserve(input_size * 2 + size_of_vect);
 						free(temp);
 						general_var_const->at(size_of_vect)->point_right = general_var_const->at(size_of_vect - 1);
@@ -883,8 +857,7 @@ namespace Project {
 					temp = (char*)malloc(equal_right - input + 7);
 					strcpy(temp, "const@");
 					strcat(temp, equal_left);					
-					general_var_const->push_back(&var_const(temp, 0));
-					general_var_const->at(general_var_const->size() - 1)->var_id = temp;
+					general_var_const->push_back(new var_const(temp, 0));					
 					//general_var_const->reserve(input_size * 2 + size_of_vect);
 					free(temp);
 					point_start = equal_right + 1;

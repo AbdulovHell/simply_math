@@ -34,7 +34,7 @@ namespace Project {
 
 			double processing(var_const *pointer)
 			{
-				const char* operation = pointer->var_id.c_str();
+				const wchar_t* operation = pointer->var_id.c_str();
 				switch (*operation) {
 				case'+':
 					return processing(pointer->point_left) + processing(pointer->point_right);
@@ -52,38 +52,38 @@ namespace Project {
 
 			wstring expression_processing(var_const *pointer)
 			{
-				if ((pointer->var_id == "*") || (pointer->var_id == "/"))
+				if ((pointer->var_id == L"*") || (pointer->var_id == L"/"))
 				{
-					return expression_processing(pointer->point_left) + " " + pointer->var_id + " " + expression_processing(pointer->point_right);
+					return expression_processing(pointer->point_left) + L" " + pointer->var_id + L" " + expression_processing(pointer->point_right);
 				}
-				else if (pointer->var_id == "+")
+				else if (pointer->var_id == L"+")
 				{
-					if ((pointer->point_collar->var_id == "*") || (pointer->point_collar->var_id == "/"))
-						return "(" + expression_processing(pointer->point_left) + " " + pointer->var_id + " " + expression_processing(pointer->point_right) + ")";
+					if ((pointer->point_collar->var_id == L"*") || (pointer->point_collar->var_id == L"/"))
+						return L"(" + expression_processing(pointer->point_left) + L" " + pointer->var_id + L" " + expression_processing(pointer->point_right) + L")";
 					else
-						return expression_processing(pointer->point_left) + " " + pointer->var_id + " " + expression_processing(pointer->point_right);
+						return expression_processing(pointer->point_left) + L" " + pointer->var_id + L" " + expression_processing(pointer->point_right);
 				}
-				else if (pointer->var_id == "0")
+				else if (pointer->var_id == L"0")
 				{
 					return to_string(pointer->var,var_type::FRACTIONAL,2);
 				}
 				else
 				{
-					return pointer->read("name");
+					return pointer->read(L"name");
 				}
 			}
 
 		public:
 			var_const()
 			{
-				var_id = "";
+				var_id = L"";
 				var = 0;
 				point_left = NULL;
 				point_right = NULL;
 				point_collar = NULL;
 			}
 
-			var_const(string _name, double _num)
+			var_const(wstring _name, double _num)
 			{
 				var_id = _name;
 				var = _num;
@@ -92,7 +92,7 @@ namespace Project {
 				point_collar = NULL;
 			}
 
-			var_const(string _name, double _num, var_const *_pc)
+			var_const(wstring _name, double _num, var_const *_pc)
 			{
 				var_id = _name;
 				var = _num;
@@ -101,7 +101,7 @@ namespace Project {
 				point_collar = _pc;
 			}
 
-			var_const(string _name, double _num, var_const * _pl, var_const *_pr) {
+			var_const(wstring _name, double _num, var_const * _pl, var_const *_pr) {
 				var_id = _name;
 				var = _num;
 				point_left = _pl;
@@ -109,7 +109,7 @@ namespace Project {
 				point_collar = NULL;
 			}
 
-			var_const(string _name, double _num, var_const * _pl, var_const *_pr, var_const *_pc) {
+			var_const(wstring _name, double _num, var_const * _pl, var_const *_pr, var_const *_pc) {
 				var_id = _name;
 				var = _num;
 				point_left = _pl;
@@ -141,33 +141,33 @@ namespace Project {
 				}
 			}
 			
-			string read(string arg)
+			wstring read(wstring arg)
 			{
-				char* id = strstr(&var_id[0], "@");
-				char* out = (char*)malloc(5*sizeof(char));
-				char* temp = NULL;
+				wchar_t* id = wcsstr(&var_id[0], L"@");
+				wchar_t* out = (wchar_t*)malloc(5*sizeof(wchar_t));
+				wchar_t* temp = NULL;
 				if (id != NULL)
 				{
-					if (arg == "type")
+					if (arg == L"type")
 					{
-						strncpy(out, var_id.c_str(), 5);
+						wcsncpy(out, var_id.c_str(), 5);
 						out[5] = 0;
 						return out;
 					}
-					else if (arg == "name")
+					else if (arg == L"name")
 					{
 						return id + 1;
 					}
-					else if (arg == "func")
+					else if (arg == L"func")
 					{
-						strncpy(out, var_id.c_str(), 5);
+						wcsncpy(out, var_id.c_str(), 5);
 						out[5] = 0;						
-						if (out == "funct")
+						if (out == L"funct")
 						{
 							free(out);
-							temp = strstr(&var_id[0], "(");
-							out = (char*)malloc(temp - (id + 1));
-							strncpy(out, id + 1, temp - (id + 1));
+							temp = wcsstr(&var_id[0], L"(");
+							out = (wchar_t*)malloc((temp - (id + 1))*2);
+							wcsncpy(out, id + 1, temp - (id + 1));
 							return out;
 						}
 						else //if ((out == "const")||(out == "varbl"))
@@ -177,7 +177,7 @@ namespace Project {
 					}
 					else
 					{
-						return "fuck up";
+						return L"fuck up";
 					}
 				}
 				else
@@ -186,9 +186,9 @@ namespace Project {
 				}				
 			}
 
-			string expresion()
+			wstring expresion()
 			{
-				return read("name") + " = " + expression_processing(point_left);
+				return read(L"name") + L" = " + expression_processing(point_left);
 			}
 
 			var_const *prioritize(int current_priority)
@@ -211,7 +211,7 @@ namespace Project {
 				EXP	//5E+10 5*10^10
 			};
 
-			string var_id;
+			wstring var_id;
 			double var;
 			double var_im;
 			int exp;
@@ -220,8 +220,8 @@ namespace Project {
 			var_const *point_collar;	//воротник
 		};
 
-		var_const pi = var_const("const@pi", 3.1415926535897932384626433832);
-		var_const e = var_const("const@e", 2.7182818284590452353602874713527);
+		var_const pi = var_const(L"const@pi", 3.1415926535897932384626433832);
+		var_const e = var_const(L"const@e", 2.7182818284590452353602874713527);
 
 		vector<var_const*>* general_var_const;
 
@@ -232,14 +232,14 @@ namespace Project {
 		}
 
 		
-		var_const* filling_vector(char* pDest, char* endPtr, var_const* current_elment)
+		var_const* filling_vector(wchar_t* pDest, wchar_t* endPtr, var_const* current_elment)
 		{			
 			int temp_size_of_vect;
 			int count;
 			var_const *high_pointer = NULL;
 			var_const *low_pointer = NULL;
-			char* p_var;
-			char* temp;
+			wchar_t* p_var;
+			wchar_t* temp;
 			int brakets_counter = 0;
 			while (pDest <= endPtr) {
 
@@ -249,7 +249,7 @@ namespace Project {
 					if (high_pointer == low_pointer)
 					{
 						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
-						current_elment->point_left = new var_const("+", brakets_counter, low_pointer, NULL, current_elment);						
+						current_elment->point_left = new var_const(L"+", brakets_counter, low_pointer, NULL, current_elment);						
 						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_elment->point_left;
 					}
@@ -260,7 +260,7 @@ namespace Project {
 						if (high_pointer->get_priority() <= (brakets_counter + 1))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-							high_pointer->point_right = new var_const("+", brakets_counter, low_pointer, NULL, high_pointer);								
+							high_pointer->point_right = new var_const(L"+", brakets_counter, low_pointer, NULL, high_pointer);								
 							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
 						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
@@ -270,7 +270,7 @@ namespace Project {
 							if (current_elment->point_left->get_priority() >= (brakets_counter + 1))
 							{
 								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-								high_pointer = new var_const("+", brakets_counter, current_elment->point_left, NULL, current_elment);								
+								high_pointer = new var_const(L"+", brakets_counter, current_elment->point_left, NULL, current_elment);								
 								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_elment->point_left->point_collar = high_pointer;
 								//указываем левым рукавом константы на созданную операцию
@@ -286,7 +286,7 @@ namespace Project {
 								high_pointer = high_pointer->prioritize(brakets_counter + 1);
 								//записываем операцию, левый рукав -> правый рукав найденной операции. Воротник -> на саму найденную операцию
 								//воротник правого рукава (!) найденной операции -> созданную операцию
-								high_pointer->point_right->point_collar = new var_const("+", brakets_counter, high_pointer->point_right, NULL, high_pointer);								
+								high_pointer->point_right->point_collar = new var_const(L"+", brakets_counter, high_pointer->point_right, NULL, high_pointer);								
 								//правый рукав найденной операции -> созданную операцию
 								high_pointer->point_right = high_pointer->point_right->point_collar;
 								high_pointer = high_pointer->point_right;
@@ -301,7 +301,7 @@ namespace Project {
 					if (high_pointer == low_pointer)
 					{
 						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
-						current_elment->point_left = new var_const("*", brakets_counter, low_pointer, NULL, current_elment);						
+						current_elment->point_left = new var_const(L"*", brakets_counter, low_pointer, NULL, current_elment);						
 						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_elment->point_left;
 					}
@@ -312,7 +312,7 @@ namespace Project {
 						if (high_pointer->get_priority() <= (brakets_counter + 2))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-							high_pointer->point_right = new var_const("*", brakets_counter, low_pointer, NULL, high_pointer);							
+							high_pointer->point_right = new var_const(L"*", brakets_counter, low_pointer, NULL, high_pointer);							
 							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
 						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
@@ -322,7 +322,7 @@ namespace Project {
 							if (current_elment->point_left->get_priority() >= (brakets_counter + 2))
 							{
 								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-								high_pointer = new var_const("*", brakets_counter, current_elment->point_left, NULL, current_elment);
+								high_pointer = new var_const(L"*", brakets_counter, current_elment->point_left, NULL, current_elment);
 								
 								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_elment->point_left->point_collar = high_pointer;
@@ -339,7 +339,7 @@ namespace Project {
 								high_pointer = high_pointer->prioritize(brakets_counter + 2);
 								//записываем операцию, левый рукав -> правый рукав найденной операции. Воротник -> на саму найденную операцию
 								//воротник правого рукава (!) найденной операции -> созданную операцию
-								high_pointer->point_right->point_collar = new var_const("*", brakets_counter, high_pointer->point_right, NULL, high_pointer);								
+								high_pointer->point_right->point_collar = new var_const(L"*", brakets_counter, high_pointer->point_right, NULL, high_pointer);								
 								//правый рукав найденной операции -> созданную операцию
 								high_pointer->point_right = high_pointer->point_right->point_collar;
 								high_pointer = high_pointer->point_right;
@@ -354,7 +354,7 @@ namespace Project {
 					if (high_pointer == low_pointer)
 					{
 						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
-						current_elment->point_left = new var_const("/", brakets_counter, low_pointer, NULL, current_elment);						
+						current_elment->point_left = new var_const(L"/", brakets_counter, low_pointer, NULL, current_elment);						
 						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_elment->point_left;
 					}
@@ -365,7 +365,7 @@ namespace Project {
 						if (high_pointer->get_priority() <= (brakets_counter + 3))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-							high_pointer->point_right = new var_const("/", brakets_counter, low_pointer, NULL, high_pointer);							
+							high_pointer->point_right = new var_const(L"/", brakets_counter, low_pointer, NULL, high_pointer);							
 							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
 						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
@@ -375,7 +375,7 @@ namespace Project {
 							if (current_elment->point_left->get_priority() >= (brakets_counter + 3))
 							{
 								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-								high_pointer = new var_const("/", brakets_counter, current_elment->point_left, NULL, current_elment);								
+								high_pointer = new var_const(L"/", brakets_counter, current_elment->point_left, NULL, current_elment);								
 								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_elment->point_left->point_collar = high_pointer;
 								//указываем левым рукавом константы на созданную операцию
@@ -391,7 +391,7 @@ namespace Project {
 								high_pointer = high_pointer->prioritize(brakets_counter + 3);
 								//записываем операцию, левый рукав -> правый рукав найденной операции. Воротник -> на саму найденную операцию
 								//воротник правого рукава (!) найденной операции -> созданную операцию
-								high_pointer->point_right->point_collar = new var_const("/", brakets_counter, high_pointer->point_right, NULL, high_pointer);								
+								high_pointer->point_right->point_collar = new var_const(L"/", brakets_counter, high_pointer->point_right, NULL, high_pointer);								
 								//правый рукав найденной операции -> созданную операцию
 								high_pointer->point_right = high_pointer->point_right->point_collar;
 								high_pointer = high_pointer->point_right;
@@ -407,7 +407,7 @@ namespace Project {
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						//создание элемента класса и запись числа, воротник -> константу
-						current_elment->point_left = new var_const("0", strtod(pDest, &pDest), current_elment);						
+						current_elment->point_left = new var_const(L"0", wcstod(pDest, &pDest), current_elment);						
 						//оба указателя -> на число, тебуется для проверки условия при записи операции
 						low_pointer = current_elment->point_left;
 						high_pointer = low_pointer;
@@ -419,9 +419,9 @@ namespace Project {
 						if (high_pointer == low_pointer)
 						{
 							//сначала записываем операцию, левый рукав -> на предыдущее число, воротник на конст
-							current_elment->point_left = new var_const("+", brakets_counter, low_pointer, NULL, current_elment);							
+							current_elment->point_left = new var_const(L"+", brakets_counter, low_pointer, NULL, current_elment);
 							high_pointer = current_elment->point_left;							
-							high_pointer->point_right = new var_const("0", strtod(pDest, &pDest), high_pointer);							
+							high_pointer->point_right = new var_const(L"0", wcstod(pDest, &pDest), high_pointer);							
 							low_pointer = high_pointer->point_right;
 						}
 						//если ранее были другие операции
@@ -434,12 +434,12 @@ namespace Project {
 								if (high_pointer->point_right != NULL)
 								{
 									//сначала записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-									high_pointer->point_right = new var_const("+", brakets_counter, low_pointer, NULL, high_pointer);									
+									high_pointer->point_right = new var_const(L"+", brakets_counter, low_pointer, NULL, high_pointer);
 									high_pointer = high_pointer->point_right;
 									
 									 //создание элемента класса и запись числа, воротник на созданную операцию
 									 //Правый рукав предшествующей операции на созданное число
-									high_pointer->point_right = new var_const("0", strtod(pDest, &pDest), high_pointer);									
+									high_pointer->point_right = new var_const(L"0", wcstod(pDest, &pDest), high_pointer);
 									//нижний указатель -> на созданное число
 									low_pointer = high_pointer->point_right;	
 								}
@@ -449,7 +449,7 @@ namespace Project {
 								{
 									//создание элемента класса и запись числа, воротник на пред операцию
 									//Правый рукав предшествующей операции на созданное число. 
-									high_pointer->point_right = new var_const("0", strtod(pDest, &pDest), high_pointer);									
+									high_pointer->point_right = new var_const(L"0", wcstod(pDest, &pDest), high_pointer);									
 									//нижний указатель -> на созданное число
 									low_pointer = high_pointer->point_right;	
 								}
@@ -461,7 +461,7 @@ namespace Project {
 								if (high_pointer->get_priority() <= (brakets_counter + 1))
 								{
 									//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-									high_pointer->point_right = new var_const("+", brakets_counter, low_pointer, NULL, high_pointer);									
+									high_pointer->point_right = new var_const(L"+", brakets_counter, low_pointer, NULL, high_pointer);									
 									high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 								}
 								//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
@@ -471,7 +471,7 @@ namespace Project {
 									if (current_elment->point_left->get_priority() >= (brakets_counter + 1))
 									{
 										//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-										high_pointer = new var_const("+", brakets_counter, current_elment->point_left, NULL, current_elment);										
+										high_pointer = new var_const(L"+", brakets_counter, current_elment->point_left, NULL, current_elment);										
 										//воротник предыдущей легчайшей операции -> на новую операцию
 										current_elment->point_left->point_collar = high_pointer;
 										//указываем левым рукавом константы на созданную операцию
@@ -487,7 +487,7 @@ namespace Project {
 										high_pointer = high_pointer->prioritize(brakets_counter + 1);
 										//записываем операцию, левый рукав -> правый рукав найденной операции. Воротник -> на саму найденную операцию
 										//воротник правого рукава (!) найденной операции -> созданную операцию
-										high_pointer->point_right->point_collar = new var_const("+", brakets_counter, high_pointer->point_right, NULL, high_pointer);										
+										high_pointer->point_right->point_collar = new var_const(L"+", brakets_counter, high_pointer->point_right, NULL, high_pointer);										
 										//правый рукав найденной операции -> созданную операцию
 										high_pointer->point_right = high_pointer->point_right->point_collar;
 										high_pointer = high_pointer->point_right;
@@ -496,7 +496,7 @@ namespace Project {
 								
 								 //создание элемента класса и запись числа, воротник -> пред операцию
 								 //Правый рукав предшествующей операции на созданное число
-								high_pointer->point_right = new var_const("0", strtod(pDest, &pDest), high_pointer);								
+								high_pointer->point_right = new var_const(L"0", wcstod(pDest, &pDest), high_pointer);								
 								//нижний указатель -> на созданное число
 								low_pointer = high_pointer->point_right;
 							}
@@ -519,7 +519,7 @@ namespace Project {
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						//создание элемента класса и запись числа, воротник -> константу
-						current_elment->point_left = new var_const("0", strtod(pDest, &pDest), current_elment);						
+						current_elment->point_left = new var_const(L"0", wcstod(pDest, &pDest), current_elment);						
 						//оба указателя -> на число, тебуется для проверки условия при записи операции
 						low_pointer = current_elment->point_left;
 						high_pointer = low_pointer;							
@@ -528,34 +528,34 @@ namespace Project {
 					else
 					{
 						//создание элемента класса и запись числа, воротник -> пред операцию 
-						high_pointer->point_right = new var_const("0", strtod(pDest, &pDest), high_pointer);						
+						high_pointer->point_right = new var_const(L"0", wcstod(pDest, &pDest), high_pointer);
 						low_pointer = high_pointer->point_right ;
 					}
 				}
 				else
 				{
 					temp_size_of_vect = general_var_const->size();
-					temp = strpbrk(pDest, ")+-*/^");
+					temp = wcspbrk(pDest, L")+-*/^");
 					if (temp != NULL)
 					{
-						p_var = (char*)malloc(temp - pDest + 1);
-						strncpy(p_var, pDest, temp - pDest);
+						p_var = (wchar_t*)malloc((temp - pDest + 1)*2);
+						wcsncpy(p_var, pDest, temp - pDest);
 						p_var[temp - pDest] = 0;
 						temp = NULL;
 					}
 					else
 					{
-						p_var = (char*)malloc(endPtr - pDest + 1);
-						strcpy(p_var, pDest);						
+						p_var = (wchar_t*)malloc((endPtr - pDest + 1)*2);
+						wcscpy(p_var, pDest);						
 					}
 					//проходим по вектору, ищем переменную/конст/функц с таким именем
 					for (count = 0; count < temp_size_of_vect; count++)
 					{
 						//проверяем имя, второе условие - на случай записи t=y+2, при этом у уже определён ранее y(x)=5*x
-						if ((p_var == general_var_const->at(count)->read("name")) || (p_var == general_var_const->at(count)->read("func")))
+						if ((p_var == general_var_const->at(count)->read(L"name")) || (p_var == general_var_const->at(count)->read(L"func")))
 						{
 							//если найдена константа
-							if (general_var_const->at(count)->read("type") == "const")
+							if (general_var_const->at(count)->read(L"type") == L"const")
 							{
 								if ((high_pointer == NULL) && (low_pointer == NULL))
 								{
@@ -575,7 +575,7 @@ namespace Project {
 								break;  //не имеет смысла считать дальше
 							}
 							//если найдена переменная
-							else if (general_var_const->at(count)->read("type") == "varbl")
+							else if (general_var_const->at(count)->read(L"type") == L"varbl")
 							{
 								//и она соответствует переменной на которую указывает функция
 								if (current_elment->point_right == general_var_const->at(count))
@@ -605,7 +605,7 @@ namespace Project {
 
 							}
 							//если найдена функция	
-							else if (general_var_const->at(count)->read("type") == "funct")
+							else if (general_var_const->at(count)->read(L"type") == L"funct")
 							{
 								
 								break;//пока ошибка. в данном случая это вложение одной функции в другую, необходимо проверять соответствие переменных в обеих
@@ -615,9 +615,9 @@ namespace Project {
 					//если в массиве нет ничего с таким именем, найдена новая переменная
 					if (count == temp_size_of_vect)
 					{
-						temp = (char*)malloc(6 * sizeof(char) + strlen(p_var));
-						strcpy(temp, "varbl@");
-						strcat(temp, p_var);
+						temp = (wchar_t*)malloc(6 * sizeof(wchar_t) + wcslen(p_var));
+						wcscpy(temp, L"varbl@");
+						wcscat(temp, p_var);
 						if ((high_pointer == NULL) && (low_pointer == NULL))
 						{
 							general_var_const->push_back(new var_const(temp, 0, current_elment));							
@@ -636,19 +636,19 @@ namespace Project {
 							high_pointer->point_right = low_pointer;
 						}
 						//free(temp);
-						if (current_elment->read("type") == "const")
+						if (current_elment->read(L"type") == L"const")
 						{
-							temp = (char*)malloc(7 * sizeof(char) + strlen(p_var) + strlen(current_elment->read("name").c_str()));
-							strcpy(temp, "funct@");
-							strcat(temp, current_elment->read("name").c_str());
-							strcat(temp, "(");
-							strcat(temp, p_var);
-							strcat(temp, ")");
+							temp = (wchar_t*)malloc(7 * sizeof(wchar_t) + wcslen(p_var) + wcslen(current_elment->read(L"name").c_str()));
+							wcscpy(temp, L"funct@");
+							wcscat(temp, current_elment->read(L"name").c_str());
+							wcscat(temp, L"(");
+							wcscat(temp, p_var);
+							wcscat(temp, L")");
 							current_elment->var_id = temp;
 							current_elment->point_right = low_pointer;
 							//free(temp);
 						}
-						else if(current_elment->read("type") == "equat")//пока оставлю это здесь для будущей реализации уравнений
+						else if(current_elment->read(L"type") == L"equat")//пока оставлю это здесь для будущей реализации уравнений
 						{
 							
 						}
@@ -659,7 +659,7 @@ namespace Project {
 						}
 
 					}
-					pDest+=strlen(p_var);
+					pDest+=wcslen(p_var);
 					free(p_var);
 					free(temp);
 				}
@@ -667,36 +667,36 @@ namespace Project {
 			return current_elment;
 		}
 
-		char* analized_output(char* _pDest, char* _endPtr, var_const* _current_elment)
+		wchar_t* analized_output(wchar_t* _pDest, wchar_t* _endPtr, var_const* _current_elment)
 		{
 			_current_elment = filling_vector(_pDest, _endPtr, _current_elment);
-			string expr;
+			wstring expr;
 			int output_size;
-			if (_current_elment->read("type") == "const")
+			if (_current_elment->read(L"type") == L"const")
 			{
 				_current_elment->arithmetic();
 				expr = _current_elment->expresion();
-				output_size = strlen(_current_elment->var_id.c_str()) + strlen(to_string(_current_elment->var, var_type::FRACTIONAL,2).c_str()) + 10 + strlen(expr.c_str());
-				char* output = (char*)malloc(output_size);
+				output_size = wcslen(_current_elment->var_id.c_str()) + wcslen(to_string(_current_elment->var, var_type::FRACTIONAL,2).c_str()) + 10 + wcslen(expr.c_str());
+				wchar_t* output = (wchar_t*)malloc(output_size*2);
 				for (int i = 0; i < output_size; i++)
 					output[i] = 0;
-				strcpy(output, expr.c_str());
-				strcat(output,"\n");
-				strcat(output, _current_elment->read("name").c_str());
-				strcat(output, " = ");
-				strcat(output, to_string(_current_elment->var, var_type::FRACTIONAL, 2).c_str());
+				wcscpy(output, expr.c_str());
+				wcscat(output,L"\n");
+				wcscat(output, _current_elment->read(L"name").c_str());
+				wcscat(output, L" = ");
+				wcscat(output, to_string(_current_elment->var, var_type::FRACTIONAL, 2).c_str());
 				return output;
 				
 			}	
-			else if (_current_elment->read("type") == "funct")
+			else if (_current_elment->read(L"type") == L"funct")
 			{				
 				expr = _current_elment->expresion();
-				output_size = strlen(_current_elment->var_id.c_str()) + strlen(to_string(_current_elment->var, var_type::FRACTIONAL, 2).c_str()) + 10 + strlen(expr.c_str());
-				char* output = (char*)malloc(output_size);
+				output_size = wcslen(_current_elment->var_id.c_str()) + wcslen(to_string(_current_elment->var, var_type::FRACTIONAL, 2).c_str()) + 10 + wcslen(expr.c_str());
+				wchar_t* output = (wchar_t*)malloc(output_size*2);
 				for (int i = 0; i < output_size; i++)
 					output[i] = 0;
-				strcpy(output, expr.c_str());
-				strcat(output, "\n");
+				wcscpy(output, expr.c_str());
+				wcscat(output, L"\n");
 				//strcat(output, _current_elment->read("name").c_str());
 				//strcat(output, " = ");
 				//strcat(output, to_string(_current_elment->var, var_type::FRACTIONAL,2).c_str());
@@ -709,25 +709,25 @@ namespace Project {
 			
 		}
 
-		char* input_to_analize(char* input)
+		wchar_t* input_to_analize(wchar_t* input)
 		{
-			char* error_str = Project::IO::VerifyInput(input);
+			wchar_t* error_str = Project::IO::VerifyInput(input);
 			if (error_str != NULL)
 				return error_str;
 
-			int input_size = strlen(input);
+			int input_size = wcslen(input);
 			int size_of_vect;
 			int count;
 			int  brackets_left = 0;
 			int brackets_right = 0;
-			char* point_start = input;	//start pointer
-			char* point_end = input + strlen(input) - 1;	//end pointer			
+			wchar_t* point_start = input;	//start pointer
+			wchar_t* point_end = input + wcslen(input) - 1;	//end pointer			
 			
-			char* equal_right = strstr(input, "="); // равно и справа от равно
-			char* temp;
-			char *equal_left = (char*)malloc(equal_right - input + 1); //слева от равно
-			memcpy(equal_left, input, equal_right - input);
-			equal_left[equal_right - input] = 0;
+			wchar_t* equal_right = wcsstr(input, L"="); // равно и справа от равно
+			wchar_t* temp;
+			wchar_t* equal_left = (wchar_t*)malloc((equal_right - input) * 2 + 2); //слева от равно
+			memcpy(equal_left, input, (equal_right - input)*2);
+			equal_left[(equal_right - input)] = 0;
 			vector<var_const*>* k = general_var_const;
 			//если справа после равно ничего нет
 			if (equal_right == point_end)
@@ -736,19 +736,19 @@ namespace Project {
 			}
 			//если справа что-то есть
 			//если слева есть операции
-			else if (strpbrk(equal_left, "+*/^") != NULL)
+			else if (wcspbrk(equal_left, L"+*/^") != NULL)
 			{
 			
 			}
 			//если слева есть минус
-			else if (strstr(equal_left, "-") != NULL)
+			else if (wcsstr(equal_left, L"-") != NULL)
 			{
 
 			}
 			//нет операций, только скобки
-			else if (strstr(equal_left, "(") != NULL)
+			else if (wcsstr(equal_left, L"(") != NULL)
 			{
-				if (strstr(equal_left, ")") == NULL)
+				if (wcsstr(equal_left, L")") == NULL)
 				{
 					                                 //error
 				}
@@ -757,19 +757,19 @@ namespace Project {
 					temp = equal_left;
 					while (temp <= equal_right)
 					{
-						if (strstr(temp, "(") != NULL)
+						if (wcsstr(temp, L"(") != NULL)
 						{
 							brackets_left++;
-							temp = strstr(temp, "(") + 1;
+							temp = wcsstr(temp, L"(") + 1;
 						}
 					}
 					temp = equal_left;
 					while(temp <= equal_right)
 					{
-						if (strstr(temp, ")") != NULL)
+						if (wcsstr(temp, L")") != NULL)
 						{
 							brackets_right++;
-							temp = strstr(temp, ")") + 1;
+							temp = wcsstr(temp, L")") + 1;
 						}							
 					}
 					if ((brackets_left > 1)||(brackets_right > 1)||(brackets_right != brackets_left))
@@ -777,23 +777,23 @@ namespace Project {
 						//error
 					}
 					//слева от равно нет операций, но есть одна правая и одна левая скобка и нет цифр
-					else if (strpbrk(equal_left, "0123456789") == NULL)
+					else if (wcspbrk(equal_left, L"0123456789") == NULL)
 					{
 						//записываем переменную - всё, что стоит в скобках
 						//необходимо будет добавить условие, проверяющее существует ли уже данная переменная в массиве
 						//если существует - ничего не записывать - только указать новую функцию на неё
 						size_of_vect = general_var_const->size();
-						temp = (char*)malloc(strstr(temp, ")") - strstr(temp, "(") + 7);
-						strcpy(temp, "varbl@");
-						strcat(temp, strstr(equal_left, "(") + 1);
-						temp[strstr(temp, ")") - temp] = 0;
+						temp = (wchar_t*)malloc((wcsstr(temp, L")") - wcsstr(temp, L"(") + 7)*2);
+						wcscpy(temp, L"varbl@");
+						wcscat(temp, wcsstr(equal_left, L"(") + 1);
+						temp[wcsstr(temp, L")") - temp] = 0;
 						general_var_const->push_back(new var_const(temp, 0));						
 						free(temp);
 						//записываем функцию, указываем правым рукавом  на созданную переменную						
 						size_of_vect = general_var_const->size();
-						temp = (char*)malloc(equal_right - input + 7);
-						strcpy(temp, "funct@");
-						strcat(temp, equal_left);
+						temp = (wchar_t*)malloc((equal_right - input + 7)*2);
+						wcscpy(temp, L"funct@");
+						wcscat(temp, equal_left);
 						general_var_const->push_back(new var_const(temp, 0));
 						
 						//general_var_const->reserve(input_size * 2 + size_of_vect);
@@ -815,7 +815,7 @@ namespace Project {
 					}
 				}
 			}
-			else if (strpbrk(equal_left, "0123456789") != NULL)
+			else if (wcspbrk(equal_left, L"0123456789") != NULL)
 			{
 
 			}
@@ -825,39 +825,39 @@ namespace Project {
 				size_of_vect = general_var_const->size();
 				for (count = 0; count < size_of_vect; count++)
 				{
-					if (equal_left == general_var_const->at(count)->read("func"))
+					if (equal_left == general_var_const->at(count)->read(L"func"))
 					{
-						if (general_var_const->at(count)->read("type") == "const")
+						if (general_var_const->at(count)->read(L"type") == L"const")
 						{
 							point_start = equal_right + 1;
 							return analized_output(point_start, point_end, general_var_const->at(count));
 						}
-						else if (general_var_const->at(count)->read("type") == "varbl")
+						else if (general_var_const->at(count)->read(L"type") == L"varbl")
 						{
-							temp = (char*)malloc(equal_right - input + 7);
-							strcpy(temp, "const@");
-							strcat(temp, equal_left);
+							temp = (wchar_t*)malloc((equal_right - input + 7)*2);
+							wcscpy(temp, L"const@");
+							wcscat(temp, equal_left);
 							general_var_const->at(count)->var_id = temp;
 							point_start = equal_right + 1;
 							free(temp);
 							return analized_output(point_start, point_end, general_var_const->at(count));
 						}
-						else if (general_var_const->at(count)->read("type") == "funct")
+						else if (general_var_const->at(count)->read(L"type") == L"funct")
 						{
 							point_start = equal_right + 1;
 							return analized_output(point_start, point_end, general_var_const->at(count));
 						}
 						else
 						{
-                                                        return (char*)"fuck up";//кто знает что ещё тут может быть
+                                                        return (wchar_t*)"fuck up";//кто знает что ещё тут может быть
 						}
 					}
 				}
 				if (count == size_of_vect)
 				{
-					temp = (char*)malloc(equal_right - input + 7);
-					strcpy(temp, "const@");
-					strcat(temp, equal_left);					
+					temp = (wchar_t*)malloc((equal_right - input + 7)*2);
+					wcscpy(temp, L"const@");
+					wcscat(temp, equal_left);					
 					general_var_const->push_back(new var_const(temp, 0));					
 					//general_var_const->reserve(input_size * 2 + size_of_vect);
 					free(temp);

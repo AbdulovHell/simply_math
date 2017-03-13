@@ -26,6 +26,7 @@ namespace GUICLR {
 			//
 			symbBox->Text = symbol.ToString();
 			//textBox1->Text = symbol.ToString();
+			Project::Core::Init();
 		}
 
 	protected:
@@ -158,12 +159,13 @@ namespace GUICLR {
 		}
 #pragma endregion
 	private: System::Void ProceedBtn_Click(System::Object^  sender, System::EventArgs^  e) {
-		wchar_t* str1 = (wchar_t*)malloc(50);
-		pin_ptr<const wchar_t> str2 = PtrToStringChars(textBox1->Text);
-		wcscpy(str1,str2);
-		Project::Core::Init();
-		Project::Core::input_to_analize(str1);
 		
+		pin_ptr<const wchar_t> str2 = PtrToStringChars(textBox1->Text);
+		//int a=sizeof(str2);
+		wchar_t* str1 = (wchar_t*)malloc(sizeof(str2)*2);
+		wcscpy(str1,str2);
+		//textBox1->Text = gcnew System::String(Project::Core::input_to_analize(str1));
+		textBox1->AppendText(gcnew System::String(Project::Core::input_to_analize(str1)));
 		free(str1);
 	}
 	private: System::Void PrevBtn_Click(System::Object^  sender, System::EventArgs^  e) {

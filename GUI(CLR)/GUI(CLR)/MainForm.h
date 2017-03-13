@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vcclr.h>
+#include "../../src/core.h"
 
 namespace GUICLR {
 

@@ -88,7 +88,7 @@ namespace Project {
 			//char* cursor = input;
 
 			int left_bracket = 0, right_bracket = 0, ravno = 0;
-			char buf[300];
+			static char buf[300];
 
             //Xchar(input);
 
@@ -153,7 +153,7 @@ namespace Project {
 		}
 
 		char* to_char_string(double var, var_type type, int decimals) {	//переменная, как представить, количество знаков после запятой(пока от 0 до 9)
-			char buf[25];
+			static char buf[25];
 			int temp;
 			char outFormat[] = "%.3f";
 			double frac;

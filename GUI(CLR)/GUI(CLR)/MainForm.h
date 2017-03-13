@@ -161,7 +161,9 @@ namespace GUICLR {
 		wchar_t* str1 = (wchar_t*)malloc(50);
 		pin_ptr<const wchar_t> str2 = PtrToStringChars(textBox1->Text);
 		wcscpy(str1,str2);
-
+		Project::Core::Init();
+		Project::Core::input_to_analize(str1);
+		
 		free(str1);
 	}
 	private: System::Void PrevBtn_Click(System::Object^  sender, System::EventArgs^  e) {

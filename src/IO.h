@@ -84,7 +84,7 @@ namespace Project {
 			int left_bracket = 0, right_bracket = 0, ravno = 0;
 			char buf[300];
 
-            Xchar(input);
+            //Xchar(input);
 
 			for (int i = 0;i < len;i++)
 				if (input[i] == '(')

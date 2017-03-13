@@ -63,7 +63,7 @@ namespace Project {
 			return str;
 		}
 
-        wchar_t* Xchar (wchar_t*str)
+        wchar_t* wXchar (wchar_t*str)
         {
             int i,j;
             int z=wcslen(str);
@@ -90,7 +90,7 @@ namespace Project {
 			int left_bracket = 0, right_bracket = 0, ravno = 0;
 			static wchar_t buf[300];
 
-            //Xchar(input);
+            wXchar(input);
 
             int len = wcslen(input);
 

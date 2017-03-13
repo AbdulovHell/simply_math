@@ -109,6 +109,13 @@
          </disabled>
         </palette>
        </property>
+       <property name="font">
+        <font>
+         <family>Times New Roman</family>
+         <pointsize>10</pointsize>
+         <kerning>true</kerning>
+        </font>
+       </property>
        <property name="autoFillBackground">
         <bool>false</bool>
        </property>

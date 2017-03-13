@@ -54,8 +54,8 @@ namespace Project {
 		using namespace std;
 		using namespace Project::Core;
 
-		char* err_str(int pos) {	//составляет строку с указателем до неизвестного символа
-			char* str = (char*)malloc(pos + 1);
+		wchar_t* err_str(int pos) {	//составляет строку с указателем до неизвестного символа
+			wchar_t* str = (wchar_t*)malloc((pos + 1)*2);
 			for (int i = 0;i < pos;i++)
 				str[i] = ' ';
 			str[pos] = 0;
@@ -63,10 +63,10 @@ namespace Project {
 			return str;
 		}
 
-        char* Xchar (char *str)
+        wchar_t* Xchar (wchar_t*str)
         {
             int i,j;
-            int z=strlen(str);
+            int z=wcslen(str);
             int cnt=0;
             for(i=0;i<z;i++)
             {
@@ -83,16 +83,16 @@ namespace Project {
             return str;
         }
 
-		char* VerifyInput(char* input) {	//возвращает строку, описывающую ошибку, иначе NULL.
-			//char* EndStr = &input[strlen(input)];
-			//char* cursor = input;
+		wchar_t* VerifyInput(wchar_t* input) {	//возвращает строку, описывающую ошибку, иначе NULL.
+			//wchar_t* EndStr = &input[strlen(input)];
+			//wchar_t* cursor = input;
 
 			int left_bracket = 0, right_bracket = 0, ravno = 0;
-			static char buf[300];
+			static wchar_t buf[300];
 
             //Xchar(input);
 
-            int len = strlen(input);
+            int len = wcslen(input);
 
 			for (int i = 0;i < len;i++)
 				if (input[i] == '(')
@@ -103,19 +103,19 @@ namespace Project {
 					ravno++;
 				else if ((input[i] >= 0x2A && input[i] <= 0x39) || (input[i] >= 0x41 && input[i] <= 0x5A) || (input[i] >= 0x61 && input[i] <= 0x7A)) {}
 				else {
-					sprintf(buf, "\nBad symbol, '%c':\n", input[i]);
-					strcat(buf, input);
-					strcat(buf, "\n");
-					strcat(buf, err_str(i));
-					strcat(buf, "\n");
+					swprintf(buf, L"\nBad symbol, '%c':\n", input[i]);
+					wcscat(buf, input);
+					wcscat(buf, L"\n");
+					wcscat(buf, err_str(i));
+					wcscat(buf, L"\n");
 					return buf;
 				}
 				if (left_bracket != right_bracket) {
-					sprintf(buf, "\n ( and ) error.\n");
+					swprintf(buf, L"\n ( and ) error.\n");
 					return buf;
 				}
 				if (ravno > 1) {
-					sprintf(buf, "\n'='>1 error.\n");
+					swprintf(buf, L"\n'='>1 error.\n");
 					return buf;
 				}
 				/*
@@ -125,72 +125,72 @@ namespace Project {
 				return NULL;
 		}
 
-		string to_string(double var, var_type type, int decimals) {	//переменная, как представить, количество знаков после запятой(пока от 0 до 9)
-			string sOut;
-			char buf[25];
+		wstring to_string(double var, var_type type, int decimals) {	//переменная, как представить, количество знаков после запятой(пока от 0 до 9)
+			wstring sOut;
+			wchar_t buf[25];
 			int temp;
-			char outFormat[] = "%.3f";
-			memset(buf, 0, 25);
+			wchar_t outFormat[] = L"%.3f";
+			memset(buf, 0, 25*2);
 
 			switch (type) {
 			case var_type::FRACTIONAL:
 				outFormat[2] = 48 + decimals;
-				sprintf(buf, outFormat, var);
+				swprintf(buf, outFormat, var);
 				sOut = buf;
 				break;
 			case var_type::INTEGER_ROUND:
 				outFormat[2] = 48;
-				sprintf(buf, outFormat, var);
+				swprintf(buf, outFormat, var);
 				sOut = buf;
 				break;
 			case var_type::INTEGER:
 				temp = var;
-				sprintf(buf, "%d", temp);
+				swprintf(buf, L"%d", temp);
 				sOut = buf;
 				break;
 			}
 			return sOut;
 		}
 
-		char* to_char_string(double var, var_type type, int decimals) {	//переменная, как представить, количество знаков после запятой(пока от 0 до 9)
-			static char buf[25];
+		wchar_t* to_char_string(double var, var_type type, int decimals) {	//переменная, как представить, количество знаков после запятой(пока от 0 до 9)
+			static wchar_t buf[25];
 			int temp;
-			char outFormat[] = "%.3f";
+			wchar_t outFormat[] = L"%.3f";
 			double frac;
-			memset(buf, 0, 25);
+			memset(buf, 0, 25*2);
 
 			switch (type) {
 			case var_type::FRACTIONAL:
 				outFormat[2] = 48 + decimals;
-				sprintf(buf, outFormat, var);
+				swprintf(buf, outFormat, var);
 				break;
 			case var_type::INTEGER_ROUND:
 				outFormat[2] = 48;
-				sprintf(buf, outFormat, var);
+				swprintf(buf, outFormat, var);
 				break;
 			case var_type::INTEGER:
 				temp = var;
-				sprintf(buf, "%d", temp);
+				swprintf(buf, L"%d", temp);
 				break;
 			case var_type::TOWER:
 				temp = var;	//целая часть
                 frac = GET_FRAC(var);   //дробная
                 int decs=isntPeriodical(frac);
                 if(decs==-1){
-                    sprintf(buf,"not implement");
+                    swprintf(buf,L"not implement");
                     break;
                 }
                 int u=frac*pow(10,decs);
                 int d=pow(10,decs);
                 reduce(&u,&d);
                 u=u+d*temp;
-                sprintf(buf,"%d\n",u);
-                char tempbuf[20];
-                memset(tempbuf,0,20);
-                sprintf(tempbuf,"---\n");
-                strcat(buf,tempbuf);
-                sprintf(tempbuf,"%d\n",d);
-                strcat(buf,tempbuf);
+                swprintf(buf,L"%d\n",u);
+                wchar_t tempbuf[20];
+                memset(tempbuf,0,20*2);
+                swprintf(tempbuf,L"---\n");
+                wcscat(buf,tempbuf);
+                swprintf(tempbuf,L"%d\n",d);
+                wcscat(buf,tempbuf);
 				break;
 			}
 			return buf;

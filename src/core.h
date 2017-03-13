@@ -50,7 +50,7 @@ namespace Project {
 				}
 			}
 
-			string expression_processing(var_const *pointer)
+			wstring expression_processing(var_const *pointer)
 			{
 				if ((pointer->var_id == "*") || (pointer->var_id == "/"))
 				{

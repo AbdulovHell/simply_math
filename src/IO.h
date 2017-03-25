@@ -1,4 +1,5 @@
 #include <iostream>
+#include <math.h>
 
 namespace Project {
 	namespace Core {
@@ -42,11 +43,11 @@ namespace Project {
             return z;
 		}
 
-		enum class var_type {
-			FRACTIONAL,	//дробное
-			INTEGER_ROUND,	//целое с округлением
-			INTEGER,	//целая часть
-			TOWER
+        enum class var_type : char {
+            FRACTIONAL=1,	//дробное
+            INTEGER_ROUND=2,	//целое с округлением
+            INTEGER=3,	//целая часть
+            TOWER=4
 		};
 	}
 	namespace IO {
@@ -86,9 +87,9 @@ namespace Project {
 		wchar_t* VerifyInput(wchar_t* input) {	//возвращает строку, описывающую ошибку, иначе NULL.
 			//wchar_t* EndStr = &input[strlen(input)];
 			//wchar_t* cursor = input;
-
+#define BUF_SIZE 300
 			int left_bracket = 0, right_bracket = 0, ravno = 0;
-			static wchar_t buf[300];
+            static wchar_t buf[BUF_SIZE];
 
             wXchar(input);
 
@@ -103,7 +104,7 @@ namespace Project {
 					ravno++;
 				else if ((input[i] >= 0x2A && input[i] <= 0x39) || (input[i] >= 0x41 && input[i] <= 0x5A) || (input[i] >= 0x61 && input[i] <= 0x7A)) {}
 				else {
-					swprintf(buf, L"\nBad symbol, '%c':\n", input[i]);
+                    swprintf(buf,BUF_SIZE, L"\nBad symbol, '%c':\n", input[i]);
 					wcscat(buf, input);
 					wcscat(buf, L"\n");
 					wcscat(buf, err_str(i));
@@ -111,11 +112,11 @@ namespace Project {
 					return buf;
 				}
 				if (left_bracket != right_bracket) {
-					swprintf(buf, L"\n ( and ) error.\n");
+                    swprintf(buf,BUF_SIZE, L"\n ( and ) error.\n");
 					return buf;
 				}
 				if (ravno > 1) {
-					swprintf(buf, L"\n'='>1 error.\n");
+                    swprintf(buf,BUF_SIZE, L"\n'='>1 error.\n");
 					return buf;
 				}
 				/*
@@ -124,10 +125,10 @@ namespace Project {
 				}*/
 				return NULL;
 		}
-
+#define BUF_SIZE2 25
 		wstring to_string(double var, var_type type, int decimals) {	//переменная, как представить, количество знаков после запятой(пока от 0 до 9)
 			wstring sOut;
-			wchar_t buf[25];
+            wchar_t buf[BUF_SIZE2];
 			int temp;
 			wchar_t outFormat[] = L"%.3f";
 			memset(buf, 0, 25*2);
@@ -135,17 +136,17 @@ namespace Project {
 			switch (type) {
 			case var_type::FRACTIONAL:
 				outFormat[2] = 48 + decimals;
-				swprintf(buf, outFormat, var);
+                swprintf(buf,BUF_SIZE2, outFormat, var);
 				sOut = buf;
 				break;
 			case var_type::INTEGER_ROUND:
 				outFormat[2] = 48;
-				swprintf(buf, outFormat, var);
+                swprintf(buf,BUF_SIZE2, outFormat, var);
 				sOut = buf;
 				break;
 			case var_type::INTEGER:
 				temp = var;
-				swprintf(buf, L"%d", temp);
+                swprintf(buf,BUF_SIZE2, L"%d", temp);
 				sOut = buf;
 				break;
 			}
@@ -153,7 +154,7 @@ namespace Project {
 		}
 
 		wchar_t* to_char_string(double var, var_type type, int decimals) {	//переменная, как представить, количество знаков после запятой(пока от 0 до 9)
-			static wchar_t buf[25];
+            static wchar_t buf[BUF_SIZE2];
 			int temp;
 			wchar_t outFormat[] = L"%.3f";
 			double frac;
@@ -162,34 +163,34 @@ namespace Project {
 			switch (type) {
 			case var_type::FRACTIONAL:
 				outFormat[2] = 48 + decimals;
-				swprintf(buf, outFormat, var);
+                swprintf(buf,BUF_SIZE2, outFormat, var);
 				break;
 			case var_type::INTEGER_ROUND:
 				outFormat[2] = 48;
-				swprintf(buf, outFormat, var);
+                swprintf(buf,BUF_SIZE2, outFormat, var);
 				break;
 			case var_type::INTEGER:
 				temp = var;
-				swprintf(buf, L"%d", temp);
+                swprintf(buf,BUF_SIZE2, L"%d", temp);
 				break;
 			case var_type::TOWER:
 				temp = var;	//целая часть
                 frac = GET_FRAC(var);   //дробная
                 int decs=isntPeriodical(frac);
                 if(decs==-1){
-                    swprintf(buf,L"not implement");
+                    swprintf(buf,BUF_SIZE2,L"not implement");
                     break;
                 }
                 int u=frac*pow(10,decs);
                 int d=pow(10,decs);
                 reduce(&u,&d);
                 u=u+d*temp;
-                swprintf(buf,L"%d\n",u);
+                swprintf(buf,BUF_SIZE2,L"%d\n",u);
                 wchar_t tempbuf[20];
                 memset(tempbuf,0,20*2);
-                swprintf(tempbuf,L"---\n");
+                swprintf(tempbuf,20,L"---\n");
                 wcscat(buf,tempbuf);
-                swprintf(tempbuf,L"%d\n",d);
+                swprintf(tempbuf,20,L"%d\n",d);
                 wcscat(buf,tempbuf);
 				break;
 			}

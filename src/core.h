@@ -235,8 +235,8 @@ namespace Project {
 		
 		var_const* filling_vector(wchar_t* pDest, wchar_t* endPtr, var_const* current_elment)
 		{			
-			int temp_size_of_vect;
-			int count;
+			size_t temp_size_of_vect;
+			unsigned int count;
 			var_const *high_pointer = NULL;
 			var_const *low_pointer = NULL;
 			wchar_t* p_var;
@@ -672,14 +672,14 @@ namespace Project {
 		{
 			_current_elment = filling_vector(_pDest, _endPtr, _current_elment);
 			wstring expr;
-			int output_size;
+			size_t output_size;
 			if (_current_elment->read(L"type") == L"const")
 			{
 				_current_elment->arithmetic();
 				expr = _current_elment->expresion();
 				output_size = wcslen(_current_elment->var_id.c_str()) + wcslen(to_string(_current_elment->var, var_type::FRACTIONAL,2).c_str()) + 10 + wcslen(expr.c_str());
 				wchar_t* output = (wchar_t*)malloc(output_size*2);
-				for (int i = 0; i < output_size; i++)
+				for (unsigned int i = 0; i < output_size; i++)
 					output[i] = 0;
 				wcscpy(output, expr.c_str());
 				wcscat(output,L"\n");
@@ -694,7 +694,7 @@ namespace Project {
 				expr = _current_elment->expresion();
 				output_size = wcslen(_current_elment->var_id.c_str()) + wcslen(to_string(_current_elment->var, var_type::FRACTIONAL, 2).c_str()) + 10 + wcslen(expr.c_str());
 				wchar_t* output = (wchar_t*)malloc(output_size*2);
-				for (int i = 0; i < output_size; i++)
+				for (unsigned int i = 0; i < output_size; i++)
 					output[i] = 0;
 				wcscpy(output, expr.c_str());
 				wcscat(output, L"\n");
@@ -716,9 +716,9 @@ namespace Project {
 			if (error_str != NULL)
 				return error_str;
 
-			int input_size = wcslen(input);
-			int size_of_vect;
-			int count;
+			size_t input_size = wcslen(input);
+			size_t size_of_vect;
+			unsigned int count;
 			int  brackets_left = 0;
 			int brackets_right = 0;
 			wchar_t* point_start = input;	//start pointer

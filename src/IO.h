@@ -66,8 +66,8 @@ namespace Project {
 
         wchar_t* wXchar (wchar_t*str)
         {
-            int i,j;
-            int z=wcslen(str);
+            unsigned int i,j;
+            size_t z=wcslen(str);
             int cnt=0;
             for(i=0;i<z;i++)
             {
@@ -93,9 +93,9 @@ namespace Project {
 
             wXchar(input);
 
-            int len = wcslen(input);
+            size_t len = wcslen(input);
 
-			for (int i = 0;i < len;i++)
+			for (unsigned int i = 0;i < len;i++)
 				if (input[i] == '(')
 					left_bracket++;
 				else if (input[i] == ')')

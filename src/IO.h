@@ -64,7 +64,7 @@ namespace Project {
 			return str;
 		}
 
-        wchar_t* wXchar (wchar_t*str)
+        wchar_t* wXchar (wchar_t* str)
         {
             unsigned int i,j;
             size_t z=wcslen(str);

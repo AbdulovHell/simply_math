@@ -2,6 +2,7 @@
 #define GET_FRAC(var) ((double)((double)var-(int)var))
 #define GET_INTGR(var) ((int)var)
 ///
+#define _CRT_SECURE_NO_WARNINGS
 
 #include <iostream>
 #include <string>
@@ -127,7 +128,7 @@ namespace Project {
 
 			int get_priority()
 			{
-				char operation = var_id[0];
+				wchar_t operation = var_id[0];
 				switch (operation)
 				{
 				case '+':

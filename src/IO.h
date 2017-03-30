@@ -17,7 +17,7 @@ namespace Project {
 		}
 
 		bool isInteger(double var) {
-			int a = var;
+			int a = (int)var;
 			if (abs(var - a) < 0.000000001)
 				return true;
 			else
@@ -29,7 +29,7 @@ namespace Project {
             int z = 0,temp=0;
 			while (true) {
                 num=num*10.0;
-                temp=num;
+                temp=(int)num;
                 if(temp){
                     z++;
                     num=GET_FRAC(num);
@@ -145,7 +145,7 @@ namespace Project {
 				sOut = buf;
 				break;
 			case var_type::INTEGER:
-				temp = var;
+				temp = (int)var;
                 swprintf(buf,BUF_SIZE2, L"%d", temp);
 				sOut = buf;
 				break;
@@ -170,19 +170,19 @@ namespace Project {
                 swprintf(buf,BUF_SIZE2, outFormat, var);
 				break;
 			case var_type::INTEGER:
-				temp = var;
+				temp = (int)var;
                 swprintf(buf,BUF_SIZE2, L"%d", temp);
 				break;
 			case var_type::TOWER:
-				temp = var;	//целая часть
+				temp = (int)var;	//целая часть
                 frac = GET_FRAC(var);   //дробная
                 int decs=isntPeriodical(frac);
                 if(decs==-1){
                     swprintf(buf,BUF_SIZE2,L"not implement");
                     break;
                 }
-                int u=frac*pow(10,decs);
-                int d=pow(10,decs);
+                int u= (int)(frac*pow(10,decs));
+                int d= (int)pow(10,decs);
                 reduce(&u,&d);
                 u=u+d*temp;
                 swprintf(buf,BUF_SIZE2,L"%d\n",u);

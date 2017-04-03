@@ -27,4 +27,5 @@ void MainWindow::on_startButton_clicked(){
 
     QString outstr=QString::fromWCharArray(output,wcslen(output));
     ui->outputText->setText(outstr);
+    free(input);
 }

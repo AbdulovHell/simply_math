@@ -12,20 +12,20 @@ int main()
 	Project::Core::Init();
 	do {
 		cout << "Input:" << endl;
-		string sInput;
-		cin >> sInput;
+		wstring sInput;
+		wcin >> sInput;
 
-		string data = sInput;
+		wstring data = sInput;
 		transform(data.begin(), data.end(), data.begin(), ::tolower);
-		if (!data.compare("exit"))
+		if (!data.compare(L"exit"))
 			return 0;
 
-		char* input = (char*)malloc(sInput.size() + 1);
-		strcpy(input, sInput.c_str());
+		wchar_t* input = (wchar_t*)malloc((sInput.size() + 1)*2);
+		wcscpy(input, sInput.c_str());
 
-		char* check = Project::Core::input_to_analize(input);
+		wchar_t* check = Project::Core::input_to_analize(input);
 		if (check != NULL)
-			cout << check << endl;
+			wcout << check << endl;
 
 	} while (1);
 

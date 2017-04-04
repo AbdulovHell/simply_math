@@ -29,3 +29,13 @@ namespace Project {
 
 	};
 }
+
+//void testExp() {
+//	throw(Project::ProjectError::ErrorCode::ERROR2);
+//}
+//try {
+//	testExp();
+//}
+//catch (Project::ProjectError::ErrorCode code) {
+//	wstring str = Project::ProjectError::GetProjectError(code);
+//}

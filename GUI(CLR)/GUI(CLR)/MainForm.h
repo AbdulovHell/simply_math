@@ -162,11 +162,13 @@ namespace GUICLR {
 		
 		pin_ptr<const wchar_t> str2 = PtrToStringChars(textBox1->Text);
 		//int a=sizeof(str2);
-		wchar_t* str1 = (wchar_t*)malloc(sizeof(str2)*2);
+		//wchar_t* str1 = (wchar_t*)malloc(sizeof(str2)*2);
+		size_t size = (sizeof(str2)+1) * 2;
+		wchar_t* str1 = new wchar_t[size];
 		wcscpy(str1,str2);
 		//textBox1->Text = gcnew System::String(Project::Core::input_to_analize(str1));
 		textBox1->AppendText(gcnew System::String(Project::Core::input_to_analize(str1)));
-		free(str1);
+		delete str1;
 	}
 	private: System::Void PrevBtn_Click(System::Object^  sender, System::EventArgs^  e) {
 		if (symbol) {

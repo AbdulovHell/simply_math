@@ -57,7 +57,7 @@ namespace Project {
 		using namespace Project::Core;
 
 		wchar_t* err_str(int pos) {	//составляет строку с указателем до неизвестного символа
-			wchar_t* str = (wchar_t*)malloc((pos + 1) * 2);
+            wchar_t* str = new wchar_t[(pos + 1) * 2];
 			for (int i = 0;i < pos;i++)
 				str[i] = ' ';
 			str[pos] = 0;
@@ -136,6 +136,7 @@ namespace Project {
 			wstring sOut;
 			wchar_t buf[BUF_SIZE2];
 			int temp;
+            double frac;
 			wchar_t outFormat[] = L"%.3f";
 			memset(buf, 0, 25 * 2);
 
@@ -155,6 +156,27 @@ namespace Project {
 				swprintf(buf, BUF_SIZE2, L"%d", temp);
 				sOut = buf;
 				break;
+            case var_type::TOWER:
+                temp = (int)var;	//целая часть
+                frac = GET_FRAC(var);   //дробная
+                int decs = isntPeriodical(frac);
+                if (decs == -1) {
+                    swprintf(buf, BUF_SIZE2, L"not implement");
+                    break;
+                }
+                int u = (int)(frac*pow(10, decs));
+                int d = (int)pow(10, decs);
+                reduce(&u, &d);
+                u = u + d*temp;
+                swprintf(buf, BUF_SIZE2, L"%d\n", u);
+                wchar_t tempbuf[20];
+                memset(tempbuf, 0, 20 * 2);
+                swprintf(tempbuf, 20, L"---\n");
+                wcscat(buf, tempbuf);
+                swprintf(tempbuf, 20, L"%d\n", d);
+                wcscat(buf, tempbuf);
+                sOut=buf;
+                break;
 			}
 			return sOut;
 		}

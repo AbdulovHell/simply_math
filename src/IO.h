@@ -121,7 +121,7 @@ namespace Project {
 				swprintf(buf, BUF_SIZE, L"\n ( and ) error.\n");
 				return buf;
 			}
-			if (ravno == 1) {
+			if (ravno != 1) {
 				swprintf(buf, BUF_SIZE, L"\n'='>1 error.\n");
 				return buf;
 			}

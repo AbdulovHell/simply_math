@@ -24,7 +24,7 @@ namespace Project {
 				return false;
 		}
 
-		int isntPeriodical(double num) {    //возвращает количество знаков после запятой, -1 если дробь условно бесконечно переодическая
+		int isntPeriodical(double num) {    //ГўГ®Г§ГўГ°Г Г№Г ГҐГІ ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® Г§Г­Г ГЄГ®Гў ГЇГ®Г±Г«ГҐ Г§Г ГЇГїГІГ®Г©, -1 ГҐГ±Г«ГЁ Г¤Г°Г®ГЎГј ГіГ±Г«Г®ГўГ­Г® ГЎГҐГ±ГЄГ®Г­ГҐГ·Г­Г® ГЇГҐГ°ГҐГ®Г¤ГЁГ·ГҐГ±ГЄГ Гї
 			num = GET_FRAC(num);
 			int z = 0, temp = 0;
 			while (true) {
@@ -45,9 +45,9 @@ namespace Project {
 		}
 
 		enum class var_type : char {
-			FRACTIONAL = 1,	//дробное
-			INTEGER_ROUND = 2,	//целое с округлением
-			INTEGER = 3,	//целая часть
+			FRACTIONAL = 1,	//Г¤Г°Г®ГЎГ­Г®ГҐ
+			INTEGER_ROUND = 2,	//Г¶ГҐГ«Г®ГҐ Г± Г®ГЄГ°ГіГЈГ«ГҐГ­ГЁГҐГ¬
+			INTEGER = 3,	//Г¶ГҐГ«Г Гї Г·Г Г±ГІГј
 			TOWER = 4
 		};
 	}
@@ -56,7 +56,7 @@ namespace Project {
 		using namespace std;
 		using namespace Project::Core;
 
-		wchar_t* err_str(int pos) {	//составляет строку с указателем до неизвестного символа
+		wchar_t* err_str(int pos) {	//Г±Г®Г±ГІГ ГўГ«ГїГҐГІ Г±ГІГ°Г®ГЄГі Г± ГіГЄГ Г§Г ГІГҐГ«ГҐГ¬ Г¤Г® Г­ГҐГЁГ§ГўГҐГ±ГІГ­Г®ГЈГ® Г±ГЁГ¬ГўГ®Г«Г 
             wchar_t* str = new wchar_t[(pos + 1) * 2];
 			for (int i = 0;i < pos;i++)
 				str[i] = ' ';
@@ -85,7 +85,7 @@ namespace Project {
 			return str;
 		}
 
-		wchar_t* VerifyInput(wchar_t* input) {	//возвращает строку, описывающую ошибку, иначе NULL.
+		wchar_t* VerifyInput(wchar_t* input) {	//ГўГ®Г§ГўГ°Г Г№Г ГҐГІ Г±ГІГ°Г®ГЄГі, Г®ГЇГЁГ±Г»ГўГ ГѕГ№ГіГѕ Г®ГёГЁГЎГЄГі, ГЁГ­Г Г·ГҐ NULL.
 			//wchar_t* EndStr = &input[strlen(input)];
 			//wchar_t* cursor = input;
 #define BUF_SIZE 300
@@ -121,7 +121,7 @@ namespace Project {
 				swprintf(buf, BUF_SIZE, L"\n ( and ) error.\n");
 				return buf;
 			}
-			if (ravno > 1) {
+			if (ravno == 1) {
 				swprintf(buf, BUF_SIZE, L"\n'='>1 error.\n");
 				return buf;
 			}
@@ -132,7 +132,7 @@ namespace Project {
 			return NULL;
 		}
 #define BUF_SIZE2 25
-		wstring to_string(double var, var_type type, int decimals) {	//переменная, как представить, количество знаков после запятой(пока от 0 до 9)
+		wstring to_string(double var, var_type type, int decimals) {	//ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї, ГЄГ ГЄ ГЇГ°ГҐГ¤Г±ГІГ ГўГЁГІГј, ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® Г§Г­Г ГЄГ®Гў ГЇГ®Г±Г«ГҐ Г§Г ГЇГїГІГ®Г©(ГЇГ®ГЄГ  Г®ГІ 0 Г¤Г® 9)
 			wstring sOut;
 			wchar_t buf[BUF_SIZE2];
 			int temp;
@@ -157,8 +157,8 @@ namespace Project {
 				sOut = buf;
 				break;
             case var_type::TOWER:
-                temp = (int)var;	//целая часть
-                frac = GET_FRAC(var);   //дробная
+                temp = (int)var;	//Г¶ГҐГ«Г Гї Г·Г Г±ГІГј
+                frac = GET_FRAC(var);   //Г¤Г°Г®ГЎГ­Г Гї
                 int decs = isntPeriodical(frac);
                 if (decs == -1) {
                     swprintf(buf, BUF_SIZE2, L"not implement");
@@ -181,7 +181,7 @@ namespace Project {
 			return sOut;
 		}
 
-		wchar_t* to_char_string(double var, var_type type, int decimals) {	//переменная, как представить, количество знаков после запятой(пока от 0 до 9)
+		wchar_t* to_char_string(double var, var_type type, int decimals) {	//ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї, ГЄГ ГЄ ГЇГ°ГҐГ¤Г±ГІГ ГўГЁГІГј, ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® Г§Г­Г ГЄГ®Гў ГЇГ®Г±Г«ГҐ Г§Г ГЇГїГІГ®Г©(ГЇГ®ГЄГ  Г®ГІ 0 Г¤Г® 9)
 			static wchar_t buf[BUF_SIZE2];
 			int temp;
 			wchar_t outFormat[] = L"%.3f";
@@ -202,8 +202,8 @@ namespace Project {
 				swprintf(buf, BUF_SIZE2, L"%d", temp);
 				break;
 			case var_type::TOWER:
-				temp = (int)var;	//целая часть
-				frac = GET_FRAC(var);   //дробная
+				temp = (int)var;	//Г¶ГҐГ«Г Гї Г·Г Г±ГІГј
+				frac = GET_FRAC(var);   //Г¤Г°Г®ГЎГ­Г Гї
 				int decs = isntPeriodical(frac);
 				if (decs == -1) {
 					swprintf(buf, BUF_SIZE2, L"not implement");

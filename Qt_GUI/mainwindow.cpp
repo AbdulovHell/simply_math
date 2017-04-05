@@ -20,11 +20,12 @@ void MainWindow::on_startButton_clicked(){
     //strcpy(a,Project::IO::to_char_string(0.125,Project::IO::var_type::TOWER,0));
     QString str=ui->inputText->toPlainText();
     int size=str.toStdString().size();
-    wchar_t* input=(wchar_t*)malloc((size+1)*2);
+    wchar_t* input=new wchar_t[(size+1)*2];
     wcscpy(input,str.toStdWString().c_str());
 
     wchar_t* output=Project::Core::input_to_analize(input);
 
     QString outstr=QString::fromWCharArray(output,wcslen(output));
     ui->outputText->setText(outstr);
+    delete [] input;
 }

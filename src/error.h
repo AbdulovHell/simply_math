@@ -1,7 +1,7 @@
 ﻿namespace Project {
 	using namespace std;
 
-    static class ProjectError {
+	static class ProjectError {
 
 	public:
 		enum class ErrorCode : int {
@@ -21,44 +21,44 @@
 			}
 		}
 
-        class _ErrorPresent {
-            wstring _textPresent;
-            ErrorCode _code;
-public:
-            _ErrorPresent(){}
-            _ErrorPresent(ErrorCode code){
-                _code=code;
-            }
-            void TextPresent(){
-                _textPresent=GetProjectError(_code);
-            }
-            wstring GetErrorWStr(){
-                _textPresent=GetProjectError(_code);
-                return _textPresent;
-            }
-            void copy(_ErrorPresent* orig){
-                _code=orig->_code;
-                _textPresent=orig->_textPresent;
-            }
+		class _ErrorPresent {
+			wstring _textPresent;
+			ErrorCode _code;
+		public:
+			_ErrorPresent() {}
+			_ErrorPresent(ErrorCode code) {
+				_code = code;
+			}
+			void TextPresent() {
+				_textPresent = GetProjectError(_code);
+			}
+			wstring GetErrorWStr() {
+				_textPresent = GetProjectError(_code);
+				return _textPresent;
+			}
+			void copy(_ErrorPresent* orig) {
+				_code = orig->_code;
+				_textPresent = orig->_textPresent;
+			}
 		};
 
-    private:
-    Project::ProjectError::_ErrorPresent* last_err;
-    bool NewLastError;
+	private:
+		static Project::ProjectError::_ErrorPresent* last_err;
+		static bool NewLastError;
 
-    public:
-    void GetProjectLastError(Project::ProjectError::_ErrorPresent* errprsnt){
-        errprsnt->copy(last_err);
-        NewLastError=false;
-    }
-    void SetProjectLastError(Project::ProjectError::ErrorCode code){
-        if(last_err) delete last_err;
-        last_err=new Project::ProjectError::_ErrorPresent(code);
-        NewLastError=true;
-    }
-    void Init(){
-        Project::ProjectError::last_err=new Project::ProjectError::_ErrorPresent();
-    }
+	public:
+		static void GetProjectLastError(Project::ProjectError::_ErrorPresent* errprsnt) {
+			errprsnt->copy(last_err);
+			NewLastError = false;
+		}
+		static void SetProjectLastError(Project::ProjectError::ErrorCode code) {
+			if (last_err) delete last_err;
+			last_err = new Project::ProjectError::_ErrorPresent(code);
+			NewLastError = true;
+		}
+		static void Init() {
+			Project::ProjectError::last_err = new Project::ProjectError::_ErrorPresent();
+		}
 
 	};
 

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "error.h"
 #include "IO.h"
 
 /*сюда пишу возможные коды ошибок и ограничений ввода, которые будут выдаваться при заполнении дерева
@@ -249,6 +250,7 @@ namespace Project {
 		vector<var_const*>* general_var_const;
 
 		void Init() {
+            Project::ProjectError::Init();
 			general_var_const = new vector<var_const*>;
 			general_var_const->push_back(&pi);
 			general_var_const->push_back(&e);

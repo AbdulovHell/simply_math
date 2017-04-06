@@ -28,7 +28,8 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     ../src/core.h \
-    ../src/IO.h
+    ../src/IO.h \
+    ../src/error.h
 
 FORMS    += mainwindow.ui
 

@@ -45,7 +45,7 @@ namespace Project {
 					return processing(pointer->point_left) * processing(pointer->point_right);
 				case '/':
 					return processing(pointer->point_left) / processing(pointer->point_right);
-				case '4':
+				case '^':
 					return pow(processing(pointer->point_left), processing(pointer->point_right));
 
 				default:       //для констант, чисел и переменных

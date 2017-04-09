@@ -104,25 +104,25 @@ namespace Project {
 				else if (input[i] == '=')
 					ravno++;
 				else if (input[i] == '@') {
-					swprintf(buf, BUF_SIZE, L"\nBad symbol, '%c':\n", input[i]);
+					swprintf(buf, BUF_SIZE, L"Bad symbol, '%c':", input[i]);
 					wcscat(buf, input);
-					wcscat(buf, L"\n");
-					wcscat(buf, err_str(i));
-					wcscat(buf, L"\n");
+					//wcscat(buf, L"\n");
+					//wcscat(buf, err_str(i));
+					//wcscat(buf, L"\n");
 					return buf;
 				}
 
 				if (bracket < 0) {
-					swprintf(buf, BUF_SIZE, L"\n ')' error.\n");
+					swprintf(buf, BUF_SIZE, L"')' error.");
 					return buf;
 				}
 			}
 			if (bracket) {
-				swprintf(buf, BUF_SIZE, L"\n ( and ) error.\n");
+				swprintf(buf, BUF_SIZE, L"( and ) error.");
 				return buf;
 			}
 			if (ravno != 1) {
-				swprintf(buf, BUF_SIZE, L"\n'='>1 error.\n");
+				swprintf(buf, BUF_SIZE, L"'='!=1 error.");
 				return buf;
 			}
 			/*

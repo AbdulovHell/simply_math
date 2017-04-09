@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include "IO.h"
+#include "error.h"
 
 
 namespace Project {
@@ -394,23 +395,17 @@ namespace Project {
 						}
 						else if (current_element->read(L"type") == L"equat")
 						{
-							temp = NULL;
-							temp = (wchar_t*)malloc(6 * sizeof(wchar_t));
-							wcscpy(temp, L"error@");
-							high_pointer = NULL;
-							high_pointer = new var_const(temp, -4);
-							general_var_const->pop_back();
-							return high_pointer;
+							high_pointer = new var_const(L"error@", -4);
+						general_var_const->pop_back();
+						return high_pointer;
+							
 						}
 						else if (current_element->read(L"type") == L"exprs")
 						{
-							temp = NULL;
-							temp = (wchar_t*)malloc(6 * sizeof(wchar_t));
-							wcscpy(temp, L"error@");
-							high_pointer = NULL;
-							high_pointer = new var_const(temp, -4);
-							general_var_const->pop_back();
-							return high_pointer;
+high_pointer = new var_const(L"error@", -4);
+						general_var_const->pop_back();
+						return high_pointer;
+							
 						}
 						
 					}
@@ -1300,7 +1295,7 @@ namespace Project {
 			if (error_str != NULL)
 				return error_str;
 
-			int size_of_vect = general_var_const->size();
+			size_t size_of_vect = general_var_const->size();
 			
 			wstring temp = L"exprs@#undef";			
 			general_var_const->push_back(new var_const(temp, 0));

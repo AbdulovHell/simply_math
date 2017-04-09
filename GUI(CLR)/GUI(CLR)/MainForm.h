@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vcclr.h>
+#include <Windows.h>
 #include "../../src/core.h"
 
 namespace GUICLR {
@@ -8,9 +9,11 @@ namespace GUICLR {
 	using namespace System;
 	using namespace System::ComponentModel;
 	using namespace System::Collections;
+	using namespace System::Collections::Generic;
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
+	//using namespace std;
 	/// <summary>
 	/// Сводка для MainForm
 	/// </summary>
@@ -24,7 +27,7 @@ namespace GUICLR {
 			//TODO: добавьте код конструктора
 			//
 			Project::Core::Init();
-			input_indexes = gcnew array<int>(300);
+			input_indexes = gcnew cli::array<int>(300);
 		}
 
 	protected:
@@ -46,13 +49,18 @@ namespace GUICLR {
 
 
 
-
+			 bool isOut(System::String^ str) {
+				 if (!(str->Length > 3)) return false;
+				 if (str[0] == '>'&&str[1] == '>'&&str[2] == '>')
+					 return true;
+				 else return false;
+			 }
 
 	private:
 		/// <summary>
 		/// Обязательная переменная конструктора.
 		/// </summary>
-		array<int>^ input_indexes;
+		cli::array<int>^ input_indexes;
 
 	private: System::Windows::Forms::ToolStripProgressBar^  toolStripProgressBar1;
 			 System::ComponentModel::Container ^components;
@@ -81,7 +89,7 @@ namespace GUICLR {
 				 this->textBox1->Name = L"textBox1";
 				 this->textBox1->Size = System::Drawing::Size(607, 329);
 				 this->textBox1->TabIndex = 0;
-				 this->textBox1->Text = L"x=5+5*5\r\ny=@\r\ny=2+2";
+				 this->textBox1->Text = L"5+5*5=\r\n=@#\r\n2+2=";
 				 this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
 				 // 
 				 // toolStrip1
@@ -138,11 +146,12 @@ namespace GUICLR {
 	private: System::Void ProceedBtn_Click(System::Object^  sender, System::EventArgs^  e) {
 		pin_ptr<const wchar_t> str2 = PtrToStringChars(textBox1->Text);
 		//int a=sizeof(str2);
-		wchar_t* str1 = (wchar_t*)malloc(sizeof(str2) * 2);
+		//wstring str1;
+		wchar_t* str1 = new wchar_t[sizeof(str2) * 2];
 		wcscpy(str1, str2);
 		//textBox1->Text = gcnew System::String(Project::Core::input_to_analize(str1));
-		textBox1->AppendText(gcnew System::String(Project::Core::input_to_analize(str1)));
-		free(str1);
+		textBox1->AppendText(gcnew System::String(Project::Core::input_to_analize(str1).c_str()));
+		delete[] str1;
 	}
 	private: System::Void PrevBtn_Click(System::Object^  sender, System::EventArgs^  e) {
 
@@ -151,32 +160,43 @@ namespace GUICLR {
 
 	}
 	private: System::Void verify(System::Object^  sender, System::EventArgs^  e) {
-		array<String^>^ strs = textBox1->Lines;
+		cli::array<String^>^ strs = textBox1->Lines;
 		int len = strs->Length;
+		List<int>^ temp = gcnew List<int>;
 
 		for (int i = 0;i < len;i++) {
-			int a = String::Compare(strs[i],">>> ");
-			if (!a) {
-
+			if (!isOut(strs[i])) {
+				temp->Add(i);
 			}
 		}
+		cli::array<String^>^ in = gcnew cli::array<String^>(temp->Count);		
+		for (int i=0;i < temp->Count;i++) {
+			in[i] = strs[temp[i]];
+		}
 
-		array<String^>^ out=gcnew array<String^>(len*2);
-
+		len = temp->Count;
+		cli::array<String^>^ out=gcnew cli::array<String^>(len*2);
+		wchar_t* str1;
 		for (int i = 0;i < len;i++) {
-			pin_ptr<const wchar_t> str2 = PtrToStringChars(strs[i]);
-			out[i*2]=strs[i];
-
-			wchar_t* str1 = (wchar_t*)malloc(sizeof(str2) * 2);
+			pin_ptr<const wchar_t> str2 = PtrToStringChars(in[i]);
+			out[i*2]=in[i];
+			size_t temps = in[i]->Length+2;
+			str1 = new wchar_t[temps];
 			wcscpy(str1, str2);
 
-			out[i*2+1]= ">>> "+gcnew String(Project::Core::input_to_analize(str1));
-			
-			free(str1);
+			out[i*2+1]= ">>> "+gcnew String(Project::Core::input_to_analize(str1).c_str());
+		
+			delete[] str1;
 		}
+		
+		int a=textBox1->SelectionStart;
+
 		this->textBox1->TextChanged -= gcnew System::EventHandler(this, &MainForm::verify);
 		textBox1->Lines = out;
 		this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
+
+		textBox1->SelectionStart = a;
+		textBox1->SelectionLength = 0;
 	}
 	};
 }

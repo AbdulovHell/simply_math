@@ -334,7 +334,7 @@ namespace Project {
 		}
 
 
-		var_const* filling_vector(wchar_t* strPtr, wchar_t*endPtr, var_const* current_element, int brakets)
+		var_const* filling_vector(wchar_t* strPtr, wchar_t*endPtr, var_const* c_e, int brakets)
 		{
 			size_t temp_size_of_vect;
 			wchar_t* pDest = strPtr;
@@ -344,7 +344,7 @@ namespace Project {
 			var_const *temp_pointer = NULL;
 			wchar_t* temp;
 			wstring name;
-
+			var_const* current_element = c_e;
 			double num;
 			int brakets_counter = 0;
 			while (pDest <= endPtr) {
@@ -355,7 +355,7 @@ namespace Project {
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						//high_pointer = new var_const(L"error@", 1);
-						//general_var_const->pop_back(); не работает
+						//general_var_const->pop_back(); //не работает
 						//return high_pointer;						
 
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::EQUALY_FIRST);
@@ -1247,11 +1247,11 @@ namespace Project {
 		¬озвращает строку с результатом текущей итерации вычислений.*/
 		wstring analized_output(wchar_t* _pDest, wchar_t* _endPtr, var_const* _current_element)
 		{
-			_current_element = filling_vector(_pDest, _endPtr, _current_element, 0);
+			var_const* CE = filling_vector(_pDest, _endPtr, _current_element, 0);
 			wstring output;
 			size_t output_size;
 			//if (_current_element->read(L"type") == L"error")
-			if (_current_element == NULL)
+			if (CE == NULL)
 			{
 				ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
 				ProjectError::GetProjectLastError(err);
@@ -1281,13 +1281,12 @@ namespace Project {
 				///8 - запись вида х+2=(конец строки) при неопределЄнной или определЄнной как переменна€ х. ѕрограмма посчитает такую запись
 				левой частью уравнени€
 				!///9 - в начале строки или после скобки??? стоит знак операции
-
 				*/
 			}
-			else if (_current_element->read(L"type") == L"exprs")
+			else if (CE->read(L"type") == L"exprs")
 			{
-				_current_element->arithmetic();
-				output = to_string(_current_element->var, var_type::FRACTIONAL, 2);
+				CE->arithmetic();
+				output = to_string(CE->var, var_type::FRACTIONAL, 2);
 			}
 			else
 			{

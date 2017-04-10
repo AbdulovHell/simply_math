@@ -85,7 +85,7 @@ namespace Project {
 			return str;
 		}
 
-		wchar_t* VerifyInput(wchar_t* input) {	//âîçâðàùàåò ñòðîêó, îïèñûâàþùóþ îøèáêó, èíà÷å NULL.
+		bool VerifyInput(wchar_t* input) {	//âîçâðàùàåò ñòðîêó, îïèñûâàþùóþ îøèáêó, èíà÷å NULL.
 			//wchar_t* EndStr = &input[strlen(input)];
 			//wchar_t* cursor = input;
 #define BUF_SIZE 300
@@ -104,32 +104,28 @@ namespace Project {
 				else if (input[i] == '=')
 					ravno++;
 				else if (input[i] == '@' || input[i] == '#') {
-					swprintf(buf, BUF_SIZE, L"Bad symbol, '%c':", input[i]);
-					wcscat(buf, input);
-					//wcscat(buf, L"\n");
-					//wcscat(buf, err_str(i));
-					//wcscat(buf, L"\n");
-					return buf;
+					Project::ProjectError::SetProjectLastError(ProjectError::ErrorCode::SERVICE_SYMBOL);
+					return false;
 				}
 
 				if (bracket < 0) {
-					swprintf(buf, BUF_SIZE, L"')' error.");
-					return buf;
+					//swprintf(buf, BUF_SIZE, L"')' error.");
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+					return false;
 				}
 			}
 			if (bracket) {
-				swprintf(buf, BUF_SIZE, L"( and ) error.");
-				return buf;
+				//swprintf(buf, BUF_SIZE, L"( and ) error.");
+				ProjectError::SetProjectLastError(ProjectError::ErrorCode::BRACKET_COUNT);
+				return false;
 			}
 			if (ravno != 1) {
-				swprintf(buf, BUF_SIZE, L"'='!=1 error.");
-				return buf;
+				//swprintf(buf, BUF_SIZE, L"'='!=1 error.");
+				if (ravno == 0) ProjectError::SetProjectLastError(ProjectError::ErrorCode::EQUALY_MISSING);
+				else ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_EQUALY);
+				return false;
 			}
-			/*
-			while (cursor < EndStr) {
-
-			}*/
-			return NULL;
+			return true;
 		}
 #define BUF_SIZE2 25
 		wstring to_string(double var, var_type type, int decimals) {	//ïåðåìåííàÿ, êàê ïðåäñòàâèòü, êîëè÷åñòâî çíàêîâ ïîñëå çàïÿòîé(ïîêà îò 0 äî 9)

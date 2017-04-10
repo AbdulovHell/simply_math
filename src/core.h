@@ -131,6 +131,11 @@ namespace Project {
 				point_collar = var1->point_collar;
 			}
 
+			~var_const()
+			{
+
+			}
+
 			/*Метод возвращает приоритет операции.
 			1 - сложение
 			2 - умножение
@@ -364,25 +369,8 @@ namespace Project {
 					//равно в конце строки, запрос на действие
 					else if (pDest == endPtr)
 					{
-						if (current_element->read(L"type") == L"const")
-						{
-							current_element->var_id += L"#read";
-						}
-						else if (current_element->read(L"type") == L"funct")
-						{
-							current_element->var_id += L"#read";
-						}
-						/*
-						else if (current_element->read(L"type") == L"equat")
-						{
-							high_pointer = new var_const(L"error@", 8);
-							general_var_const->pop_back();
-							return high_pointer;
-						}*/
-						else if (current_element->read(L"type") == L"exprs")
-						{
-							//не важно в принципе. если текущая строка всё ещё считается константным выражением его просто нужно посчтитать
-						}
+						//просто выдаём наверх текущий заполненный элемент с параметром solve, а там уже пытаемся его расчитать и вывести результат или сообщить ошибку
+						current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"solve");
 					}
 					else
 					{
@@ -420,9 +408,9 @@ namespace Project {
 				{
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
-						high_pointer = new var_const(L"error@", 9);
-						general_var_const->pop_back();
-						return high_pointer;
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
+						return NULL;
+						
 					}
 					//если это первая операция в выражении
 					else if (high_pointer == low_pointer)
@@ -455,15 +443,20 @@ namespace Project {
 						}
 					}
 					pDest++;
+					temp = wcspbrk(pDest, L")+-*^/=");
+					if (pDest == temp)
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
+						return NULL;
+					}
 				}
 				else if (*pDest == '*')
 				{
 					//если это первая операция в выражении
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
-						high_pointer = new var_const(L"error@", 9);
-						general_var_const->pop_back();
-						return high_pointer;
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
+						return NULL;
 					}
 					//если это первая операция в выражении
 					else if (high_pointer == low_pointer)
@@ -496,14 +489,19 @@ namespace Project {
 						}
 					}
 					pDest++;
+					temp = wcspbrk(pDest, L")+-*^/=");
+					if (pDest == temp)
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
+						return NULL;
+					}
 				}
 				else if (*pDest == '/')
 				{
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
-						high_pointer = new var_const(L"error@", 9);
-						general_var_const->pop_back();
-						return high_pointer;
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
+						return NULL;
 					}
 					//если это первая операция в выражении
 					else if (high_pointer == low_pointer)
@@ -536,14 +534,18 @@ namespace Project {
 						}
 					}
 					pDest++;
+					temp = wcspbrk(pDest, L")+-*^/=");
+					if (pDest == temp)
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
+						return NULL;
+					}
 				}
 				else if (*pDest == '^')
 				{
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
-						//high_pointer = new var_const(L"error@", 9);
-						//general_var_const->pop_back();
-						//return high_pointer;
+						
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
 						return NULL;
 					}
@@ -578,6 +580,12 @@ namespace Project {
 						}
 					}
 					pDest++;
+					temp = wcspbrk(pDest, L")+-*^/=");
+					if (pDest == temp)
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
+						return NULL;
+					}
 				}
 				else if (*pDest == '-')
 				{
@@ -636,6 +644,12 @@ namespace Project {
 						}
 					}
 					pDest++;
+					temp = wcspbrk(pDest, L")+-*^/=");
+					if (pDest == temp)
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
+						return NULL;
+					}
 				}
 				else if (*pDest == '(')
 				{
@@ -889,6 +903,12 @@ namespace Project {
 					//сразу переходим к следующей позиции после скобки
 					brakets_counter -= 4;
 					pDest = temp + 1;
+					if (*pDest == '(')
+					{
+						//по идее запись вида )( может означать )*(. Потом добавть сюда определение для подобного случая
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+						return NULL;
+					}
 				}
 				else if ((*pDest == '1') || (*pDest == '2') || (*pDest == '3') || (*pDest == '4') || (*pDest == '5') || (*pDest == '6') || (*pDest == '7') || (*pDest == '8') || (*pDest == '9') || (*pDest == '0'))
 				{                   //любое число имеет id "0"					
@@ -991,12 +1011,10 @@ namespace Project {
 							if (temp == NULL)
 							{
 								current_element = new var_const(high_pointer);
-
 							}
 							else if (*temp == '=')
 							{
-								current_element = high_pointer;
-								current_element->var_id.replace(0, 5, L"varbl");
+								current_element = high_pointer;								
 								general_var_const->pop_back();
 							}
 							else if (*temp == '(')
@@ -1030,6 +1048,7 @@ namespace Project {
 							}
 							else if (*temp == '=')
 							{
+								
 								current_element = high_pointer;
 								general_var_const->pop_back();
 							}

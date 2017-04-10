@@ -103,7 +103,7 @@ namespace Project {
 					bracket--;
 				else if (input[i] == '=')
 					ravno++;
-				else if (input[i] == '@') {
+				else if (input[i] == '@' || input[i] == '#') {
 					swprintf(buf, BUF_SIZE, L"Bad symbol, '%c':", input[i]);
 					wcscat(buf, input);
 					//wcscat(buf, L"\n");

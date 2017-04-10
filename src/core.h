@@ -131,6 +131,11 @@ namespace Project {
 				point_collar = var1->point_collar;
 			}
 
+			~var_const()
+			{
+
+			}
+
 			//var_const* operator=(var_const* other);
 
 			/*var_const* var_const::operator=(var_const* other) {
@@ -390,29 +395,135 @@ namespace Project {
 					}
 					else
 					{
+						temp_pointer = filling_vector(pDest + 1, endPtr, new var_const(L"exprs@#undef", 0, low_pointer), brakets + brakets_counter);
 						if (current_element->read(L"type") == L"const")
-						{
-							temp_pointer = filling_vector(pDest + 1,endPtr, new var_const(L"exprs@#undef", 0, low_pointer), brakets + brakets_counter);
+						{							
 							if (temp_pointer->read(L"type") == L"funct")
 							{
-
+								current_element->point_left = temp_pointer->point_left;
+								current_element->point_collar = temp_pointer->point_collar;
+								current_element->point_right = temp_pointer->point_right;
+								name = temp_pointer->read(L"func");
+								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), name);
+								current_element->var_id.replace(0, 5, L"funct");
+								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");								
 							}
-							current_element->var_id += L"#writ";
-							high_pointer = NULL;
-							low_pointer = NULL;
+							else if (temp_pointer->read(L"type") == L"varbl")
+							{
+								if (temp_pointer->read(L"prop") == L"undef")
+								{
+									temp_pointer->var_id.replace(temp_pointer->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+									general_var_const->push_back(temp_pointer);
+								}
+								current_element->point_collar->copy(temp_pointer);
+								current_element->point_left = current_element->point_collar;
+								name = temp_pointer->read(L"name");
+								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + name + L")");
+								current_element->var_id.replace(0, 5, L"funct");
+								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");								
+							}
+							else if (temp_pointer->read(L"type") == L"exprs")
+							{
+								current_element->point_left = temp_pointer->point_left;
+								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+							}
+							else if (temp_pointer->read(L"type") == L"const")
+							{
+								current_element->var = temp_pointer->var;
+								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+							}							
+						}
+						else if (current_element->read(L"type") == L"varbl")
+						{
+							if (temp_pointer->read(L"type") == L"funct")
+							{
+								current_element->point_left = temp_pointer->point_left;
+								current_element->point_collar = temp_pointer->point_collar;
+								current_element->point_right = temp_pointer->point_right;
+								name = temp_pointer->read(L"func");
+								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), name);
+								current_element->var_id.replace(0, 5, L"funct");
+								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+							}
+							else if (temp_pointer->read(L"type") == L"varbl")
+							{
+								if (temp_pointer->read(L"prop") == L"undef")
+								{
+									temp_pointer->var_id.replace(temp_pointer->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+									general_var_const->push_back(temp_pointer);
+								}
+								current_element->point_collar->copy(temp_pointer);
+								current_element->point_left = current_element->point_collar;
+								name = temp_pointer->read(L"name");
+								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + name + L")");
+								current_element->var_id.replace(0, 5, L"funct");
+								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+							}
+							else if (temp_pointer->read(L"type") == L"exprs")
+							{
+								current_element->point_left = temp_pointer->point_left;
+								current_element->var_id.replace(0, 5, L"const");
+								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+							}
+							else if (temp_pointer->read(L"type") == L"const")
+							{
+								current_element->var = temp_pointer->var;
+								current_element->var_id.replace(0, 5, L"const");
+								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+							}
 						}
 						else if (current_element->read(L"type") == L"funct")
 						{
-							current_element->var_id += L"#writ";
-							high_pointer = NULL;
-							low_pointer = NULL;
-						}
-						else if (current_element->read(L"type") == L"equat")
-						{
-							high_pointer = new var_const(L"error@", -4);
-							general_var_const->pop_back();
-							return high_pointer;
-
+							if (temp_pointer->read(L"type") == L"funct")
+							{
+								if (current_element->read(L"nvar") == temp_pointer->read(L"nvar"))
+								{
+									if (current_element->read(L"prop") == L"defnd")
+									{
+										high_pointer->copy(current_element);
+										current_element = new var_const(L"equat@("+ high_pointer->read(L"nvar") + L")#unslv", 0, high_pointer, temp_pointer->point_right, temp_pointer->point_collar);
+									}
+									else
+									{
+										current_element->var_id.replace(0, 5, L"equat");
+										current_element->point_right = temp_pointer->point_right;
+										current_element->point_collar = temp_pointer->point_collar;
+										current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"unslv");
+									}
+								}
+								else
+								{
+									//тут доделать функции/уравнения нескольких переменных									
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
+									return NULL;
+								}							
+							}
+							else if (temp_pointer->read(L"type") == L"varbl")
+							{
+								if (temp_pointer->read(L"prop") == L"undef")
+								{
+									temp_pointer->var_id.replace(temp_pointer->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+									general_var_const->push_back(temp_pointer);
+								}
+								current_element->point_collar->copy(temp_pointer);
+								current_element->point_left = current_element->point_collar;
+								name = temp_pointer->read(L"name");
+								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + name + L")");
+								current_element->var_id.replace(0, 5, L"funct");
+								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+							}
+							else if (temp_pointer->read(L"type") == L"exprs")
+							{
+								current_element->point_left = temp_pointer->point_left;
+								current_element->var_id.replace(0, 5, L"const");
+								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+							}
+							else if (temp_pointer->read(L"type") == L"const")
+							{
+								current_element->var = temp_pointer->var;
+								current_element->var_id.replace(0, 5, L"const");
+								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+							}
 						}
 						else if (current_element->read(L"type") == L"exprs")
 						{
@@ -1030,7 +1141,7 @@ namespace Project {
 						{
 							if (temp == NULL)
 							{
-								current_element = new var_const(high_pointer);
+								current_element->copy(high_pointer);
 							}
 							else if (*temp == '=')
 							{
@@ -1103,7 +1214,7 @@ namespace Project {
 						{
 							if (temp == NULL)
 							{
-								current_element = new var_const(high_pointer);
+								current_element->copy(high_pointer);
 
 							}
 							else if (*temp == '=')

@@ -4,6 +4,7 @@
 	static class ProjectError {
 
 	public:
+		
 		enum class ErrorCode : int {
 			COMPLEX_FUNC_NOT_REALIZED = -1,
 			//UNDEFINED_FUNC = -2,
@@ -85,8 +86,8 @@
 
 	private:
 		static Project::ProjectError::_ErrorPresent* last_err;
-		static bool NewLastError;
-
+		static int NewLastError;
+			
 	public:
 		static void GetProjectLastError(Project::ProjectError::_ErrorPresent* errprsnt) {
 			errprsnt->copy(last_err);

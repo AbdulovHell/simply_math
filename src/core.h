@@ -15,6 +15,7 @@ namespace Project {
 	namespace Core {
 
 		using namespace std;
+		using namespace Project;
 		using namespace Project::IO;
 
 		class var_const {
@@ -310,6 +311,7 @@ namespace Project {
 		vector<var_const*>* general_var_const;
 
 		void Init() {
+			ProjectError::Init();
 			general_var_const = new vector<var_const*>;
 			general_var_const->push_back(&pi);
 			general_var_const->push_back(&e);
@@ -352,9 +354,12 @@ namespace Project {
 					//если равно стоит в самом начале строки
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
-						high_pointer = new var_const(L"error@", 1);
-						general_var_const->pop_back();
-						return high_pointer;						
+						//high_pointer = new var_const(L"error@", 1);
+						//general_var_const->pop_back(); не работает
+						//return high_pointer;						
+
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::EQUALY_FIRST);
+						return NULL;
 					}
 					//равно в конце строки, запрос на действие
 					else if (pDest == endPtr)
@@ -372,7 +377,7 @@ namespace Project {
 						{
 							high_pointer = new var_const(L"error@", 8);
 							general_var_const->pop_back();
-							return high_pointer;							
+							return high_pointer;
 						}*/
 						else if (current_element->read(L"type") == L"exprs")
 						{
@@ -396,18 +401,18 @@ namespace Project {
 						else if (current_element->read(L"type") == L"equat")
 						{
 							high_pointer = new var_const(L"error@", -4);
-						general_var_const->pop_back();
-						return high_pointer;
-							
+							general_var_const->pop_back();
+							return high_pointer;
+
 						}
 						else if (current_element->read(L"type") == L"exprs")
 						{
-high_pointer = new var_const(L"error@", -4);
-						general_var_const->pop_back();
-						return high_pointer;
-							
+							high_pointer = new var_const(L"error@", -4);
+							general_var_const->pop_back();
+							return high_pointer;
+
 						}
-						
+
 					}
 					pDest++;
 				}
@@ -1245,8 +1250,12 @@ high_pointer = new var_const(L"error@", -4);
 			_current_element = filling_vector(_pDest, _endPtr, _current_element, 0);
 			wstring output;
 			size_t output_size;
-			if (_current_element->read(L"type") == L"error")
+			//if (_current_element->read(L"type") == L"error")
+			if (_current_element == NULL)
 			{
+				ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+				ProjectError::GetProjectLastError(err);
+				return err->GetErrorWStr();
 				//TODO: ошибки!
 				/*сюда пишу возможные коды ошибок и ограничений ввода, которые будут выдаваться при заполнении дерева
 				доработать
@@ -1277,11 +1286,11 @@ high_pointer = new var_const(L"error@", -4);
 			}
 			else if (_current_element->read(L"type") == L"exprs")
 			{
-				_current_element->arithmetic();		
+				_current_element->arithmetic();
 				output = to_string(_current_element->var, var_type::FRACTIONAL, 2);
 			}
-			else 
-			{				
+			else
+			{
 				//else else esle!
 			}
 			return output;
@@ -1296,15 +1305,15 @@ high_pointer = new var_const(L"error@", -4);
 				return error_str;
 
 			size_t size_of_vect = general_var_const->size();
-			
-			wstring temp = L"exprs@#undef";			
+
+			wstring temp = L"exprs@#undef";
 			general_var_const->push_back(new var_const(temp, 0));
-			
+
 			wchar_t* point_start = input;	//start pointer
 			wchar_t* point_end = input + wcslen(input) - 1;	//end pointer	
 			return analized_output(point_start, point_end, general_var_const->at(size_of_vect));
 
-			
+
 		}
 	}
 }

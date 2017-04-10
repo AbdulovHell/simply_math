@@ -45,6 +45,7 @@ namespace GUICLR {
 	protected:
 	private: System::Windows::Forms::ToolStrip^  toolStrip1;
 	private: System::Windows::Forms::ToolStripButton^  ProceedBtn;
+	private: System::Windows::Forms::Timer^  timer1;
 	private: System::Windows::Forms::ToolStripSeparator^  toolStripSeparator1;
 
 
@@ -63,7 +64,8 @@ namespace GUICLR {
 		cli::array<int>^ input_indexes;
 
 	private: System::Windows::Forms::ToolStripProgressBar^  toolStripProgressBar1;
-			 System::ComponentModel::Container ^components;
+	private: System::ComponentModel::IContainer^  components;
+
 
 #pragma region Windows Form Designer generated code
 			 /// <summary>
@@ -72,12 +74,14 @@ namespace GUICLR {
 			 /// </summary>
 			 void InitializeComponent(void)
 			 {
+				 this->components = (gcnew System::ComponentModel::Container());
 				 System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(MainForm::typeid));
 				 this->textBox1 = (gcnew System::Windows::Forms::TextBox());
 				 this->toolStrip1 = (gcnew System::Windows::Forms::ToolStrip());
 				 this->ProceedBtn = (gcnew System::Windows::Forms::ToolStripButton());
 				 this->toolStripSeparator1 = (gcnew System::Windows::Forms::ToolStripSeparator());
 				 this->toolStripProgressBar1 = (gcnew System::Windows::Forms::ToolStripProgressBar());
+				 this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 				 this->toolStrip1->SuspendLayout();
 				 this->SuspendLayout();
 				 // 
@@ -125,6 +129,11 @@ namespace GUICLR {
 				 this->toolStripProgressBar1->Name = L"toolStripProgressBar1";
 				 this->toolStripProgressBar1->Size = System::Drawing::Size(100, 22);
 				 // 
+				 // timer1
+				 // 
+				 this->timer1->Interval = 1200;
+				 this->timer1->Tick += gcnew System::EventHandler(this, &MainForm::timer1_Tick);
+				 // 
 				 // MainForm
 				 // 
 				 this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
@@ -136,6 +145,7 @@ namespace GUICLR {
 				 this->MaximizeBox = false;
 				 this->Name = L"MainForm";
 				 this->Text = L"MainForm";
+				 this->Load += gcnew System::EventHandler(this, &MainForm::MainForm_Load);
 				 this->toolStrip1->ResumeLayout(false);
 				 this->toolStrip1->PerformLayout();
 				 this->ResumeLayout(false);
@@ -160,43 +170,52 @@ namespace GUICLR {
 
 	}
 	private: System::Void verify(System::Object^  sender, System::EventArgs^  e) {
-		cli::array<String^>^ strs = textBox1->Lines;
-		int len = strs->Length;
-		List<int>^ temp = gcnew List<int>;
-
-		for (int i = 0;i < len;i++) {
-			if (!isOut(strs[i])) {
-				temp->Add(i);
-			}
-		}
-		cli::array<String^>^ in = gcnew cli::array<String^>(temp->Count);		
-		for (int i=0;i < temp->Count;i++) {
-			in[i] = strs[temp[i]];
-		}
-
-		len = temp->Count;
-		cli::array<String^>^ out=gcnew cli::array<String^>(len*2);
-		wchar_t* str1;
-		for (int i = 0;i < len;i++) {
-			pin_ptr<const wchar_t> str2 = PtrToStringChars(in[i]);
-			out[i*2]=in[i];
-			size_t temps = in[i]->Length+2;
-			str1 = new wchar_t[temps];
-			wcscpy(str1, str2);
-
-			out[i*2+1]= ">>> "+gcnew String(Project::Core::input_to_analize(str1).c_str());
-		
-			delete[] str1;
-		}
-		
-		int a=textBox1->SelectionStart;
-
-		this->textBox1->TextChanged -= gcnew System::EventHandler(this, &MainForm::verify);
-		textBox1->Lines = out;
-		this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
-
-		textBox1->SelectionStart = a;
-		textBox1->SelectionLength = 0;
+		timer1->Enabled = false;
+		Sleep(1);
+		timer1->Enabled = true;
 	}
-	};
+	private: System::Void MainForm_Load(System::Object^  sender, System::EventArgs^  e) {
+	}
+private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
+	cli::array<String^>^ strs = textBox1->Lines;
+	int len = strs->Length;
+	List<int>^ temp = gcnew List<int>;
+
+	for (int i = 0;i < len;i++) {
+		if (!isOut(strs[i])) {
+			temp->Add(i);
+		}
+	}
+	cli::array<String^>^ in = gcnew cli::array<String^>(temp->Count);
+	for (int i = 0;i < temp->Count;i++) {
+		in[i] = strs[temp[i]];
+	}
+
+	len = temp->Count;
+	cli::array<String^>^ out = gcnew cli::array<String^>(len * 2);
+	wchar_t* str1;
+	for (int i = 0;i < len;i++) {
+		pin_ptr<const wchar_t> str2 = PtrToStringChars(in[i]);
+		out[i * 2] = in[i];
+		size_t temps = in[i]->Length + 2;
+		str1 = new wchar_t[temps];
+		wcscpy(str1, str2);
+
+		out[i * 2 + 1] = ">>> " + gcnew String(Project::Core::input_to_analize(str1).c_str());
+
+		delete[] str1;
+	}
+
+	int a = textBox1->SelectionStart;
+
+	this->textBox1->TextChanged -= gcnew System::EventHandler(this, &MainForm::verify);
+	textBox1->Lines = out;
+	this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
+
+	textBox1->SelectionStart = a;
+	textBox1->SelectionLength = 0;
+
+	timer1->Enabled = false;
+}
+};
 }

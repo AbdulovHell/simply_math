@@ -22,14 +22,17 @@
 			BAD_NAME=6,
 			UNEXPECTED_BRACKET=7,
 			UNDEFINED_VARIABLE=8,
-			UNEXPECTED_OPERATION=9
+			UNEXPECTED_OPERATION=9,
+			BRACKET_COUNT=10,
+			UNEXPECTED_EQUALY=11,
+			SERVICE_SYMBOL=12
 		};
 
 		static wstring GetProjectError(ErrorCode code) {
 			switch (code)
 			{
 			case ErrorCode::COMPLEX_FUNC_NOT_REALIZED:
-				return L"Вложенные/сложные функции не реализованы.";
+				return L"Вложенные/сложные функции не реализованы";
 			case ErrorCode::UNDEFINED_FUNC:
 				return L"Неопределенная функция";
 			case ErrorCode::IMPLICIT_FUNC:
@@ -58,6 +61,12 @@
 				return L"Неопределенная переменная";
 			case ErrorCode::UNEXPECTED_OPERATION:
 				return L"Неожиданная положение операции в выражении";
+			case ErrorCode::BRACKET_COUNT:
+				return L"Количество открывающих и закрывающих скобок не совпадает";
+			case ErrorCode::UNEXPECTED_EQUALY:
+				return L"Строка содержит более одного знака '='";
+			case ErrorCode::SERVICE_SYMBOL:
+				return L"Строка содержит служебные символы";
 			default:
 				return L"Unresolved error";
 			}
@@ -71,6 +80,15 @@
 			_ErrorPresent(ErrorCode code) {
 				_code = code;
 			}
+			/*_ErrorPresent(bool last) {
+				if (last) {
+					ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+					ProjectError::GetProjectLastError(err);
+					_textPresent= err->_textPresent;
+					_code = err->_code;
+					delete err;
+				}
+			}*/
 			void TextPresent() {
 				_textPresent = GetProjectError(_code);
 			}

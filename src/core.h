@@ -7,9 +7,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "IO.h"
 #include "error.h"
-
+#include "IO.h"
 
 namespace Project {
 	namespace Core {
@@ -1483,9 +1482,11 @@ namespace Project {
 		Возвращает строку с результатом текущей итерации вычислений.*/
 		wstring input_to_analize(wchar_t* input)
 		{
-			wchar_t* error_str = Project::IO::VerifyInput(input);
-			if (error_str != NULL)
-				return error_str;
+			if (!Project::IO::VerifyInput(input)) {
+				ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+				ProjectError::GetProjectLastError(err);
+				return err->GetErrorWStr();
+			}
 
 			size_t size_of_vect = general_var_const->size();
 
@@ -1495,8 +1496,6 @@ namespace Project {
 			wchar_t* point_start = input;	//start pointer
 			wchar_t* point_end = input + wcslen(input) - 1;	//end pointer	
 			return analized_output(point_start, point_end, general_var_const->at(size_of_vect));
-
-
 		}
 	}
 }

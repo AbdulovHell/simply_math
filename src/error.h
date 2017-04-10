@@ -1,9 +1,9 @@
 ﻿namespace Project {
 	using namespace std;
 
-	static class ProjectError {
+	namespace ProjectError {
 
-	public:
+	//public:
 		
 		enum class ErrorCode : int {
 			COMPLEX_FUNC_NOT_REALIZED = -1,
@@ -84,11 +84,11 @@
 			}
 		};
 
-	private:
+	//protected:
 		static Project::ProjectError::_ErrorPresent* last_err;
 		static int NewLastError;
 			
-	public:
+	//public:
 		static void GetProjectLastError(Project::ProjectError::_ErrorPresent* errprsnt) {
 			errprsnt->copy(last_err);
 			NewLastError = false;

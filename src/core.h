@@ -133,7 +133,7 @@ namespace Project {
 
 			//var_const* operator=(var_const* other);
 
-			var_const* var_const::operator=(var_const* other) {
+			/*var_const* var_const::operator=(var_const* other) {
 				if (this == other) {
 					return this;
 				}
@@ -143,6 +143,14 @@ namespace Project {
 				this->point_right = other->point_right;
 				this->point_collar = other->point_collar;
 				return this;
+			}*/
+
+			void copy(var_const* ref) {
+				var_id = ref->var_id;
+				var = ref->var;
+				point_left = ref->point_left;
+				point_right = ref->point_right;
+				point_collar = ref->point_collar;
 			}
 			/*ћетод возвращает приоритет операции.
 			1 - сложение
@@ -1055,7 +1063,7 @@ namespace Project {
 						{
 							if (temp == NULL)
 							{
-								current_element = high_pointer;
+								current_element->copy(high_pointer);
 
 							}
 							else if (*temp == '=')

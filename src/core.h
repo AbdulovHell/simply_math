@@ -541,9 +541,11 @@ namespace Project {
 				{
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
-						high_pointer = new var_const(L"error@", 9);
-						general_var_const->pop_back();
-						return high_pointer;
+						//high_pointer = new var_const(L"error@", 9);
+						//general_var_const->pop_back();
+						//return high_pointer;
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
+						return NULL;
 					}
 					//если это первая операция в выражении
 					else if (high_pointer == low_pointer)
@@ -647,9 +649,11 @@ namespace Project {
 						//если попали в конец строчки не найдя закрывающих скобок
 						if (temp == endPtr)
 						{
-							high_pointer = new var_const(L"error@", 2);
-							general_var_const->pop_back();
-							return high_pointer;
+							//high_pointer = new var_const(L"error@", 2);
+							//general_var_const->pop_back();
+							//return high_pointer;
+							ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
+							return NULL;
 						}
 						else if (*temp == '(')
 						{
@@ -661,9 +665,11 @@ namespace Project {
 						}
 						else if (*temp == '=') //открытая скобка и дальше равно
 						{
-							high_pointer = new var_const(L"error@", 3);
-							general_var_const->pop_back();
-							return high_pointer;
+							//high_pointer = new var_const(L"error@", 3);
+							//general_var_const->pop_back();
+							//return high_pointer;
+							ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
+							return NULL;
 						}
 					}
 					if (pDest + 1 == temp)
@@ -728,9 +734,11 @@ namespace Project {
 									else
 									{
 										//тут доделать функции/уравнения нескольких переменных
-										high_pointer = new var_const(L"error@", -5);
-										general_var_const->pop_back();
-										return high_pointer;
+										//high_pointer = new var_const(L"error@", -5);
+										//general_var_const->pop_back();
+										//return high_pointer;
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
+										return NULL;
 									}
 								}
 								else if (current_element->read(L"type") == L"exprs")
@@ -759,9 +767,11 @@ namespace Project {
 									else
 									{
 										//тут доделать функции/уравнения нескольких переменных
-										high_pointer = new var_const(L"error@", -5);
-										general_var_const->pop_back();
-										return high_pointer;
+										//high_pointer = new var_const(L"error@", -5);
+										//general_var_const->pop_back();
+										//return high_pointer;
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
+										return NULL;
 									}
 								}
 								else if (current_element->read(L"type") == L"exprs")
@@ -788,9 +798,11 @@ namespace Project {
 									else
 									{
 										//тут отложу пока - минус перед функцией или конст или переменной и дальше скобка
-										high_pointer = new var_const(L"error@", -7);
-										general_var_const->pop_back();
-										return high_pointer;
+										//high_pointer = new var_const(L"error@", -7);
+										//general_var_const->pop_back();
+										//return high_pointer;
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::NEGATIVE_FUNC);
+										return NULL;
 									}
 								}
 								else
@@ -817,9 +829,11 @@ namespace Project {
 											else
 											{
 												//тут доделать функции/уравнения нескольких переменных
-												high_pointer = new var_const(L"error@", -5);
-												general_var_const->pop_back();
-												return high_pointer;
+												//high_pointer = new var_const(L"error@", -5);
+												//general_var_const->pop_back();
+												//return high_pointer;
+												ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
+												return NULL;
 											}
 										}
 									}
@@ -840,9 +854,11 @@ namespace Project {
 											if (temp_pointer->read(L"name") != current_element->read(L"nvar"))
 											{
 												//тут доделать функции/уравнения нескольких переменных
-												high_pointer = new var_const(L"error@", -5);
+												/*high_pointer = new var_const(L"error@", -5);
 												general_var_const->pop_back();
-												return high_pointer;
+												return high_pointer;*/
+												ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
+												return NULL;
 											}
 										}
 									}
@@ -862,9 +878,11 @@ namespace Project {
 							}
 							else if (low_pointer->read(L"type") == L"opert")
 							{
-								high_pointer = new var_const(L"error@", -6);
-								general_var_const->pop_back();
-								return high_pointer;
+								//high_pointer = new var_const(L"error@", -6);
+								//general_var_const->pop_back();
+								//return high_pointer;
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::INTERNAL_POINTER_ERR);
+								return NULL;
 							}
 						}
 					}
@@ -907,9 +925,11 @@ namespace Project {
 					{
 						if ((temp == NULL) && (brakets == 0))
 						{
-							high_pointer = new var_const(L"error@", 2);
-							general_var_const->pop_back();
-							return high_pointer;
+							//high_pointer = new var_const(L"error@", 2);
+							//general_var_const->pop_back();
+							//return high_pointer;
+							ProjectError::SetProjectLastError(ProjectError::ErrorCode::EQUALY_MISSING);
+							return NULL;
 						}
 						else if (temp == NULL)
 						{
@@ -944,9 +964,11 @@ namespace Project {
 							}
 							else if (*temp == ')')
 							{
-								high_pointer = new var_const(L"error@", 7);
-								general_var_const->pop_back();
-								return high_pointer;
+								//high_pointer = new var_const(L"error@", 7);
+								//general_var_const->pop_back();
+								//return high_pointer;
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+								return NULL;
 							}
 							else
 							{
@@ -985,9 +1007,11 @@ namespace Project {
 							}
 							else if (*temp == ')')
 							{
-								high_pointer = new var_const(L"error@", 7);
+								/*high_pointer = new var_const(L"error@", 7);
 								general_var_const->pop_back();
-								return high_pointer;
+								return high_pointer;*/
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+								return NULL;
 							}
 							else
 							{
@@ -1011,9 +1035,11 @@ namespace Project {
 							}
 							else if (*temp == ')')
 							{
-								high_pointer = new var_const(L"error@", 7);
+								/*high_pointer = new var_const(L"error@", 7);
 								general_var_const->pop_back();
-								return high_pointer;
+								return high_pointer;*/
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+								return NULL;
 							}
 							else if (*temp == '(')
 							{
@@ -1048,9 +1074,11 @@ namespace Project {
 							}
 							else if (*temp == ')')
 							{
-								high_pointer = new var_const(L"error@", 7);
+								/*high_pointer = new var_const(L"error@", 7);
 								general_var_const->pop_back();
-								return high_pointer;
+								return high_pointer;*/
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+								return NULL;
 							}
 							else if (*temp == '(')
 							{
@@ -1094,9 +1122,11 @@ namespace Project {
 								if (current_element->read(L"type") == L"funct")
 								{
 									//тут доделать функции/уравнения нескольких переменных
-									high_pointer = new var_const(L"error@", -5);
+									/*high_pointer = new var_const(L"error@", -5);
 									general_var_const->pop_back();
-									return high_pointer;
+									return high_pointer;*/
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
+									return NULL;
 								}
 
 								else if (current_element->read(L"type") == L"exprs")
@@ -1126,9 +1156,11 @@ namespace Project {
 									if (low_pointer->read(L"name") != current_element->read(L"nvar"))
 									{
 										//тут доделать функции/уравнения нескольких переменных
-										high_pointer = new var_const(L"error@", -5);
+										/*high_pointer = new var_const(L"error@", -5);
 										general_var_const->pop_back();
-										return high_pointer;
+										return high_pointer;*/
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
+										return NULL;
 									}
 									else
 									{
@@ -1192,9 +1224,11 @@ namespace Project {
 									else
 									{
 										//тут доделать функции/уравнения нескольких переменных
-										high_pointer = new var_const(L"error@", -5);
+										/*high_pointer = new var_const(L"error@", -5);
 										general_var_const->pop_back();
-										return high_pointer;
+										return high_pointer;*/
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
+										return NULL;
 									}
 								}
 								else if (current_element->read(L"type") == L"exprs")

@@ -131,6 +131,19 @@ namespace Project {
 				point_collar = var1->point_collar;
 			}
 
+			//var_const* operator=(var_const* other);
+
+			var_const* var_const::operator=(var_const* other) {
+				if (this == other) {
+					return this;
+				}
+				this->var_id = other->var_id;
+				this->var = other->var;
+				this->point_left = other->point_left;
+				this->point_right = other->point_right;
+				this->point_collar = other->point_collar;
+				return this;
+			}
 			/*Метод возвращает приоритет операции.
 			1 - сложение
 			2 - умножение
@@ -1025,7 +1038,7 @@ namespace Project {
 						{
 							if (temp == NULL)
 							{
-								current_element = new var_const(high_pointer);
+								current_element = high_pointer;
 
 							}
 							else if (*temp == '=')

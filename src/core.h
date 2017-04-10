@@ -384,6 +384,11 @@ namespace Project {
 					{
 						if (current_element->read(L"type") == L"const")
 						{
+							temp_pointer = filling_vector(pDest + 1,endPtr, new var_const(L"exprs@#undef", 0, low_pointer), brakets + brakets_counter);
+							if (temp_pointer->read(L"type") == L"funct")
+							{
+
+							}
 							current_element->var_id += L"#writ";
 							high_pointer = NULL;
 							low_pointer = NULL;
@@ -699,9 +704,8 @@ namespace Project {
 						//пустая строка в скобках. вроде не ошибка, но можно и запретить)
 					}
 					else
-					{
-						temp_pointer = new var_const(L"exprs@", 0, low_pointer);
-						temp_pointer = filling_vector(pDest + 1, temp - 1, temp_pointer, brakets + brakets_counter);
+					{						
+						temp_pointer = filling_vector(pDest + 1, temp - 1, new var_const(L"exprs@#undef", 0, low_pointer), brakets + brakets_counter);
 						if ((high_pointer == NULL) && (low_pointer == NULL))
 						{
 							if ((temp_pointer->read(L"type") == L"exprs") || (temp_pointer->read(L"type") == L"const"))

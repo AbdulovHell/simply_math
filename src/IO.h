@@ -6,6 +6,7 @@ namespace Project {
 
 		const int simple_nums[] = { 2,3,5,7,11,13,17,19,23 };	//size 9
 
+		//сокращение дроби рекурсивно
 		void reduce(int* u, int* d) {
 			for (int i = 0; i < 9;i++)
 				if (*u%simple_nums[i] == 0 && *d%simple_nums[i] == 0) {
@@ -16,6 +17,7 @@ namespace Project {
 				}
 		}
 
+		//проверка на "целое"
 		bool isInteger(double var) {
 			int a = (int)var;
 			if (abs(var - a) < 0.000000001)
@@ -24,6 +26,7 @@ namespace Project {
 				return false;
 		}
 
+		//проверка на переодичность дроби
 		int isntPeriodical(double num) {    //âîçâðàùàåò êîëè÷åñòâî çíàêîâ ïîñëå çàïÿòîé, -1 åñëè äðîáü óñëîâíî áåñêîíå÷íî ïåðåîäè÷åñêàÿ
 			num = GET_FRAC(num);
 			int z = 0, temp = 0;
@@ -45,9 +48,13 @@ namespace Project {
 		}
 
 		enum class var_type : char {
-			FRACTIONAL = 1,	//äðîáíîå
-			INTEGER_ROUND = 2,	//öåëîå ñ îêðóãëåíèåì
-			INTEGER = 3,	//öåëàÿ ÷àñòü
+			//Дробное
+			FRACTIONAL = 1,
+			//Целое округленное
+			INTEGER_ROUND = 2,
+			//Целая часть
+			INTEGER = 3,
+			//Дробь с числителем и знаменателем
 			TOWER = 4
 		};
 	}
@@ -55,7 +62,7 @@ namespace Project {
 
 		using namespace std;
 		using namespace Project::Core;
-
+		//устарело
 		wchar_t* err_str(int pos) {	//ñîñòàâëÿåò ñòðîêó ñ óêàçàòåëåì äî íåèçâåñòíîãî ñèìâîëà
             wchar_t* str = new wchar_t[(pos + 1) * 2];
 			for (int i = 0;i < pos;i++)
@@ -64,8 +71,8 @@ namespace Project {
 			str[pos - 1] = '^';
 			return str;
 		}
-
-		wchar_t* wXchar(wchar_t* str)
+		//удаление пробелов
+		wchar_t* wXchar(_In_ wchar_t* str)
 		{
 			unsigned int i, j;
 			size_t z = wcslen(str);
@@ -84,10 +91,8 @@ namespace Project {
 			str[z - cnt] = '\0';
 			return str;
 		}
-
-		bool VerifyInput(wchar_t* input) {	//âîçâðàùàåò ñòðîêó, îïèñûâàþùóþ îøèáêó, èíà÷å NULL.
-			//wchar_t* EndStr = &input[strlen(input)];
-			//wchar_t* cursor = input;
+		//проверка входящей строки на служебные символы, простые ошибки со скобками и знаки равно. удаляет пробелы.
+		bool VerifyInput(_In_ wchar_t* input) {
 #define BUF_SIZE 300
 			int bracket = 0, ravno = 0;
 			static wchar_t buf[BUF_SIZE];
@@ -128,7 +133,8 @@ namespace Project {
 			return true;
 		}
 #define BUF_SIZE2 25
-		wstring to_string(double var, var_type type, int decimals) {	//ïåðåìåííàÿ, êàê ïðåäñòàâèòü, êîëè÷åñòâî çíàêîâ ïîñëå çàïÿòîé(ïîêà îò 0 äî 9)
+		//возвращает строку с var, представленную как type, с количеством знаков после запятой decimals
+		wstring to_string(double var, var_type type, int decimals) {
 			wstring sOut;
 			wchar_t buf[BUF_SIZE2];
 			int temp;
@@ -176,7 +182,7 @@ namespace Project {
 			}
 			return sOut;
 		}
-
+		//наверное, устрело, см. to_string
 		wchar_t* to_char_string(double var, var_type type, int decimals) {	//ïåðåìåííàÿ, êàê ïðåäñòàâèòü, êîëè÷åñòâî çíàêîâ ïîñëå çàïÿòîé(ïîêà îò 0 äî 9)
 			static wchar_t buf[BUF_SIZE2];
 			int temp;

@@ -3,31 +3,50 @@
 
 	namespace ProjectError {
 
-	//public:
-		
 		enum class ErrorCode : int {
+			//Вложенные/сложные функции не реализованы
 			COMPLEX_FUNC_NOT_REALIZED = -1,
-			//UNDEFINED_FUNC = -2,
-			IMPLICIT_FUNC =-3,
-			IS_EQUATION =-4,
-			MULTIPLE_VARIABLES=-5,
-			INTERNAL_POINTER_ERR=-6,
-			NEGATIVE_FUNC=-7,
-			
-			EQUALY_FIRST=1,
-			EQUALY_MISSING=2,
-			LBRACKET_NOT_CLOSED=3,
-			UNDEFINED_FUNC=4,
-			USING_VAR_AS_FUNC=5,
-			BAD_NAME=6,
-			UNEXPECTED_BRACKET=7,
-			UNDEFINED_VARIABLE=8,
-			UNEXPECTED_OPERATION=9,
-			BRACKET_COUNT=10,
-			UNEXPECTED_EQUALY=11,
-			SERVICE_SYMBOL=12
+			//Неявное вложение функции
+			IMPLICIT_FUNC = -3,
+			//Уравнения не реализованы
+			IS_EQUATION = -4,
+			//Функция/уравнение нескольких переменных
+			MULTIPLE_VARIABLES = -5,
+			//Неверный указатель
+			INTERNAL_POINTER_ERR = -6,
+			//Наличие '-' перед функцией
+			NEGATIVE_FUNC = -7,
+
+			//Здесь был Вася
+			EMPTY = 0,
+
+			//Строка начинается с '='
+			EQUALY_FIRST = 1,
+			//В выражении отсутствует знак '='
+			EQUALY_MISSING = 2,
+			//Не закрыта открывающая скобка
+			LBRACKET_NOT_CLOSED = 3,
+			//Неопределенная функция
+			UNDEFINED_FUNC = 4,
+			//Использование переменной в качестве функции
+			USING_VAR_AS_FUNC = 5,
+			//Имя переменной/функции не может начинаться с цифры
+			BAD_NAME = 6,
+			//Неожиданное положение скобки в выражении
+			UNEXPECTED_BRACKET = 7,
+			//Неопределенная переменная
+			UNDEFINED_VARIABLE = 8,
+			//Неожиданная положение операции в выражении
+			UNEXPECTED_OPERATION = 9,
+			//Количество открывающих и закрывающих скобок не совпадает
+			BRACKET_COUNT = 10,
+			//Строка содержит более одного знака '='
+			UNEXPECTED_EQUALY = 11,
+			//Строка содержит служебные символы
+			SERVICE_SYMBOL = 12
 		};
 
+		//Преобразование кода в текстовое представление
 		static wstring GetProjectError(ErrorCode code) {
 			switch (code)
 			{
@@ -80,6 +99,7 @@
 			_ErrorPresent(ErrorCode code) {
 				_code = code;
 			}
+			//Конструктор, цепляющий последнюю ошибку программы
 			/*_ErrorPresent(bool last) {
 				if (last) {
 					ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
@@ -89,33 +109,38 @@
 					delete err;
 				}
 			}*/
+			//Представление кода как текст и сохранение в классе
 			void TextPresent() {
 				_textPresent = GetProjectError(_code);
 			}
+			//Возвращает текст ошибки
 			wstring GetErrorWStr() {
 				_textPresent = GetProjectError(_code);
 				return _textPresent;
 			}
-			void copy(_ErrorPresent* orig) {
+			//Копирование
+			void copy(_In_ _ErrorPresent* orig) {
 				_code = orig->_code;
 				_textPresent = orig->_textPresent;
 			}
 		};
 
-	//protected:
+		//protected:
 		static Project::ProjectError::_ErrorPresent* last_err;
 		static int NewLastError;
-			
-	//public:
-		static void GetProjectLastError(Project::ProjectError::_ErrorPresent* errprsnt) {
+
+		//Передает в класс последнюю ошибку программы
+		static void GetProjectLastError(_Out_ Project::ProjectError::_ErrorPresent* errprsnt) {
 			errprsnt->copy(last_err);
 			NewLastError = false;
 		}
-		static void SetProjectLastError(Project::ProjectError::ErrorCode code) {
+		//Задает код текущей ошибки как последнюю
+		static void SetProjectLastError(_In_ Project::ProjectError::ErrorCode code) {
 			if (last_err) delete last_err;
 			last_err = new Project::ProjectError::_ErrorPresent(code);
 			NewLastError = true;
 		}
+		//Инициализация указателя последней ошибки, не обязательно
 		static void Init() {
 			Project::ProjectError::last_err = new Project::ProjectError::_ErrorPresent();
 		}
@@ -123,6 +148,8 @@
 	};
 
 }
+
+#pragma region Пример 1
 
 //void testExp() {
 //	throw(Project::ProjectError::ErrorCode::ERROR2);
@@ -134,3 +161,5 @@
 //catch (Project::ProjectError::ErrorCode code) {
 //	wstring str = Project::ProjectError::GetProjectError(code);
 //}
+
+#pragma endregion

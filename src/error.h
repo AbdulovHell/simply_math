@@ -16,9 +16,12 @@
 			INTERNAL_POINTER_ERR = -6,
 			//Наличие '-' перед функцией
 			NEGATIVE_FUNC = -7,
+			
 
-			//Здесь был Вася
-			EMPTY = 0,
+			
+
+			//Невозможная ошибка
+			UNREAL_ERROR = 0,
 
 			//Строка начинается с '='
 			EQUALY_FIRST = 1,
@@ -43,7 +46,9 @@
 			//Строка содержит более одного знака '='
 			UNEXPECTED_EQUALY = 11,
 			//Строка содержит служебные символы
-			SERVICE_SYMBOL = 12
+			SERVICE_SYMBOL = 12,
+			//Попытка получить результат булева выражения вне условной области
+			BOOL_EXPRESSION = 13,
 		};
 
 		//Преобразование кода в текстовое представление
@@ -86,6 +91,10 @@
 				return L"Строка содержит более одного знака '='";
 			case ErrorCode::SERVICE_SYMBOL:
 				return L"Строка содержит служебные символы";
+			case ErrorCode::BOOL_EXPRESSION:
+				return L"Попытка получить результат булева выражения вне условной области";
+			case ErrorCode::UNREAL_ERROR:
+				return L"Невозможная ошибка!";
 			default:
 				return L"Unresolved error";
 			}

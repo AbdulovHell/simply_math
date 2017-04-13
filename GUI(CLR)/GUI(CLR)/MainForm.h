@@ -93,7 +93,7 @@ namespace GUICLR {
 				 this->textBox1->Name = L"textBox1";
 				 this->textBox1->Size = System::Drawing::Size(607, 329);
 				 this->textBox1->TabIndex = 0;
-				 this->textBox1->Text = L"5+5*5=\r\n=@#\r\n2+2=";
+				 this->textBox1->Text = L"x+5";
 				 this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
 				 // 
 				 // toolStrip1

@@ -344,15 +344,24 @@ namespace Project {
 
 		var_const pi = var_const(L"const@pi#fundm", 3.1415926535897932384626433832);
 		var_const e = var_const(L"const@e#fundm", 2.7182818284590452353602874713527);
+		//служебная переменная для заполнения "пустых" функций
+		var_const temporary_variable = var_const(L"varbl@temporary_variable#servc", 0);
 
 		vector<var_const*>* general_var_const;
 
 		void Init() {
 			ProjectError::Init();
+			var_const* temp;
 			general_var_const = new vector<var_const*>;
 			general_var_const->push_back(&pi);
 			general_var_const->push_back(&e);
-			general_var_const->push_back(new var_const(L"funct@minus#empty", 0));
+			//минус
+			{
+				general_var_const->push_back(new var_const(L"funct@minus#empty", 0, new var_const (&temporary_variable)));
+				temp = general_var_const->at(2);
+				temp->point_collar->point_collar = temp;
+				temp->point_left = new var_const(L"*", 0, new var_const(L"0", -1), temp->point_collar, temp);
+			}
 		}
 
 		/*void testfunc(mutex &mut) {
@@ -426,7 +435,7 @@ namespace Project {
 							{
 								current_element->point_left = temp_pointer->point_left;
 								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(temp_pointer->point_collar);
+								current_element->point_collar = temp_pointer->point_collar;
 								current_element->point_collar->point_collar = current_element;
 								current_element->point_right = temp_pointer->point_right;
 								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), temp_pointer->read(L"func"));
@@ -465,7 +474,7 @@ namespace Project {
 							{
 								current_element->point_left = temp_pointer->point_left;
 								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(temp_pointer->point_collar);
+								current_element->point_collar = temp_pointer->point_collar;
 								current_element->point_collar->point_collar = current_element;
 								current_element->point_right = temp_pointer->point_right;
 								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), temp_pointer->read(L"func"));
@@ -875,7 +884,8 @@ namespace Project {
 							//сначала записываем операцию, левый рукав -> на предыдущее число, воротник на конст
 							current_element->point_left = new var_const(L"+", brakets_counter, low_pointer, NULL, current_element);
 							high_pointer = current_element->point_left;
-							high_pointer->point_right = new var_const(general_var_const->at(2));
+							
+
 							high_pointer->point_right->var_id.replace(high_pointer->point_right->var_id.find_first_of(L"#") + 1, 5, L"defnd");
 
 							low_pointer = high_pointer->point_right;

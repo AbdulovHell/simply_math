@@ -52,9 +52,11 @@ namespace GUICLR {
 
 
 
-			 bool isOut(System::String^ str) {
+			 bool isOutOrEmpty(System::String^ str) {
+				 if (str == "") return true;
+
 				 if (!(str->Length > 3)) return false;
-				 if (str[0] == '>'&&str[1] == '>'&&str[2] == '>')
+				 if ((str[0] == '>'&&str[1] == '>'&&str[2] == '>'))
 					 return true;
 				 else return false;
 			 }
@@ -114,7 +116,7 @@ namespace GUICLR {
 				 this->ProceedBtn->ImageTransparentColor = System::Drawing::Color::Magenta;
 				 this->ProceedBtn->Name = L"ProceedBtn";
 				 this->ProceedBtn->Size = System::Drawing::Size(23, 22);
-				 this->ProceedBtn->Text = L"Proceed \?";
+				 this->ProceedBtn->Text = L"Proceed";
 				 this->ProceedBtn->Click += gcnew System::EventHandler(this, &MainForm::ProceedBtn_Click);
 				 // 
 				 // toolStripButton1
@@ -124,7 +126,7 @@ namespace GUICLR {
 				 this->toolStripButton1->ImageTransparentColor = System::Drawing::Color::Magenta;
 				 this->toolStripButton1->Name = L"toolStripButton1";
 				 this->toolStripButton1->Size = System::Drawing::Size(23, 22);
-				 this->toolStripButton1->Text = L"toolStripButton1";
+				 this->toolStripButton1->Text = L"Clear";
 				 this->toolStripButton1->Click += gcnew System::EventHandler(this, &MainForm::clr_rst);
 				 // 
 				 // timer1
@@ -157,7 +159,7 @@ namespace GUICLR {
 		List<int>^ temp = gcnew List<int>;	//массив для индексов линий ввода
 											//отделяем линии ввода по индексам
 		for (int i = 0;i < len;i++) {
-			if (!isOut(strs[i])) {
+			if (!isOutOrEmpty(strs[i])) {
 				temp->Add(i);
 			}
 		}
@@ -229,7 +231,7 @@ namespace GUICLR {
 		List<int>^ temp = gcnew List<int>;	//массив для индексов линий ввода
 		//отделяем линии ввода по индексам
 		for (int i = 0;i < len;i++) {
-			if (!isOut(strs[i])) {
+			if (!isOutOrEmpty(strs[i])) {
 				temp->Add(i);
 			}
 		}

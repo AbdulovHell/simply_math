@@ -21,6 +21,56 @@ namespace Project {
 
 		class var_const {
 		private:
+			int tree_destruct_processing(var_const* pointer)
+			{
+				if (pointer == NULL) return 0;
+				int temp=0;
+				
+				if (pointer->read(L"type") == L"numbr")
+				{
+					delete pointer;
+					pointer = NULL;
+					return 0;
+				}
+				else if ((pointer->read(L"type") == L"oper+")|| (pointer->read(L"type") == L"oper*")|| (pointer->read(L"type") == L"oper/")|| (pointer->read(L"type") == L"oper^"))
+				{
+					temp += tree_destruct_processing(pointer->point_left);
+					temp += tree_destruct_processing(pointer->point_right);
+					delete pointer;
+					pointer = NULL;
+					return temp;
+					
+				}
+				else if (pointer->read(L"type") == L"exprs")
+				{
+					temp += tree_destruct_processing(pointer->point_left);
+					delete pointer;
+					pointer = NULL;
+					return temp;
+				}
+				else if (pointer->read(L"type") == L"funct")
+				{
+					if (pointer->read(L"prop") == L"undef")
+					{
+						temp += tree_destruct_processing(pointer->point_left);
+						temp += tree_destruct_processing(pointer->point_right);
+						delete pointer->point_collar;
+						delete pointer;
+						pointer = NULL;
+						return temp;
+					}
+					else
+					{
+						temp += tree_destruct_processing(pointer->point_right);
+						delete pointer->point_collar;
+						delete pointer;
+						pointer = NULL;
+						return temp;
+					}
+				}
+				
+			}
+
 			var_const *prioritize_processing(var_const *pc, int current_priority)
 			{
 				//если приоритет провер€емой операции !ЅќЋ№Ў≈! текущей операции
@@ -338,6 +388,25 @@ namespace Project {
 					var = processing(point_left, NULL);
 			}
 
+			int tree_destruct()
+			{				
+				int s;
+				if (point_left != NULL)
+				{
+					s += tree_destruct_processing(point_left);
+					point_left = NULL;
+				}
+				if (point_right != NULL)
+				{
+					s += tree_destruct_processing(point_right);
+					point_right = NULL;
+				}
+				if (point_collar != NULL) {
+					delete point_collar;
+					point_collar = NULL;
+				}
+				return s;
+			}
 
 			enum class variable_type {
 				INTEGER,
@@ -540,7 +609,7 @@ namespace Project {
 									{
 										//не€вно заданна€ ф-ци€ слева - уравнение
 										current_element->var_id.replace(0, 5, L"equat");
-										current_element->point_right = temp_pointer->point_right;
+										current_element->point_right = temp_pointer->point_left;
 										current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"unslv");
 									}
 								}
@@ -674,7 +743,7 @@ namespace Project {
 					else
 					{
 						//если приоритет предыдущей обработанной операции !ћ≈Ќ№Ў≈! или равен  приоритету текущей
-						if (high_pointer->get_priority() <= (brakets_counter + 1))
+						if (high_pointer->get_priority() <= (brakets_counter + brakets + 1))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
 							high_pointer->point_right = new var_const(L"+", brakets_counter + brakets, low_pointer, NULL, high_pointer);
@@ -730,7 +799,7 @@ namespace Project {
 					else
 					{
 						//если приоритет предыдущей обработанной операции !ћ≈Ќ№Ў≈! или равен  приоритету текущей
-						if (high_pointer->get_priority() <= (brakets_counter + 2))
+						if (high_pointer->get_priority() <= (brakets_counter+ brakets + 2))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
 							high_pointer->point_right = new var_const(L"*", brakets_counter + brakets, low_pointer, NULL, high_pointer);
@@ -785,7 +854,7 @@ namespace Project {
 					else
 					{
 						//если приоритет предыдущей обработанной операции !ћ≈Ќ№Ў≈! или равен  приоритету текущей
-						if (high_pointer->get_priority() <= (brakets_counter + 3))
+						if (high_pointer->get_priority() <= (brakets_counter + brakets + 3))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
 							high_pointer->point_right = new var_const(L"/", brakets_counter + brakets, low_pointer, NULL, high_pointer);
@@ -841,7 +910,7 @@ namespace Project {
 					else
 					{
 						//если приоритет предыдущей обработанной операции !ћ≈Ќ№Ў≈! или равен  приоритету текущей
-						if (high_pointer->get_priority() <= (brakets_counter + 4))
+						if (high_pointer->get_priority() <= (brakets_counter + brakets + 4))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
 							high_pointer->point_right = new var_const(L"^", brakets_counter + brakets, low_pointer, NULL, high_pointer);
@@ -966,7 +1035,7 @@ namespace Project {
 					{
 						temp++;
 						//если попали в конец строчки не найд€ закрывающих скобок
-						if (temp == endPtr)
+						if (temp == endPtr+1)
 						{
 							//high_pointer = new var_const(L"error@", 2);
 							//general_var_const->pop_back();
@@ -1035,7 +1104,7 @@ namespace Project {
 							//что-то должно происходить после закрытой скобки
 						}
 						// вначале строки что-то стоит - минус или буква - потом скобка
-						else if (low_pointer = high_pointer)
+						else if (low_pointer == high_pointer)
 						{
 							//перед скобкой стоит минус
 							if (high_pointer->read(L"name") == L"minus")
@@ -1082,16 +1151,23 @@ namespace Project {
 									{
 										//после закрытой скобки стоит равно
 										if (*(temp + 1) == L'=')
-										{											
-											if (temp_pointer->read(L"prop") == L"undef")
+										{	
+											if (current_element->read(L"nvar") != temp_pointer->read(L"name"))											
 											{
-												temp_pointer->var_id.replace(current_element->var_id.find_first_of('#') + 1, 5, L"defnd");
-												general_var_const->push_back(new var_const(temp_pointer));
+												if (temp_pointer->read(L"prop") == L"undef")
+												{
+													temp_pointer->var_id.replace(current_element->var_id.find_first_of('#') + 1, 5, L"defnd");
+													general_var_const->push_back(new var_const(temp_pointer));
+												}
+												//записываем новую переменную 
+												current_element->point_collar = temp_pointer;
+												name.assign(L"funct@" + current_element->read(L"name") + L"(" + temp_pointer->read(L"name") + L")#undef");
+												current_element->var_id = name;
 											}
-											//записываем новую переменную 
-											current_element->point_collar = temp_pointer;
-											name.assign(L"funct@" + current_element->read(L"name") + L"(" + temp_pointer->read(L"name") + L")#undef");
-											current_element->var_id = name;
+											else
+											{
+												//ничего не делать!
+											}
 										}
 										else
 										{
@@ -1776,6 +1852,8 @@ namespace Project {
 		wstring analized_output(wchar_t* _pDest, wchar_t* _endPtr, var_const* _current_element)
 		{
 			var_const* CE = filling_vector(_pDest, _endPtr, _current_element, 0);
+			if ((general_var_const->back()->read(L"type") == L"exprs") || (general_var_const->back()->point_left == NULL))
+				general_var_const->pop_back();
 			wstring output;
 			size_t output_size;
 			//if (_current_element->read(L"type") == L"error")
@@ -1789,6 +1867,8 @@ namespace Project {
 			{
 				CE->arithmetic();
 				output = to_string(CE->var, var_type::FRACTIONAL, 2);
+				CE->tree_destruct();
+				delete CE;				
 			}
 			else if (CE->read(L"type") == L"equat")
 			{
@@ -1807,6 +1887,7 @@ namespace Project {
 					if (CE->point_right == NULL)
 					{
 						output = CE->expresion(1);
+						CE->var_id.replace(CE->var_id.find_first_of(L'#') + 1, 5, L"defnd");
 					}
 					else
 					{
@@ -1846,6 +1927,7 @@ namespace Project {
 				{
 					//заполнили - посчитали
 					CE->arithmetic();
+					CE->tree_destruct();
 				}
 			}
 			else if (CE->read(L"type") == L"varbl")
@@ -1876,7 +1958,7 @@ namespace Project {
 
 			size_t size_of_vect = general_var_const->size();
 
-			wstring temp = L"exprs@#undef";
+			wstring temp = L"exprs@#undef";			
 			general_var_const->push_back(new var_const(temp, 0));
 
 			wchar_t* point_start = input;	//start pointer

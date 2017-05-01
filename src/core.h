@@ -192,6 +192,14 @@ namespace Project {
 				}
 			}
 
+			var_const *var_list_back_processing(var_const *pointer)
+			{
+				if (pointer->point_left == NULL)
+					return pointer;
+				else
+					return var_list_back_processing(pointer->point_left);
+			}
+
 		public:
 			var_const()
 			{
@@ -411,19 +419,20 @@ namespace Project {
 				return s;
 			}
 
-			//Метод возвращает указатель на элемент массива переменных, имя которого совпадает с именем данной переменной. Если ничего не найдено - NULL.
-			var_const *find_varbl(var_const *original_var)
+			var_const *find_varbl (var_const*pointer)
 			{
-				for (int count = 0; count < var; count++)
-				{
-					if (original_var->name.compare(point_collar[count].name) == 0) 
-					{
-						return &point_collar[count];//адрес нужной переменной в массиве
-					}
-				}
-				//пробежали цикл - ничего не нашли
-				return NULL;
+				//TODO: поиск переменной в списке
 			}
+
+
+			var_const *var_list_back()
+			{
+				return var_list_back_processing(point_collar);
+			}
+
+
+
+
 
 			enum class variable_type {
 				INTEGER,
@@ -1620,20 +1629,20 @@ namespace Project {
 										current_element->prop = undef;
 										current_element->actn = write;  //на заполнение
 										current_element->point_collar = temp_pointer;
+										current_element->point_collar->point_collar = current_element;
 										high_pointer = current_element;
 										low_pointer = high_pointer;
 									}
 								}
 								//если в скобках стоят запятые - определение функции нескольких переменных
 								else
-								{
-									multiple_var = new var_const[comma + 1];
+								{									
 									for (count = 0; count < comma + 1; count++)
 									{
 										temp = wcspbrk(pDest + 1, L",)");
 										name.assign(pDest + 1, temp);
 										temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new var_const(L"", exprs, undef, L"", 0, current_element), brakets + brakets_counter);
-										if (temp_pointer == NULL)
+										if (temp_pointer == NULL)											
 											return temp_pointer;
 										if (temp_pointer->type == varbl)
 										{
@@ -1643,15 +1652,29 @@ namespace Project {
 												general_var_const->push_back(new var_const(temp_pointer));
 											}											
 											temp_pointer->point_collar = current_element;
-											multiple_var[count].copy(temp_pointer);
-											multiple_var[count].var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
-											//по идее он и так переопределится, но можно и занулить
-											//delete[] temp_pointer;
-											//temp_pointer = NULL;
+											temp_pointer->var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
+											
+											if (count == 0) 
+												//сразу же получаем уазатель на первую переменную в списке
+												current_element->point_collar = temp_pointer;											
+											else
+											{
+												//создание двунаправленного списка переменных, где на нулевой элемент указывает воротник функции.
+												temp_pointer->point_right = current_element->var_list_back();
+												temp_pointer->point_right->point_left = temp_pointer;
+												if (count == comma)
+												{
+													//создание замкнутого в кольцо двунаправленного списка переменных. Нулевой элемент = последнему.
+													temp_pointer->point_left = current_element->point_collar;
+													current_element->point_collar->point_right = temp_pointer;
+												}
+											}
+											//temp_pointer в данном случае удалять нельзя. Можно занулить, но удалять нельзя
 										}
 										else
 										{
 											//поскольку функция ещё неопределённая передавать ей любые аргументы будет неверно
+											//TODO:чистить мусор перед уходом
 											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
 											return NULL;
 										}
@@ -1662,8 +1685,7 @@ namespace Project {
 									current_element->type = funct;
 									current_element->name = name;
 									current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
-									current_element->actn = write;  //на заполнение
-									current_element->point_collar = multiple_var;
+									current_element->actn = write;  //на заполнение									
 									high_pointer = current_element;
 									low_pointer = high_pointer;
 								}
@@ -1823,8 +1845,8 @@ namespace Project {
 								//если в скобках стоят запятые - определение функции нескольких переменных, только если все разделённые запятыми элементы - переменные
 								//в остальных случаях игнор.
 								else
-								{
-									multiple_var = new var_const[comma + 1];
+								{									
+									current_element = high_pointer;
 									for (count = 0; count < comma + 1; count++)
 									{
 										temp = wcspbrk(pDest + 1, L",)");
@@ -1839,36 +1861,48 @@ namespace Project {
 												temp_pointer->prop = defnd;
 												general_var_const->push_back(new var_const(temp_pointer));
 											}
-											temp_pointer->point_collar = high_pointer;
-											multiple_var[count].copy(temp_pointer);
-											multiple_var[count].var = count; //каждая переменная получает номер
-											//по идее он и так переопределится, но можно и занулить
-											//delete[] temp_pointer;
-											//temp_pointer = NULL;
+											temp_pointer->point_collar = current_element;
+											temp_pointer->var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
+
+											if (count == 0)
+												//сразу же получаем уазатель на первую переменную в списке
+												current_element->point_collar = temp_pointer;
+											else
+											{
+												//создание двунаправленного списка переменных, где на нулевой элемент указывает воротник функции.
+												temp_pointer->point_right = current_element->var_list_back();
+												temp_pointer->point_right->point_left = temp_pointer;
+												if (count == comma)
+												{
+													//создание замкнутого в кольцо двунаправленного списка переменных. Нулевой элемент = последнему.
+													temp_pointer->point_left = current_element->point_collar;
+													current_element->point_collar->point_right = temp_pointer;
+												}
+											}
+											//temp_pointer в данном случае удалять нельзя. Можно занулить, но удалять нельзя
 										}
 										else
 										{
+											//TODO:в случае этой ветки чистить список уже заполненных переменных
 											break;
 										}
 										pDest = temp;
 									}
+
 									if ((count == comma + 1) && (high_pointer->prop != fundm))//за искл фундаментальных констант
-									{
-										current_element = high_pointer;
+									{										
 										//запоминаем число переменных
 										current_element->var = comma + 1;
 										current_element->type = funct;
 										current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
-										current_element->actn = write; //на запись
-										current_element->point_collar = multiple_var;
+										current_element->actn = write; //на запись										
 										low_pointer = high_pointer;
 									}
 									else
 									{
 										// тут либо вывод значения, либо новое определение, игнорируя аргументы
 										//тут ещё может означать умножение с(...) = с*(...). К примеру запрос на расчёт с*(...)= 
-										//однако в данном случае это умножение на вектор - что не реализовано, возможно стоит как-то отдельно делать
-										current_element = high_pointer;
+										//однако в данном случае это умножение на вектор - что не реализовано, возможно стоит как-то отдельно делать										
 										low_pointer = high_pointer;
 									}
 								}
@@ -2004,8 +2038,7 @@ namespace Project {
 								}
 								//если в скобках стоят запятые - определение функции нескольких переменных
 								else
-								{
-									multiple_var = new var_const[comma + 1];
+								{									
 									current_element = high_pointer;
 									for (count = 0; count < comma + 1; count++)
 									{
@@ -2022,11 +2055,24 @@ namespace Project {
 												general_var_const->push_back(new var_const(temp_pointer));
 											}
 											temp_pointer->point_collar = current_element;
-											multiple_var[count].copy(temp_pointer);
-											multiple_var[count].var = count;
-											//по идее он и так переопределится, но можно и занулить
-											//delete[] temp_pointer;
-											//temp_pointer = NULL;
+											temp_pointer->var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
+
+											if (count == 0)
+												//сразу же получаем уазатель на первую переменную в списке
+												current_element->point_collar = temp_pointer;
+											else
+											{
+												//создание двунаправленного списка переменных, где на нулевой элемент указывает воротник функции.
+												temp_pointer->point_right = current_element->var_list_back();
+												temp_pointer->point_right->point_left = temp_pointer;
+												if (count == comma)
+												{
+													//создание замкнутого в кольцо двунаправленного списка переменных. Нулевой элемент = последнему.
+													temp_pointer->point_left = current_element->point_collar;
+													current_element->point_collar->point_right = temp_pointer;
+												}
+											}
+											//temp_pointer в данном случае удалять нельзя. Можно занулить, но удалять нельзя
 										}
 										else
 										{
@@ -2040,8 +2086,7 @@ namespace Project {
 									current_element->var = comma + 1;
 									current_element->type = funct;
 									current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
-									current_element->actn = write; //на запись
-									current_element->point_collar = multiple_var;
+									current_element->actn = write; //на запись									
 									low_pointer = high_pointer;
 								}
 								brakets_counter -= 4;
@@ -2158,7 +2203,7 @@ namespace Project {
 										low_pointer = high_pointer;
 									}
 								}
-								//число аргументов совпадает
+								//число аргументов в скобкаъ совпадает с числом аргументов у определённой заранее функции
 								else if (high_pointer->var == comma + 1)
 								{
 									//нет запятых 
@@ -2246,7 +2291,7 @@ namespace Project {
 												low_pointer = high_pointer;
 											}
 										}
-										else // хотябы один из аргументов - не переменная
+										else // хотя бы один из аргументов - не переменная
 										{
 											current_element->copy(high_pointer);
 											current_element->point_right = multiple_var;//в качестве аргумента - массив объектов
@@ -2262,13 +2307,16 @@ namespace Project {
 									if (*(temp + 1) != '=')
 									{
 										//тут ошибка: ранее была f(x,y), записали f(k)+... - количество переменных в вызываемой функции не совпадает
-										//здесь надо будет написать исключения для функций нескольких аргументов, которые могут пониматься как функция одного аргумента
+										//TODO:здесь надо будет написать исключения для функций нескольких аргументов, которые могут пониматься как функция одного аргумента
 										//пример root(5) - квадратный корень из 5, root (5,2) - тоже самое, root (5,3) - кубический корень из 5
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
 										return NULL;
 
 									}
-									//но если далее стоит равно - всё нормально,  переопределение. TODO:При этом необходимо очищать предыдущее дерево операций									
+									//но если далее стоит равно - всё нормально,  переопределение. 
+									//TODO:При этом необходимо очищать предыдущее дерево операций, только не здесь, а далее при переходе через равно, т.к. это ещё может быть ошибка ввода.	
+									//так же, в случае ошибки ввода - работать всё-таки с копией функции, т.к. дерево опреций ещё на месте, а вот переменные уже пропали)
+
 									//нет запятых 
 									else if (comma == 0)
 									{
@@ -2301,8 +2349,7 @@ namespace Project {
 									}
 									//если в скобках стоят запятые - определение функции нескольких переменных
 									else
-									{
-										multiple_var = new var_const[comma + 1];
+									{										
 										current_element = high_pointer;
 										for (count = 0; count < comma + 1; count++)
 										{
@@ -2319,11 +2366,24 @@ namespace Project {
 													general_var_const->push_back(new var_const(temp_pointer));
 												}
 												temp_pointer->point_collar = current_element;
-												multiple_var[count].copy(temp_pointer);
-												multiple_var[count].var = count;
-												//по идее он и так переопределится, но можно и занулить
-												//delete[] temp_pointer;
-												//temp_pointer = NULL;
+												temp_pointer->var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
+
+												if (count == 0)
+													//сразу же получаем уазатель на первую переменную в списке
+													current_element->point_collar = temp_pointer;
+												else
+												{
+													//создание двунаправленного списка переменных, где на нулевой элемент указывает воротник функции.
+													temp_pointer->point_right = current_element->var_list_back();
+													temp_pointer->point_right->point_left = temp_pointer;
+													if (count == comma)
+													{
+														//создание замкнутого в кольцо двунаправленного списка переменных. Нулевой элемент = последнему.
+														temp_pointer->point_left = current_element->point_collar;
+														current_element->point_collar->point_right = temp_pointer;
+													}
+												}
+												//temp_pointer в данном случае удалять нельзя. Можно занулить, но удалять нельзя
 											}
 											else
 											{
@@ -2337,8 +2397,7 @@ namespace Project {
 										current_element->var = comma + 1;
 										current_element->type = funct;
 										current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
-										current_element->actn = write;  //на заполнение
-										current_element->point_collar = multiple_var;
+										current_element->actn = write;  //на заполнение										
 										low_pointer = high_pointer;
 									}
 
@@ -2393,6 +2452,7 @@ namespace Project {
 							pDest = temp;
 						}
 						low_pointer = run_vector(name);
+						//TODO:остановился тут
 						//далее всегда может быть только два варианта - текщуий элемент либо функция, либо выражение, причём всегда undef.
 						//если не найден ни один элемент массива с таким именем
 						if (low_pointer == NULL)

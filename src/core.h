@@ -11,6 +11,7 @@
 //#include <mutex>
 #include "error.h"
 #include "IO.h"
+#include "filters.h"
 
 namespace Project {
 	namespace Core {

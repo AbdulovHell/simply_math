@@ -49,6 +49,12 @@
 			SERVICE_SYMBOL = 12,
 			//Попытка получить результат булева выражения вне условной области
 			BOOL_EXPRESSION = 13,
+			//Попытка переопределить фундаментальную константу
+			FUNDAMENTAL_CONST = 14,
+			//После скобки стоит неизвестный символ
+			UNEXPECTED_SYMBOL = 15,
+			//Неверное количество переменных в вызове функции
+			UNEQUAL_NUM_OF_VAR = 16,
 		};
 
 		//Преобразование кода в текстовое представление
@@ -93,6 +99,12 @@
 				return L"Строка содержит служебные символы";
 			case ErrorCode::BOOL_EXPRESSION:
 				return L"Попытка получить результат булева выражения вне условной области";
+			case ErrorCode::FUNDAMENTAL_CONST:
+				return L"Попытка переопределить фундаментальную константу";
+			case ErrorCode::UNEXPECTED_SYMBOL:
+				return L"Неизвестный символ";
+			case ErrorCode::UNEQUAL_NUM_OF_VAR:
+				return L"Неверное количество переменных в вызове функции";
 			case ErrorCode::UNREAL_ERROR:
 				return L"Невозможная ошибка!";
 			default:

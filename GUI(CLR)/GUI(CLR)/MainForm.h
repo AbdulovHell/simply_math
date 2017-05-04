@@ -46,13 +46,17 @@ namespace GUICLR {
 	private: System::Windows::Forms::ToolStrip^  toolStrip1;
 	private: System::Windows::Forms::ToolStripButton^  ProceedBtn;
 	private: System::Windows::Forms::Timer^  timer1;
-	private: System::Windows::Forms::ToolStripSeparator^  toolStripSeparator1;
+
+	private: System::Windows::Forms::ToolStripButton^  toolStripButton1;
 
 
 
-			 bool isOut(System::String^ str) {
+
+			 bool isOutOrEmpty(System::String^ str) {
+				 if (str == "") return true;
+
 				 if (!(str->Length > 3)) return false;
-				 if (str[0] == '>'&&str[1] == '>'&&str[2] == '>')
+				 if ((str[0] == '>'&&str[1] == '>'&&str[2] == '>'))
 					 return true;
 				 else return false;
 			 }
@@ -63,7 +67,7 @@ namespace GUICLR {
 		/// </summary>
 		cli::array<int>^ input_indexes;
 
-	private: System::Windows::Forms::ToolStripProgressBar^  toolStripProgressBar1;
+
 	private: System::ComponentModel::IContainer^  components;
 
 
@@ -79,8 +83,7 @@ namespace GUICLR {
 				 this->textBox1 = (gcnew System::Windows::Forms::TextBox());
 				 this->toolStrip1 = (gcnew System::Windows::Forms::ToolStrip());
 				 this->ProceedBtn = (gcnew System::Windows::Forms::ToolStripButton());
-				 this->toolStripSeparator1 = (gcnew System::Windows::Forms::ToolStripSeparator());
-				 this->toolStripProgressBar1 = (gcnew System::Windows::Forms::ToolStripProgressBar());
+				 this->toolStripButton1 = (gcnew System::Windows::Forms::ToolStripButton());
 				 this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
 				 this->toolStrip1->SuspendLayout();
 				 this->SuspendLayout();
@@ -99,10 +102,7 @@ namespace GUICLR {
 				 // toolStrip1
 				 // 
 				 this->toolStrip1->GripStyle = System::Windows::Forms::ToolStripGripStyle::Hidden;
-				 this->toolStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(3) {
-					 this->ProceedBtn, this->toolStripSeparator1,
-						 this->toolStripProgressBar1
-				 });
+				 this->toolStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) { this->ProceedBtn, this->toolStripButton1 });
 				 this->toolStrip1->Location = System::Drawing::Point(0, 0);
 				 this->toolStrip1->Name = L"toolStrip1";
 				 this->toolStrip1->Size = System::Drawing::Size(607, 25);
@@ -116,18 +116,18 @@ namespace GUICLR {
 				 this->ProceedBtn->ImageTransparentColor = System::Drawing::Color::Magenta;
 				 this->ProceedBtn->Name = L"ProceedBtn";
 				 this->ProceedBtn->Size = System::Drawing::Size(23, 22);
-				 this->ProceedBtn->Text = L"Proceed \?";
+				 this->ProceedBtn->Text = L"Proceed";
 				 this->ProceedBtn->Click += gcnew System::EventHandler(this, &MainForm::ProceedBtn_Click);
 				 // 
-				 // toolStripSeparator1
+				 // toolStripButton1
 				 // 
-				 this->toolStripSeparator1->Name = L"toolStripSeparator1";
-				 this->toolStripSeparator1->Size = System::Drawing::Size(6, 25);
-				 // 
-				 // toolStripProgressBar1
-				 // 
-				 this->toolStripProgressBar1->Name = L"toolStripProgressBar1";
-				 this->toolStripProgressBar1->Size = System::Drawing::Size(100, 22);
+				 this->toolStripButton1->DisplayStyle = System::Windows::Forms::ToolStripItemDisplayStyle::Image;
+				 this->toolStripButton1->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"toolStripButton1.Image")));
+				 this->toolStripButton1->ImageTransparentColor = System::Drawing::Color::Magenta;
+				 this->toolStripButton1->Name = L"toolStripButton1";
+				 this->toolStripButton1->Size = System::Drawing::Size(23, 22);
+				 this->toolStripButton1->Text = L"Clear";
+				 this->toolStripButton1->Click += gcnew System::EventHandler(this, &MainForm::clr_rst);
 				 // 
 				 // timer1
 				 // 
@@ -154,14 +154,63 @@ namespace GUICLR {
 			 }
 #pragma endregion
 	private: System::Void ProceedBtn_Click(System::Object^  sender, System::EventArgs^  e) {
-		pin_ptr<const wchar_t> str2 = PtrToStringChars(textBox1->Text);
-		//int a=sizeof(str2);
-		//wstring str1;
-		wchar_t* str1 = new wchar_t[sizeof(str2) * 2];
-		wcscpy(str1, str2);
-		//textBox1->Text = gcnew System::String(Project::Core::input_to_analize(str1));
-		textBox1->AppendText(gcnew System::String(Project::Core::input_to_analize(str1).c_str()));
-		delete[] str1;
+		cli::array<String^>^ strs = textBox1->Lines;	//указатель на линии с текстбокса
+		int len = strs->Length;	//количество линий
+		List<int>^ temp = gcnew List<int>;	//массив для индексов линий ввода
+											//отделяем линии ввода по индексам
+		for (int i = 0;i < len;i++) {
+			if (!isOutOrEmpty(strs[i])) {
+				temp->Add(i);
+			}
+		}
+		//копируем линии нужного индекса
+		cli::array<String^>^ in = gcnew cli::array<String^>(temp->Count);
+		for (int i = 0;i < temp->Count;i++) {
+			in[i] = strs[temp[i]];
+		}
+
+		len = temp->Count;	//количество линий ввода
+		cli::array<String^>^ out = gcnew cli::array<String^>(len * 2);
+		wchar_t* str1;
+		//каждую по очереди в обработку 
+		for (int i = 0;i < len;i++) {
+			pin_ptr<const wchar_t> str2 = PtrToStringChars(in[i]);
+			out[i * 2] = in[i];
+			size_t temps = in[i]->Length + 2;
+			str1 = new wchar_t[temps];
+			wcscpy(str1, str2);
+
+			String^ outstr = gcnew String(Project::Core::input_to_analize(str1).c_str());
+			if (String::IsNullOrEmpty(outstr)) {
+
+			}
+			else {
+				out[i * 2 + 1] = ">>> " + outstr;
+			}
+			delete[] str1;
+		}
+		//если есть nullptr линии, сдвигаем те что за ней вверх
+		int inullstrs = 0;
+		for (int i = 0;i < out->Length;i++) {
+			if (out[i] == nullptr) {
+				inullstrs++;
+				for (int k = i;k < out->Length - 1;k++) {
+					out[k] = out[k + 1];
+				}
+			}
+		}
+		cli::array<String^>^ out2 = gcnew cli::array<String^>(len * 2 - inullstrs);
+		for (int i = 0;i < out->Length - inullstrs;i++)
+			out2[i] = out[i];
+
+		int a = textBox1->SelectionStart;
+
+		this->textBox1->TextChanged -= gcnew System::EventHandler(this, &MainForm::verify);
+		textBox1->Lines = out2;
+		this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
+
+		textBox1->SelectionStart = a;
+		textBox1->SelectionLength = 0;
 	}
 	private: System::Void PrevBtn_Click(System::Object^  sender, System::EventArgs^  e) {
 
@@ -182,7 +231,7 @@ namespace GUICLR {
 		List<int>^ temp = gcnew List<int>;	//массив для индексов линий ввода
 		//отделяем линии ввода по индексам
 		for (int i = 0;i < len;i++) {
-			if (!isOut(strs[i])) {
+			if (!isOutOrEmpty(strs[i])) {
 				temp->Add(i);
 			}
 		}
@@ -237,5 +286,11 @@ namespace GUICLR {
 
 		timer1->Enabled = false;
 	}
-	};
+	private: System::Void clr_rst(System::Object^  sender, System::EventArgs^  e) {
+		textBox1->Clear();
+		Project::Core::general_var_const->clear();
+		delete Project::Core::general_var_const;
+		Project::Core::Init();
+	}
+};
 }

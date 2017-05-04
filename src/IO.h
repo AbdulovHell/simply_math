@@ -93,9 +93,8 @@ namespace Project {
 		}
 		//проверка входящей строки на служебные символы, простые ошибки со скобками и знаки равно. удаляет пробелы.
 		bool VerifyInput(_In_ wchar_t* input) {
-#define BUF_SIZE 300
 			int bracket = 0, ravno = 0;
-			static wchar_t buf[BUF_SIZE];
+			static wchar_t buf[300];
 
 			wXchar(input);
 

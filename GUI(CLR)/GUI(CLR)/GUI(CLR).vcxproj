@@ -137,11 +137,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\filters.cpp" />
     <ClCompile Include="MainForm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\core.h" />
     <ClInclude Include="..\..\src\error.h" />
+    <ClInclude Include="..\..\src\filters.h" />
     <ClInclude Include="..\..\src\IO.h" />
     <ClInclude Include="MainForm.h">
       <FileType>CppForm</FileType>

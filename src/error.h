@@ -4,8 +4,8 @@
 	namespace ProjectError {
 
 		enum class ErrorCode : int {
-			//Вложенные/сложные функции не реализованы
-			COMPLEX_FUNC_NOT_REALIZED = -1,
+			//Переопределение переменной в качестве константы
+			VARBL_BLOCKED = -1,
 			//Неявное вложение функции
 			IMPLICIT_FUNC = -3,
 			//Уравнения не реализованы
@@ -15,7 +15,7 @@
 			//Неверный указатель
 			INTERNAL_POINTER_ERR = -6,
 			//Пустые скобки ()
-			EMTY_BRACKETS = -7,
+			EMTY_BRACKETS = -2,
 			
 
 			
@@ -61,8 +61,8 @@
 		static wstring GetProjectError(ErrorCode code) {
 			switch (code)
 			{
-			case ErrorCode::COMPLEX_FUNC_NOT_REALIZED:
-				return L"Вложенные/сложные функции не реализованы";
+			case ErrorCode::VARBL_BLOCKED:
+				return L"Переопределение переменной в качестве константы";
 			case ErrorCode::UNDEFINED_FUNC:
 				return L"Неопределенная функция";
 			case ErrorCode::IMPLICIT_FUNC:

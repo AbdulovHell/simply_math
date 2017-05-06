@@ -834,22 +834,28 @@ namespace Project {
 					else
 					{
 						//TODO: остановился здесь.
-						temp_pointer = filling_vector(pDest + 1, endPtr, new var_const(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+						/*temp_pointer = filling_vector(pDest + 1, endPtr, new var_const(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
 						if (temp_pointer = NULL)
 						{
 							return temp_pointer;
-						}
+						}*/
 						if (current_element->type == cnst)
 						{
+							temp_pointer = filling_vector(pDest + 1, endPtr, new var_const(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+							if (temp_pointer = NULL)							
+								return temp_pointer;							
 							if (temp_pointer->type == funct)
 							{
-								current_element->point_left = temp_pointer->point_left;
-								//копия переменной с указателем на функцию
+								current_element->point_left = temp_pointer->point_left;								
 								current_element->point_collar = temp_pointer->point_collar;
-								current_element->point_collar->point_collar = current_element;
+								//TODO:здесь необходимо переуказывать переменную/переменные на элемент. При этом нужно отсеивать возможные служебные переменные.
+								//current_element->point_collar->point_collar = current_element;								
+								current_element->var = temp_pointer->var;
 								current_element->point_right = temp_pointer->point_right;
 								current_element->type = funct;
 								current_element->prop = defnd;
+								current_element->actn = write;
+								delete temp_pointer;
 							}
 							else if (temp_pointer->type == varbl)
 							{
@@ -857,68 +863,115 @@ namespace Project {
 								{
 									temp_pointer->prop = defnd;
 									general_var_const->push_back(temp_pointer);
-								}
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(temp_pointer);
+								}								
+								current_element->point_collar = temp_pointer;
 								current_element->point_collar->point_collar = current_element;
+								current_element->point_collar->var = 0;
 								current_element->point_left = current_element->point_collar;
+								current_element->var = 1;
 								current_element->type = funct;
 								current_element->prop = defnd;
+								current_element->actn = write;
 							}
 							else if (temp_pointer->type == exprs)
 							{
+								//тут любопытно получилось. Если запись вида с=с+1, где с была записана как константа, программа сначала посчитает со старым значением с выражение, а потом - запишет вместо c.
 								current_element->point_left = temp_pointer->point_left;
 								current_element->prop = defnd;
+								current_element->actn = write;
+								delete temp_pointer;
 							}
 							else if (temp_pointer->type == cnst)
 							{
 								current_element->var = temp_pointer->var;
 								current_element->type = defnd;
+								current_element->actn = write;
+								delete temp_pointer;
 							}
 						}
 						else if (current_element->type == varbl)
 						{
+							temp_pointer = filling_vector(pDest + 1, endPtr, new var_const(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+							if (temp_pointer = NULL)							
+								return temp_pointer;
+							//тут происходит переопределение переменых в качестве функций. Могут возникнуть проблемы, т.к. появятся два разных по типу объекта с одним именем.
 							if (temp_pointer->type == funct)
 							{
-								current_element->point_left = temp_pointer->point_left;
-								//копия переменной с указателем на функцию
-								current_element->point_collar = temp_pointer->point_collar;
-								current_element->point_collar->point_collar = current_element;
-								current_element->point_right = temp_pointer->point_right;
-
-								current_element->type = funct;
-								current_element->prop = defnd;
+								low_pointer = temp_pointer->find_varbl(current_element);
+								if (low_pointer == NULL)
+								{
+									//если переменная слева от равно не появляется справа - переопределение переменной в функцию. н-р : y=2*x+1
+									current_element->point_left = temp_pointer->point_left;									
+									current_element->point_collar = temp_pointer->point_collar;
+									current_element->point_right = temp_pointer->point_right;
+									//TODO:здесь необходимо переуказывать переменную/переменные на элемент. При этом нужно отсеивать возможные служебные переменные.
+									//current_element->point_collar->point_collar = current_element;
+									current_element->var = temp_pointer->var;
+									current_element->type = funct;
+									current_element->prop = defnd;
+									current_element->actn = write;
+									delete temp_pointer;
+								}
+								else
+								{
+									delete current_element;
+									//если переменная слева от равно появляется так же справа - уравнение. н-р : x=2*x+1
+									current_element = new var_const(L"", equat, unslv, write, temp_pointer->var, low_pointer, temp_pointer, temp_pointer->point_collar);
+								}
 							}
 							else if (temp_pointer->type == varbl)
 							{
-								if (temp_pointer->prop == undef)
+								if (temp_pointer->name == current_element->name)
 								{
-									temp_pointer->prop = defnd;
-									general_var_const->push_back(temp_pointer);
+									//вид выаражения х=х, где х - переменная. Не знаю что это может значить и кто подобное напишет
 								}
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(temp_pointer);
-								current_element->point_collar->point_collar = current_element;
-								current_element->point_left = current_element->point_collar;
-
-								current_element->type = funct;
-								current_element->prop = defnd;
+								else
+								{
+									if (temp_pointer->prop == undef)
+									{
+										temp_pointer->prop = defnd;
+										general_var_const->push_back(temp_pointer);
+									}									
+									current_element->point_collar = temp_pointer;
+									current_element->point_collar->point_collar = current_element;
+									current_element->point_collar->var = 0;
+									current_element->point_left = current_element->point_collar;
+									current_element->var = 1;
+									current_element->type = funct;
+									current_element->prop = defnd;
+									current_element->actn = write;
+								}
 							}
-							else if (temp_pointer->type == exprs)
+							else if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
 							{
-								current_element->point_left = temp_pointer->point_left;
-								current_element->type = cnst;
-								current_element->prop = defnd;
+								/*вообще подобное переопределение переменной в константу возможно только если эта переменная не используется ни в одной функции/уравнении.
+								Поскольку на данном этапе объявление переменных как отдельных объектов (не в составе функций) невозможно - данная запись будет считаться ошибкой.
+								*/
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::VARBL_BLOCKED);
+								return NULL;
 							}
-							else if (temp_pointer->type == cnst)
-							{
-								current_element->var = temp_pointer->var;
-								current_element->type = cnst;
-								current_element->prop = defnd;
-							}
+							
 						}
 						else if (current_element->type == funct)
 						{
+							//TODO: остановился здесь
+							if (current_element->point_collar->point_right != NULL)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 							if (temp_pointer->type == funct)
 							{
 								if (current_element->point_collar->name == temp_pointer->point_collar->name)
@@ -1869,6 +1922,7 @@ namespace Project {
 								current_element->type = cnst;
 								current_element->name = name;
 								current_element->prop = undef;
+								current_element->actn = write;
 								high_pointer = current_element;
 								low_pointer = high_pointer;
 							}

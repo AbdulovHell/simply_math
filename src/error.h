@@ -14,8 +14,8 @@
 			MULTIPLE_VARIABLES = -5,
 			//Неверный указатель
 			INTERNAL_POINTER_ERR = -6,
-			//Наличие '-' перед функцией
-			NEGATIVE_FUNC = -7,
+			//Пустые скобки ()
+			EMTY_BRACKETS = -7,
 			
 
 			
@@ -73,8 +73,8 @@
 				return L"Функция/уравнение нескольких переменных";
 			case ErrorCode::INTERNAL_POINTER_ERR:
 				return L"Неверный указатель";
-			case ErrorCode::NEGATIVE_FUNC:
-				return L"Наличие '-' перед функцией";
+			case ErrorCode::EMTY_BRACKETS:
+				return L"Пустые скобки ()";
 			case ErrorCode::EQUALY_FIRST:
 				return L"Строка начинается с '='";
 			case ErrorCode::EQUALY_MISSING:

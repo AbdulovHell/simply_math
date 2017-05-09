@@ -211,6 +211,16 @@ namespace Project {
 				return merged;
 			}
 
+			void reassing_right_pointers(math_obj* pointer)
+			{
+				if (pointer->point_left != NULL)
+				{
+					pointer->point_left->var = pointer->var + 1;
+					pointer->point_left->point_right = pointer;
+					reassing_right_pointers(pointer->point_left);
+				}
+			}
+
 		public:
 			//Нулевой конструктор
 			math_obj()
@@ -701,7 +711,7 @@ namespace Project {
 						sorting.push(temp_var);
 					}
 				}
-				if (sorting.size > 0)
+				if (sorting.size > 1)
 				{
 					temp_var = sorting.top();
 					sorting.pop();
@@ -711,29 +721,63 @@ namespace Project {
 						temp_var->var += 1;
 						sorting.pop();
 					}
+					temp_var->var = 0;
+					reassing_right_pointers(temp_var);
 					return temp_var;
-				}
+				}				
 				else
 				{
 					return NULL;
 				}
-
+				
 			}
 
-			/*Медод определения функции. Создаёт список переменных, от которых зависит функция, основываясь на списле переменных и аргументов функции pointer.*/
+			/*Медод определения функции. Создаёт список переменных, от которых зависит функция, основываясь на списке переменных и аргументов функции pointer.*/
 			void define_funct(math_obj *pointer)
 			{
+				math_obj* temp_pointer, *temp_vars, *iter;
 				if (pointer->prop == defnd)
 				{
+					temp_vars = new math_obj[(int)pointer->var];
 
+					point_collar = new math_obj (pointer->point_collar);
+					temp_pointer = point_collar;
+					iter = pointer->point_collar->point_left;
+					temp_vars[0].copy(temp_pointer);
+					temp_vars[0].point_collar = point_collar;
+					temp_vars[0].point_left = NULL;
+					temp_vars[0].point_right = NULL;
+					for (int count = 1; count < (int)pointer->var; count++)
+					{
+						temp_pointer->point_left = new math_obj(iter);
+						temp_pointer = temp_pointer->point_left;
+						iter = iter->point_left;
+						temp_vars[count].copy(temp_pointer);
+						temp_vars[count].point_collar = temp_pointer;
+						temp_vars[count].point_left = NULL;
+						temp_vars[count].point_right = NULL;
+					}
+					temp_pointer->point_left = point_collar;
+					point_collar->point_right = temp_pointer;
+					point_left = pointer;
+					point_left->point_right = temp_vars;
+					point_left->prop = arg_v;
+					var = pointer->var;
 				}
 				else if (pointer->prop == undef)
 				{
-
+					//простой случай: f=x+y*6..., где все буквенные выражения (x,y,...) - переменные и нет аргументов
+					point_collar = sort_list(pointer->point_collar);
+					temp_pointer = var_list_back_processing(point_collar);
+					var = temp_pointer->var + 1;
+					temp_pointer->point_left = point_collar;
+					point_collar->point_right = temp_pointer;
+					point_left = pointer->point_left;							
+					delete pointer;
 				}
 				else if (pointer->prop == arg_v)
 				{
-
+					//TODO:Самый сложный случай.
 				}
 			}
 

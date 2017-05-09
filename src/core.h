@@ -190,12 +190,7 @@ namespace Project {
 								return temp_pointer;
 							if (temp_pointer->type == funct)
 							{
-								current_element->point_left = temp_pointer->point_left;
-								current_element->point_collar = temp_pointer->point_collar;
-								//TODO:здесь необходимо переуказывать переменную/переменные на элемент. При этом нужно отсеивать возможные служебные переменные.
-								//current_element->point_collar->point_collar = current_element;								
-								current_element->var = temp_pointer->var;
-								current_element->point_right = temp_pointer->point_right;
+								current_element->define_funct(temp_pointer);
 								current_element->type = funct;
 								current_element->prop = defnd;
 								current_element->actn = write;
@@ -211,6 +206,8 @@ namespace Project {
 								current_element->point_collar = temp_pointer;
 								current_element->point_collar->point_collar = current_element;
 								current_element->point_collar->var = 0;
+								current_element->point_collar->point_left = current_element->point_collar;
+								current_element->point_collar->point_right = current_element->point_collar;
 								current_element->point_left = current_element->point_collar;
 								current_element->var = 1;
 								current_element->type = funct;
@@ -245,12 +242,7 @@ namespace Project {
 								if (low_pointer == NULL)
 								{
 									//если переменная слева от равно не появляется справа - переопределение переменной в функцию. н-р : y=2*x+1
-									current_element->point_left = temp_pointer->point_left;
-									current_element->point_collar = temp_pointer->point_collar;
-									current_element->point_right = temp_pointer->point_right;
-									//TODO:здесь необходимо переуказывать переменную/переменные на элемент. При этом нужно отсеивать возможные служебные переменные.
-									//current_element->point_collar->point_collar = current_element;
-									current_element->var = temp_pointer->var;
+									current_element->define_funct(temp_pointer);
 									current_element->type = funct;
 									current_element->prop = defnd;
 									current_element->actn = write;
@@ -279,6 +271,8 @@ namespace Project {
 									current_element->point_collar = temp_pointer;
 									current_element->point_collar->point_collar = current_element;
 									current_element->point_collar->var = 0;
+									current_element->point_collar->point_left = current_element->point_collar;
+									current_element->point_collar->point_right = current_element->point_collar;
 									current_element->point_left = current_element->point_collar;
 									current_element->var = 1;
 									current_element->type = funct;
@@ -331,7 +325,8 @@ namespace Project {
 									}
 									else
 									{
-
+										current_element->define_funct(temp_pointer);
+										current_element->actn = write;
 									}
 								}
 							}

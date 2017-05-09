@@ -141,6 +141,7 @@
     <ClCompile Include="MainForm.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\classes.h" />
     <ClInclude Include="..\..\src\core.h" />
     <ClInclude Include="..\..\src\error.h" />
     <ClInclude Include="..\..\src\filters.h" />

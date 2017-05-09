@@ -221,6 +221,107 @@ namespace Project {
 				}
 			}
 
+			math_obj *var_list_to_arg(math_obj*var_list, int size)
+			{
+				math_obj* mass_arg = new math_obj[size]; 
+				for (int count = 0; count < size; count ++)
+				{
+					mass_arg[count].copy = var_list;
+					mass_arg[count].point_left = NULL;
+					mass_arg[count].point_right = NULL;
+					mass_arg[count].point_collar = NULL;
+					mass_arg[count].var = 0;
+					var_list = var_list->point_left;
+				}
+				return mass_arg;
+			}
+
+			math_obj *arg_to_var_list(math_obj*mass_arg, math_obj*var_list, int size)
+			{
+				math_obj*iter,*place;
+				if (var_list == NULL)
+				{
+					var_list = new math_obj(&mass_arg[0]);
+					mass_arg[0].point_collar = var_list;
+					iter = var_list;
+					var_list->var = 0;
+					for (int count = 1; count < size; count++)
+					{
+						iter->point_left = new math_obj(&mass_arg[count]);
+						iter->point_left->point_right = iter;
+						iter->point_left->var = count;
+						iter = iter->point_left;						
+						mass_arg[count].point_collar = iter;
+					}
+				}
+				else
+				{
+					iter = var_list_back_processing(var_list);//указатель на последний элемент списка
+					for (int count = 0; count < size; count++)
+					{
+						place = find_varbl_processing(var_list, &mass_arg[count]);
+						if (place == NULL)
+						{
+							iter->point_left = new math_obj(&mass_arg[count]);							
+							iter = iter->point_left;
+							mass_arg[count].point_collar = iter;
+						}
+						else
+						{
+							mass_arg[count].point_collar = place;
+						}
+					}
+				}
+				return var_list;
+			}
+
+			math_obj *create_var_list(math_obj* pointer,math_obj *var_list)
+			{			
+				math_obj *iter = NULL; 		
+				math_obj *place = NULL;
+				
+				
+				for (int count = 0; count < pointer->var; count++)
+				{
+					if (pointer->point_right[count].type == varbl)
+					{
+						if (var_list == NULL)
+						{
+							var_list = new math_obj(&pointer->point_right[count]);
+							pointer->point_right[count].point_collar = var_list;							
+						}
+						else
+						{
+							iter = var_list_back_processing(var_list);
+							place = find_varbl_processing(var_list, &pointer->point_right[count]);
+							if (place == NULL)
+							{
+								iter->point_left = new math_obj(&pointer->point_right[count]);								
+								pointer->point_right[count].point_collar = iter->point_left;
+							}
+							else
+							{
+								pointer->point_right[count].point_collar = place;
+							}
+						}
+					}
+					else if (pointer->point_right[count].type == funct)
+					{
+						if ((pointer->point_right[count].prop == defnd)|| (pointer->point_right[count].prop == undef))
+						{
+							pointer->point_right[count].point_right = var_list_to_arg(pointer->point_right[count].point_collar, (int)pointer->point_right[count].var);
+							var_list = arg_to_var_list(pointer->point_right[count].point_right, var_list, (int)pointer->point_right[count].var);
+							pointer->point_right[count].prop = arg_v;
+						}							
+						else if (pointer->point_right[count].prop == arg_v)
+						{
+							var_list = create_var_list(&pointer->point_right[count], var_list);
+						}
+					}
+				}
+				return var_list;
+			}
+
 		public:
 			//Нулевой конструктор
 			math_obj()
@@ -620,7 +721,7 @@ namespace Project {
 				int count_var = 0;
 				int temp = 0;
 				//рассматриваются функции с аргументами (определённые и нет)
-				if ((pointer->prop == arg_v) || ((pointer->prop == undef) && (pointer->point_right != NULL)))
+				if (pointer->prop == arg_v) 
 				{
 					for (int count = 0; count < pointer->var; count++)
 					{
@@ -648,12 +749,12 @@ namespace Project {
 				else
 				{
 					math_obj * iter = pointer->point_collar;
-					while ((iter->point_left != NULL)&(iter->point_left->var != 0))
+					do
 					{
 						if (find_varbl_processing(point_collar, iter) == NULL)
 							count_var++;
 						iter = iter->point_left;
-					}
+					} while ((iter != NULL)&(iter->var != 0));
 				}
 				return count_var;
 			}
@@ -686,6 +787,8 @@ namespace Project {
 				point_right = ar;
 				var += 1;
 			}
+
+			
 
 			/*Метод сортирует незамкнутый список переменных по алфавиту*/
 			math_obj * sort_list(math_obj * var_list)
@@ -735,34 +838,17 @@ namespace Project {
 			/*Медод определения функции. Создаёт список переменных, от которых зависит функция, основываясь на списке переменных и аргументов функции pointer.*/
 			void define_funct(math_obj *pointer)
 			{
-				math_obj* temp_pointer, *temp_vars, *iter;
+				math_obj* temp_pointer;
 				if (pointer->prop == defnd)
 				{
-					temp_vars = new math_obj[(int)pointer->var];
-
-					point_collar = new math_obj (pointer->point_collar);
-					temp_pointer = point_collar;
-					iter = pointer->point_collar->point_left;
-					temp_vars[0].copy(temp_pointer);
-					temp_vars[0].point_collar = point_collar;
-					temp_vars[0].point_left = NULL;
-					temp_vars[0].point_right = NULL;
-					for (int count = 1; count < (int)pointer->var; count++)
-					{
-						temp_pointer->point_left = new math_obj(iter);
-						temp_pointer = temp_pointer->point_left;
-						iter = iter->point_left;
-						temp_vars[count].copy(temp_pointer);
-						temp_vars[count].point_collar = temp_pointer;
-						temp_vars[count].point_left = NULL;
-						temp_vars[count].point_right = NULL;
-					}
-					temp_pointer->point_left = point_collar;
+					pointer->point_right = var_list_to_arg(pointer->point_collar, (int)pointer->var);
+					point_collar = arg_to_var_list(pointer->point_right,NULL, (int)pointer->var);
+					temp_pointer = var_list_back_processing(point_collar);
 					point_collar->point_right = temp_pointer;
+					temp_pointer->point_left = point_collar;
+					var = temp_pointer->var + 1;
 					point_left = pointer;
-					point_left->point_right = temp_vars;
 					point_left->prop = arg_v;
-					var = pointer->var;
 				}
 				else if (pointer->prop == undef)
 				{
@@ -777,7 +863,13 @@ namespace Project {
 				}
 				else if (pointer->prop == arg_v)
 				{
-					//TODO:Самый сложный случай.
+					temp_pointer = create_var_list(pointer, NULL);
+					point_collar = sort_list(temp_pointer);
+					temp_pointer = var_list_back_processing(point_collar);
+					var = temp_pointer->var + 1;
+					temp_pointer->point_left = point_collar;
+					point_collar->point_right = temp_pointer;
+					point_left = pointer;
 				}
 			}
 
@@ -802,4 +894,4 @@ namespace Project {
 			math_obj *point_collar;	//воротник
 		};
 	}
-}
+};

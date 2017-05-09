@@ -307,6 +307,11 @@ namespace Project {
 								}
 								else if (temp_pointer->type == varbl)
 								{
+									if (temp_pointer->prop == undef)
+									{
+										temp_pointer->prop = defnd;
+										general_var_const->push_back(temp_pointer);
+									}
 									temp_pointer->var = 0;
 									temp_pointer->point_left = temp_pointer;
 									temp_pointer->point_right = temp_pointer;
@@ -332,24 +337,35 @@ namespace Project {
 							}
 							else if (current_element->prop == undef)
 							{
+								/*TODO:При определении уравнений необходимо будет прорабатывать списки переменных таким же образом, как при определении функций.
+								Возможен вариант оставлять уравнение в "сыром" виде, а делать всё при анализе.*/
 								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
 								{
-
+									high_pointer = current_element;
+									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
 								}
 								else if (temp_pointer->type == varbl)
 								{
-
+									if (temp_pointer->prop == undef)
+									{
+										temp_pointer->prop = defnd;
+										general_var_const->push_back(temp_pointer);
+									}
+									high_pointer = current_element;
+									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
 								}
 								else if (temp_pointer->type == funct)
 								{
-
+									high_pointer = current_element;
+									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
 								}
 							}
 							else if (current_element->prop == arg_c)
 							{
 								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
 								{
-
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
+									return NULL;
 								}
 								else if (temp_pointer->type == varbl)
 								{
@@ -1987,9 +2003,7 @@ namespace Project {
 										return NULL;
 
 									}
-									//но если далее стоит равно - всё нормально,  переопределение. 
-									//TODO:При этом необходимо очищать предыдущее дерево операций, только не здесь, а далее при переходе через равно, т.к. это ещё может быть ошибка ввода.	
-									//так же, в случае ошибки ввода - работать всё-таки с копией функции, т.к. дерево опреций ещё на месте, а вот переменные уже пропали)
+									//но если далее стоит равно - всё нормально,  переопределение. 									
 
 									else
 									{

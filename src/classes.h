@@ -3,6 +3,7 @@
 #include <string>
 #include <stack>
 #include "IO.h"
+#include "error.h"
 
 
 namespace Project {
@@ -10,6 +11,41 @@ namespace Project {
 		using namespace std;
 		using namespace Project;
 		using namespace Project::IO;
+
+		//типы обЪектов	(type)	
+		wstring cnst = L"const";
+		wstring funct = L"funct";
+		wstring varbl = L"varbl";
+		wstring equat = L"equat";
+		wstring exprs = L"exprs";
+		wstring numbr = L"numbr";
+		wstring addit = L"oper+";
+		wstring mltpl = L"oper*";
+		wstring divis = L"oper/";
+		wstring power = L"oper^";
+		//свойства обЪектов (prop)		
+		wstring defnd = L"defnd";//общее свойство
+		wstring undef = L"undef";//общее свойство
+
+		wstring arg_c = L"arg_c"; //функция с константными аргументами
+		wstring arg_v = L"arg_v"; //функция с переменными аргументами 
+		wstring empty = L"empty"; //"пустая" функция. Свойство именных неинициализированных функций
+
+		wstring fundm = L"fundm";//Фундаментальная константа
+
+		wstring unslv = L"unslv";//свойство уравнений и функций от конст выражений
+		wstring solvd = L"solvd";//свойство уравнений и функций от конст выражений
+
+		wstring real = L"real_";//свойства чисел
+		wstring cmplx = L"cmplx";//свойства чисел
+
+		wstring servc = L"servc";//свойство служебных объектов
+								 //действия над объектами (actn)
+		wstring solve = L"solve";
+		wstring write = L"write";
+		wstring read = L"read_";
+
+
 		class math_obj {
 		private:
 			int tree_destruct_processing(math_obj* pointer)
@@ -17,7 +53,7 @@ namespace Project {
 				if (pointer == NULL) return 0;
 				int temp = 0;
 
-				if (pointer->type == numbr)
+				if ((pointer->type == numbr)|| (pointer->type == cnst))
 				{
 					delete pointer;
 					pointer = NULL;
@@ -44,16 +80,24 @@ namespace Project {
 					if (pointer->prop == undef)
 					{
 						temp += tree_destruct_processing(pointer->point_left);
-						temp += tree_destruct_processing(pointer->point_right);
-						delete pointer->point_collar;
+						temp += tree_destruct_processing(pointer->point_collar);		
 						delete pointer;
 						pointer = NULL;
 						return temp;
 					}
-					else
+					else if(pointer->prop == defnd)
+					{	
+						delete pointer;
+						pointer = NULL;
+						return temp;
+					}
+					else if ((pointer->prop == arg_c) || (pointer->prop == arg_v))
 					{
-						temp += tree_destruct_processing(pointer->point_right);
-						delete pointer->point_collar;
+						//тут пока утечка памяти остаётся
+						if (pointer->var>1)
+							delete []pointer->point_right;
+						else
+							delete pointer->point_right;
 						delete pointer;
 						pointer = NULL;
 						return temp;
@@ -78,41 +122,34 @@ namespace Project {
 				}
 			}
 
-			double processing(math_obj *pointer, math_obj * last_func)
+			double arithmetic_processing(math_obj *pointer, math_obj * last_arg)
 			{
-				//TODO: застраховать от ошибок вычисления
-
 				if (pointer->type == addit)
-					return processing(pointer->point_left, last_func) + processing(pointer->point_right, last_func);
+					return arithmetic_processing(pointer->point_left, last_arg) + arithmetic_processing(pointer->point_right, last_arg);
 				else if (pointer->type == mltpl)
-					return processing(pointer->point_left, last_func) * processing(pointer->point_right, last_func);
+					return arithmetic_processing(pointer->point_left, last_arg) * arithmetic_processing(pointer->point_right, last_arg);
 				else if (pointer->type == divis)
-					return processing(pointer->point_left, last_func) / processing(pointer->point_right, last_func);
+					return arithmetic_processing(pointer->point_left, last_arg) / arithmetic_processing(pointer->point_right, last_arg);
 				else if (pointer->type == power)
-					return pow(processing(pointer->point_left, last_func), processing(pointer->point_right, last_func));
+					return pow(arithmetic_processing(pointer->point_left, last_arg), arithmetic_processing(pointer->point_right, last_arg));
 				else if ((pointer->type == numbr) || (pointer->type == cnst))
 					return pointer->var;
 				else if (pointer->type == exprs)
-					return processing(pointer->point_left, last_func);
+					return arithmetic_processing(pointer->point_left, last_arg);
 				//для функции - просто проходим по указателю дальше к выражению для неё
 				else if (pointer->type == funct)
 				{
-					//возможно существует более изящное решение для функции знак, но я не придумал. Только прямо проверять знак числа - сравнивать с нулём.
-					/*if (pointer->read(L"name") == L"sgn")
-					{
-					return signum(processing(pointer->point_right, pointer));
-					}
-					else*/ if (pointer->name == L"root")
-					{
-						return sqrt(processing(pointer->point_right, last_func));
-					}
-					else
-						return processing(pointer->point_left, pointer);
+					if (pointer->prop==arg_c)
+						return arithmetic_processing(pointer->point_left, pointer->point_right);
+						else
+						{
+							//ловить эту ошибку после выполнения арифметического метода.
+							ProjectError::SetProjectLastError(ProjectError::ErrorCode::VARIABL_FUNCT);
+							return 0;
+						}
 				}
-				//когда находим переменную - ссылаемся на функцию для этой переменной, потом на выражение/константу/число вложенную в данную функцию. 
-				//Поэтому у каждой функции должна быть переменная с уникальным указателем
 				else if (pointer->type == varbl)
-					return processing(last_func->point_right, last_func);
+					return arithmetic_processing(&last_arg[(int)pointer->var], last_arg);
 			}
 
 			wstring expression_processing(math_obj *pointer, int* comma)
@@ -657,15 +694,21 @@ namespace Project {
 			Результатом работы метода является запись результата вычислений в double var текущего элемента класса. */
 			void arithmetic()
 			{
-				wchar_t* id_a = wcsstr(&name[0], L"@");
-				wstring type;
-				type.assign(name, 0, 5);
-				if (type == L"funct")
+				if (type == funct)
 				{
-					var = processing(point_left, point_collar->point_collar);
+					if (prop ==arg_c)
+						var = arithmetic_processing(point_left, point_right);
+					else
+					{
+						//ничего не далать, можно выдать ошибку.
+					}
 				}
-				else
-					var = processing(point_left, NULL);
+				else if ((type == cnst)||(type== exprs))
+					var = arithmetic_processing(point_left, NULL);
+				else 
+				{
+					//ничего не делать			
+				}
 			}
 
 			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и очищающую память.
@@ -674,20 +717,33 @@ namespace Project {
 			int tree_destruct()
 			{
 				int s = 0;
-				if (point_left != NULL)
+				if ((type == cnst)||(type == exprs))
 				{
 					s += tree_destruct_processing(point_left);
 					point_left = NULL;
 				}
-				if (point_right != NULL)
+				else if (type == funct)
 				{
-					s += tree_destruct_processing(point_right);
-					point_right = NULL;
+					if ((prop == undef) || (prop == defnd))
+					{
+						s += tree_destruct_processing(point_left);
+						point_left = NULL;
+						s += tree_destruct_processing(point_collar);
+						point_collar = NULL;
+					}
+					else if ((prop == arg_c) || (prop == arg_v))
+					{
+						//тут пока утечка памяти остаётся
+						if (var>1)
+							delete[]point_right;
+						else
+							delete point_right;						
+					}
 				}
-				if (point_collar != NULL) {
-					delete point_collar;
-					point_collar = NULL;
-				}
+				else if (type == equat)
+				{
+					//дописать
+				}			
 				return s;
 			}
 

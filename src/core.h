@@ -9,10 +9,10 @@
 #include <vector>
 //#include <thread>
 //#include <mutex>
-#include "classes.h"
 #include "error.h"
 #include "IO.h"
-#include "filters.h"
+#include "classes.h"
+//#include "filters.h"
 
 
 namespace Project {

@@ -4,8 +4,8 @@
 	namespace ProjectError {
 
 		enum class ErrorCode : int {
-			//Вложенные/сложные функции не реализованы
-			COMPLEX_FUNC_NOT_REALIZED = -1,
+			//Переопределение переменной в качестве константы
+			VARBL_BLOCKED = -1,
 			//Неявное вложение функции
 			IMPLICIT_FUNC = -3,
 			//Уравнения не реализованы
@@ -14,8 +14,8 @@
 			MULTIPLE_VARIABLES = -5,
 			//Неверный указатель
 			INTERNAL_POINTER_ERR = -6,
-			//Наличие '-' перед функцией
-			NEGATIVE_FUNC = -7,
+			//Пустые скобки ()
+			EMTY_BRACKETS = -2,
 			
 
 			
@@ -49,15 +49,22 @@
 			SERVICE_SYMBOL = 12,
 			//Попытка получить результат булева выражения вне условной области
 			BOOL_EXPRESSION = 13,
-
+			//Попытка переопределить фундаментальную константу
+			FUNDAMENTAL_CONST = 14,
+			//После скобки стоит неизвестный символ
+			UNEXPECTED_SYMBOL = 15,
+			//Неверное количество переменных в вызове функции
+			UNEQUAL_NUM_OF_VAR = 16,
+			//При вычислении нашлась функция с переменными аргументами
+			VARIABL_FUNCT = 17
 		};
 
 		//Преобразование кода в текстовое представление
 		static wstring GetProjectError(ErrorCode code) {
 			switch (code)
 			{
-			case ErrorCode::COMPLEX_FUNC_NOT_REALIZED:
-				return L"Вложенные/сложные функции не реализованы";
+			case ErrorCode::VARBL_BLOCKED:
+				return L"Переопределение переменной в качестве константы";
 			case ErrorCode::UNDEFINED_FUNC:
 				return L"Неопределенная функция";
 			case ErrorCode::IMPLICIT_FUNC:
@@ -68,8 +75,8 @@
 				return L"Функция/уравнение нескольких переменных";
 			case ErrorCode::INTERNAL_POINTER_ERR:
 				return L"Неверный указатель";
-			case ErrorCode::NEGATIVE_FUNC:
-				return L"Наличие '-' перед функцией";
+			case ErrorCode::EMTY_BRACKETS:
+				return L"Пустые скобки ()";
 			case ErrorCode::EQUALY_FIRST:
 				return L"Строка начинается с '='";
 			case ErrorCode::EQUALY_MISSING:
@@ -94,6 +101,14 @@
 				return L"Строка содержит служебные символы";
 			case ErrorCode::BOOL_EXPRESSION:
 				return L"Попытка получить результат булева выражения вне условной области";
+			case ErrorCode::FUNDAMENTAL_CONST:
+				return L"Попытка переопределить фундаментальную константу";
+			case ErrorCode::UNEXPECTED_SYMBOL:
+				return L"Неизвестный символ";
+			case ErrorCode::UNEQUAL_NUM_OF_VAR:
+				return L"Неверное количество переменных в вызове функции";
+			case ErrorCode::VARIABL_FUNCT:
+				return L"При вычислении нашлась функция с переменными аргументами";
 			case ErrorCode::UNREAL_ERROR:
 				return L"Невозможная ошибка!";
 			default:
@@ -129,8 +144,8 @@
 				return _textPresent;
 			}
 			//Копирование
-			void copy(_In_ _ErrorPresent* orig) {
-				_code = orig->_code;
+            void copy(_ErrorPresent* orig) {
+                _code = orig->_code;
 				_textPresent = orig->_textPresent;
 			}
 		};
@@ -140,12 +155,12 @@
 		static int NewLastError;
 
 		//Передает в класс последнюю ошибку программы
-		static void GetProjectLastError(_Out_ Project::ProjectError::_ErrorPresent* errprsnt) {
+        static void GetProjectLastError(Project::ProjectError::_ErrorPresent* errprsnt) {
 			errprsnt->copy(last_err);
 			NewLastError = false;
 		}
 		//Задает код текущей ошибки как последнюю
-		static void SetProjectLastError(_In_ Project::ProjectError::ErrorCode code) {
+        static void SetProjectLastError(Project::ProjectError::ErrorCode code) {
 			if (last_err) delete last_err;
 			last_err = new Project::ProjectError::_ErrorPresent(code);
 			NewLastError = true;

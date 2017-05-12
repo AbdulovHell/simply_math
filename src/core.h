@@ -11,6 +11,9 @@
 //#include <mutex>
 #include "error.h"
 #include "IO.h"
+#include "filters.h"
+#include "classes.h"
+
 
 namespace Project {
 	namespace Core {
@@ -19,434 +22,63 @@ namespace Project {
 		using namespace Project;
 		using namespace Project::IO;
 
-		class var_const {
-		private:
-			int tree_destruct_processing(var_const* pointer)
-			{
-				if (pointer == NULL) return 0;
-				int temp=0;
-				
-				if (pointer->read(L"type") == L"numbr")
-				{
-					delete pointer;
-					pointer = NULL;
-					return 0;
-				}
-				else if ((pointer->read(L"type") == L"oper+")|| (pointer->read(L"type") == L"oper*")|| (pointer->read(L"type") == L"oper/")|| (pointer->read(L"type") == L"oper^"))
-				{
-					temp += tree_destruct_processing(pointer->point_left);
-					temp += tree_destruct_processing(pointer->point_right);
-					delete pointer;
-					pointer = NULL;
-					return temp;
-					
-				}
-				else if (pointer->read(L"type") == L"exprs")
-				{
-					temp += tree_destruct_processing(pointer->point_left);
-					delete pointer;
-					pointer = NULL;
-					return temp;
-				}
-				else if (pointer->read(L"type") == L"funct")
-				{
-					if (pointer->read(L"prop") == L"undef")
-					{
-						temp += tree_destruct_processing(pointer->point_left);
-						temp += tree_destruct_processing(pointer->point_right);
-						delete pointer->point_collar;
-						delete pointer;
-						pointer = NULL;
-						return temp;
-					}
-					else
-					{
-						temp += tree_destruct_processing(pointer->point_right);
-						delete pointer->point_collar;
-						delete pointer;
-						pointer = NULL;
-						return temp;
-					}
-				}
-				
-			}
+		
+		
 
-			var_const *prioritize_processing(var_const *pc, int current_priority)
-			{
-				//если приоритет проверяемой операции !БОЛЬШЕ! текущей операции
-				if (pc->get_priority() > current_priority)
-				{
-					//вызываем метод ещё раз для следующей операции
-					return prioritize_processing(pc, current_priority);
-				}
-				//если приоритет проверяемой операции !МЕНЬШЕ! или равен приоритету текущей операции
-				else
-				{
-					//вернуть указатель на проверенную операцию
-					return pc;
-				}
-			}
+		//структура хранения данных
+		vector<math_obj*>* general_var_const;
 
-			double processing(var_const *pointer, var_const * last_func)
-			{
-				//TODO: застраховать от ошибок вычисления
-				wstring rd = pointer->read(L"type");
-				if (rd == L"oper+")
-					return processing(pointer->point_left, last_func) + processing(pointer->point_right, last_func);
-				else if (rd == L"oper*")
-					return processing(pointer->point_left, last_func) * processing(pointer->point_right, last_func);
-				else if (rd == L"oper/")
-					return processing(pointer->point_left, last_func) / processing(pointer->point_right, last_func);
-				else if (rd == L"oper^")
-					return pow(processing(pointer->point_left, last_func), processing(pointer->point_right, last_func));
-				else if ((rd == L"numbr") || (rd == L"const"))
-					return pointer->var;
-				else if (rd == L"exprs")
-					return processing(pointer->point_left, last_func);
-				//для функции - просто проходим по указателю дальше к выражению для неё
-				else if (rd == L"funct")
-					return processing(pointer->point_left, pointer);
-				//когда находим переменную - ссылаемся на функцию для этой переменной, потом на выражение/константу/число вложенную в данную функцию. 
-				//Поэтому у каждой функции должна быть переменная с уникальным указателем
-				else if (rd == L"varbl")
-					return processing(last_func->point_right, last_func);
-			}
-
-			wstring expression_processing(var_const *pointer,int* comma)
-			{				
-				
-				if ((pointer->read(L"type") == L"oper*") || (pointer->read(L"type") == L"oper/"))
-				{
-					return expression_processing(pointer->point_left,comma) +  pointer->var_id + expression_processing(pointer->point_right, comma);
-				}
-				else if (pointer->read(L"type") == L"oper+")
-				{
-					if (pointer->point_right->read(L"name") == L"minus")
-					{
-						if ((pointer->point_collar->var_id == L"*") || (pointer->point_collar->var_id == L"/"))
-							return L"(" + expression_processing(pointer->point_left, comma) + L" - " + expression_processing(pointer->point_right, comma) + L")";
-						else
-							return expression_processing(pointer->point_left, comma) + L" - " + expression_processing(pointer->point_right, comma);
-					}
-					else if ((pointer->point_collar->var_id == L"*") || (pointer->point_collar->var_id == L"/"))
-						return L"(" + expression_processing(pointer->point_left, comma) + L" " + pointer->var_id + L" " + expression_processing(pointer->point_right, comma) + L")";
-					else
-						return expression_processing(pointer->point_left, comma) + L" " + pointer->var_id + L" " + expression_processing(pointer->point_right, comma);
-				}
-				else if (pointer->read(L"type") == L"numbr")
-				{
-					return to_string(pointer->var, var_type::FRACTIONAL, *comma);
-				}
-				else if (pointer->read(L"type") == L"funct")
-				{
-					if (pointer->read(L"name") == L"minus")
-					{
-						return L"-" + to_string(pointer->point_right->var, var_type::FRACTIONAL, *comma);
-					}
-					else
-					{
-						return  expression_processing(pointer->point_left, comma);
-					}
-				}
-				else
-				{
-					return pointer->read(L"name");
-				}
-			}
-
-		public:
-			var_const()
-			{
-				var_id = L"";
-				var = 0;
-				point_left = NULL;
-				point_right = NULL;
-				point_collar = NULL;
-			}
-
-			var_const(wstring _name, double _num)
-			{
-				var_id = _name;
-				var = _num;
-				point_left = NULL;
-				point_right = NULL;
-				point_collar = NULL;
-			}
-
-			var_const(wstring _name, double _num, var_const *_pc)
-			{
-				var_id = _name;
-				var = _num;
-				point_left = NULL;
-				point_right = NULL;
-				point_collar = _pc;
-			}
-
-			var_const(wstring _name, double _num, var_const * _pl, var_const *_pr) {
-				var_id = _name;
-				var = _num;
-				point_left = _pl;
-				point_right = _pr;
-				point_collar = NULL;
-			}
-
-			var_const(wstring _name, double _num, var_const * _pl, var_const *_pr, var_const *_pc) {
-				var_id = _name;
-				var = _num;
-				point_left = _pl;
-				point_right = _pr;
-				point_collar = _pc;
-			}
-
-			var_const(var_const* var1)
-			{
-				var_id = var1->var_id;
-				var = var1->var;
-				point_left = var1->point_left;
-				point_right = var1->point_right;
-				point_collar = var1->point_collar;
-			}
-
-			~var_const()
-			{
-
-			}
-
-			void copy(var_const* ref) {
-				var_id = ref->var_id;
-				var = ref->var;
-				point_left = ref->point_left;
-				point_right = ref->point_right;
-				point_collar = ref->point_collar;
-			}
-
-			/*Метод возвращает приоритет операции.
-			1 - сложение
-			2 - умножение
-			3 - деление
-			4 - возведение в степень
-			0 - не операция*/
-			int get_priority()
-			{
-				wchar_t operation = var_id[0];
-				switch (operation)
-				{
-				case '+':
-					return 1 + (int)var;
-				case '*':
-					return 2 + (int)var;
-				case '/':
-					return 3 + (int)var;
-				case '^':
-					return 4 + (int)var;
-				default:
-					return 0;
-				}
-			}
+		math_obj pi = math_obj(L"pi", cnst, fundm, L"0", 3.1415926535897932384626433832);
+		math_obj e = math_obj(L"e", cnst, fundm, L"0", 2.7182818284590452353602874713527);
+		math_obj i = math_obj(L"i", cnst, fundm, L"0", 0);
+		//служебная переменная для заполнения "пустых" функций, просто висит тут, без добавления в массив
+		math_obj temporary_variable = math_obj(L"temporary_variable", varbl, servc, L"0", 0);
 
 
-			/*метод read возвращает строку, содержащую информацию об элементе класса в соответствии с запрошенным аргументом:
-			type - тип элемента класса, всё что записано в строке var_id до символа @
-			prop - свойство элемента класса, всё что записано после #
-			name - имя элемента класса, подстроку в var_id между @ и #, для функций и уравнений - между @ и (
-			func - имя элемента класса, подстроку в var_id между @ и #, без исключений для функций
-			nvar - имя переменной, на которую указывает элемент класса. Для функций и уравнений (пока без проверки указателя)
-			*/
-			wstring read(wstring arg)
-			{
-				wchar_t* id_a = wcsstr(&var_id[0], L"@");
-				wchar_t* id_H = wcsstr(&var_id[0], L"#");
-				wchar_t* id_f = wcsstr(&var_id[0], L"(");
-				wchar_t* id_b = wcsstr(&var_id[0], L")");
-				wstring out;
 
-				if (arg == L"type")
-				{
-					if (id_a != NULL)
-					{
-						out.assign(var_id, 0, 5);
-					}
-					else
-					{
-						if (var_id == L"0")
-						{
-							out = L"numbr";
-						}
-						else if (var_id == L"+")
-						{
-							out = L"oper+";
-						}
-						else if (var_id == L"*")
-							out = L"oper*";
-						else if (var_id == L"/")
-							out = L"oper/";
-						else if (var_id == L"^")
-							out = L"oper^";
-					}
-				}
-				else if (arg == L"prop")
-				{
-					if (id_H != NULL)
-					{
-						out.assign(id_H + 1);
-					}
-					else
-					{
-						out = L"0";
-					}
-				}
-				else if (arg == L"name")
-				{
-					if (id_a != NULL)
-					{
-						if (id_f != NULL)
-						{
-							if (id_a + 1 == id_f)
-							{
-								out = L"";
-							}
-							else
-								out.assign(id_a + 1, id_f);
-						}
-						else
-						{
-							if (id_a + 1 == id_H)
-							{
-								out = L"";
-							}
-							else
-								out.assign(id_a + 1, id_H);	//TODO: хах)) вот и нашли) создаешь строку длинной 0xFFFF FFFF FFFF FFFF
-						}
-					}
-					else
-					{
-						out = var_id;
-					}
-				}
-				else if (arg == L"func")
-				{
-					if (id_a != NULL)
-						if (id_H != NULL)
-							if (id_a + 1 == id_H)
-								out = L"";
-							else
-								out.assign(id_a + 1, id_H);
-						else
-							out.assign(id_a + 1);
-					else
-						out = var_id;
-				}
-				else if (arg == L"nvar")
-				{
-					if ((point_collar != NULL) && (point_collar->read(L"type") == L"varbl"))
-						out = point_collar->read(L"name");
-					else
-						out = L"";
-					/* TODO: сделать проверку соответствия имени переменной на которую указывает элемент и имени переменной в названии функции.
-					Если не совпадают, заменять имя в названии Н-р: f(x) -> f(y)
-					if ((id_f != NULL) && (id_b != NULL))
-					{
-						out.assign(id_f + 1, id_b - 1);
-					}
-					else
-						out = L"";
-						*/
-				}
-				else
-				{
-					out = L"fuck up";
-				}
-				return out;
-			}
 
-			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и коструирующую строку с формальной записью текущего выражения.
-			Возвращает строку. ПОКА НЕ РАБОТАЕТ*/
-			wstring expresion(int comma)
-			{				
-				return read(L"func") + L" = " + expression_processing(point_left, &comma);
-			}
 
-			/*Метод вызывает рекурсивную функцию проверки приоритета операций в текущем дереве операций.
-			Возвращает указатель на элемент дерева (операцию), имеющий приоритет меньший или равный в сравнении с текущим элементом. */
-			var_const *prioritize(int current_priority)
-			{
-				return prioritize_processing(point_collar, current_priority);
-			}
-
-			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и выполняющую их.
-			Результатом работы метода является запись результата вычислений в double var текущего элемента класса. */
-			void arithmetic()
-			{
-				wchar_t* id_a = wcsstr(&var_id[0], L"@");
-				wstring type;
-				type.assign(var_id, 0, 5);
-				if (type == L"funct")
-				{
-					var = processing(point_left, point_collar->point_collar);
-				}
-				else
-					var = processing(point_left, NULL);
-			}
-
-			int tree_destruct()
-			{				
-				int s;
-				if (point_left != NULL)
-				{
-					s += tree_destruct_processing(point_left);
-					point_left = NULL;
-				}
-				if (point_right != NULL)
-				{
-					s += tree_destruct_processing(point_right);
-					point_right = NULL;
-				}
-				if (point_collar != NULL) {
-					delete point_collar;
-					point_collar = NULL;
-				}
-				return s;
-			}
-
-			enum class variable_type {
-				INTEGER,
-				FRACTIONAL,
-				IMAGINARY,
-				REAL,
-				RE_IM,
-				EXP	//5E+10 5*10^10
-			};
-
-			wstring var_id;
-			double var;
-			//double var_im;  не зачем. разумнее пользоваться Эйлером
-			int exp;
-			var_const *point_left;		//левый рукав
-			var_const *point_right;		//правый рукав
-			var_const *point_collar;	//воротник
-		};
-
-		var_const pi = var_const(L"const@pi#fundm", 3.1415926535897932384626433832);
-		var_const e = var_const(L"const@e#fundm", 2.7182818284590452353602874713527);
-		//служебная переменная для заполнения "пустых" функций
-		var_const temporary_variable = var_const(L"varbl@temporary_variable#servc", 0);
-
-		vector<var_const*>* general_var_const;
 
 		//Инициализация массива констант, переменных, функций и уравнений
 		void Init() {
 			ProjectError::Init();
-			var_const* temp;
-			general_var_const = new vector<var_const*>;
+			math_obj* temp;
+			general_var_const = new vector<math_obj*>;
 			general_var_const->push_back(&pi);
 			general_var_const->push_back(&e);
+			general_var_const->push_back(&i);
 			//минус
 			{
-				general_var_const->push_back(new var_const(L"funct@minus#empty", 0, new var_const(&temporary_variable)));
-				temp = general_var_const->at(2);
+				general_var_const->push_back(new math_obj(L"minus", funct, empty, L"", 1, new math_obj(&temporary_variable)));
+				temp = general_var_const->back();
 				temp->point_collar->point_collar = temp;
-				temp->point_left = new var_const(L"*", 0, new var_const(L"0", -1), temp->point_collar, temp);
+				temp->point_left = new math_obj(L"", mltpl, L"", L"", 0, new math_obj(L"0",numbr,real, -1), temp->point_collar, temp);
 			}
+
+			//корень (пока квадратный)
+			{
+				general_var_const->push_back(new math_obj(L"root", funct, empty, L"", 0, new math_obj(&temporary_variable)));
+				temp = general_var_const->back();
+				temp->point_collar->point_collar = temp;
+			}
+			//модуль (корень из квадрата числа)
+			{
+				general_var_const->push_back(new math_obj(L"abs", funct, empty, L"", 0, new math_obj(&temporary_variable)));
+				general_var_const->back()->point_collar->point_collar = general_var_const->back();
+				general_var_const->back()->point_left = new math_obj(temp);
+				general_var_const->back()->point_left->point_collar->point_collar = general_var_const->back()->point_left;
+				general_var_const->back()->point_left->point_right = new math_obj(L"", power, L"", L"", 0, general_var_const->back()->point_collar, new math_obj(L"0", 2), NULL);
+			}
+			//знак
+			{
+				temp = general_var_const->back();
+				general_var_const->push_back(new math_obj(L"sgn", funct, empty, L"", 0, new math_obj(&temporary_variable)));
+				general_var_const->back()->point_collar->point_collar = general_var_const->back();
+				general_var_const->back()->point_left = new math_obj(L"", divis, L"", L"", 0, general_var_const->back()->point_collar, new math_obj(temp), general_var_const->back());
+				general_var_const->back()->point_left->point_right->point_right = general_var_const->back()->point_collar;
+				general_var_const->back()->point_left->point_right->point_collar = general_var_const->back()->point_collar;
+			}
+
 		}
 
 		/*void testfunc(mutex &mut) {
@@ -455,7 +87,7 @@ namespace Project {
 		}*/
 
 		//функция проходит по вектору general_var_const и ищет объект с нужным именем
-		var_const* run_vector(wstring _pv)
+		math_obj* run_vector(wstring _pv)
 		{
 			size_t temp_size_of_vect = general_var_const->size();
 			int count;
@@ -463,10 +95,10 @@ namespace Project {
 			{
 				try {
 					int iPv = _pv.length();
-					wstring wstr = general_var_const->at(count)->read(L"name");	//тут вылет
+					wstring wstr = general_var_const->at(count)->name;	//тут вылет
 					int iVect = wstr.length();
 					if (iPv == iVect)
-						if (_pv.compare(general_var_const->at(count)->read(L"name")) == 0)
+						if (_pv.compare(general_var_const->at(count)->name) == 0)
 							return general_var_const->at(count);
 				}
 				catch (exception e) {	//выдает string too long кароч
@@ -480,18 +112,19 @@ namespace Project {
 		}
 
 
-		var_const* filling_vector(wchar_t* strPtr, wchar_t*ePtr, var_const* c_e, int brakets)
+
+		math_obj* filling_vector(wchar_t* strPtr, wchar_t*ePtr, math_obj* c_e, int brakets)
 		{
-			size_t temp_size_of_vect;
 			wchar_t* pDest = strPtr;
 			wchar_t* endPtr = ePtr;
-			unsigned int count;
-			var_const *high_pointer = NULL; //последняя записанная операция
-			var_const *low_pointer = NULL; //последняя записанная константа/переменная/ф-ция/выражение
-			var_const *temp_pointer = NULL;
+			unsigned int count, comma, count_var;
+			math_obj *high_pointer = NULL; //последняя записанная операция
+			math_obj *low_pointer = NULL; //последняя записанная константа/переменная/ф-ция/выражение
+			math_obj *temp_pointer = NULL;
+			math_obj *multiple_var = NULL;
 			wchar_t* temp;
 			wstring name;
-			var_const* current_element = c_e;
+			math_obj* current_element = c_e;
 			double num;
 			int brakets_counter = 0;
 			while (pDest <= endPtr)
@@ -509,210 +142,275 @@ namespace Project {
 					else if (pDest == endPtr)
 					{
 						//просто выдаём наверх текущий заполненный элемент с параметром solve, а там уже пытаемся его расчитать и вывести результат или сообщить ошибку
-						current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"solve");
+						if (current_element->actn != write)
+							current_element->actn = solve;
+						else
+						{
+							ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
+							return NULL;
+						}
 					}
 					else
 					{
-						temp_pointer = filling_vector(pDest + 1, endPtr, new var_const(L"exprs@#undef", 0, low_pointer), brakets + brakets_counter);
-						if (current_element->read(L"type") == L"const")
+						if (current_element->type == cnst)
 						{
-							if (temp_pointer->read(L"type") == L"funct")
+							temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+							if (temp_pointer = NULL)
+								return temp_pointer;
+							if (temp_pointer->type == funct)
 							{
-								current_element->point_left = temp_pointer->point_left;
-								//копия переменной с указателем на функцию
-								current_element->point_collar = temp_pointer->point_collar;
-								current_element->point_collar->point_collar = current_element;
-								current_element->point_right = temp_pointer->point_right;
-								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), temp_pointer->read(L"func"));
-								current_element->var_id.replace(0, 5, L"funct");
-								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+								current_element->define_funct(temp_pointer);
+								current_element->type = funct;
+								current_element->prop = defnd;
+								current_element->actn = write;
+								delete temp_pointer;
 							}
-							else if (temp_pointer->read(L"type") == L"varbl")
+							else if (temp_pointer->type == varbl)
 							{
-								if (temp_pointer->read(L"prop") == L"undef")
+								if (temp_pointer->prop == undef)
 								{
-									temp_pointer->var_id.replace(temp_pointer->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+									temp_pointer->prop = defnd;
 									general_var_const->push_back(temp_pointer);
 								}
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(temp_pointer);
-								current_element->point_collar->point_collar = current_element;
-								current_element->point_left = current_element->point_collar;
-								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + temp_pointer->read(L"name") + L")");
-								current_element->var_id.replace(0, 5, L"funct");
-								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
-							}
-							else if (temp_pointer->read(L"type") == L"exprs")
-							{
-								current_element->point_left = temp_pointer->point_left;
-								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
-							}
-							else if (temp_pointer->read(L"type") == L"const")
-							{
-								current_element->var = temp_pointer->var;
-								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
-							}
-						}
-						else if (current_element->read(L"type") == L"varbl")
-						{
-							if (temp_pointer->read(L"type") == L"funct")
-							{
-								current_element->point_left = temp_pointer->point_left;
-								//копия переменной с указателем на функцию
-								current_element->point_collar = temp_pointer->point_collar;
-								current_element->point_collar->point_collar = current_element;
-								current_element->point_right = temp_pointer->point_right;
-								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), temp_pointer->read(L"func"));
-								current_element->var_id.replace(0, 5, L"funct");
-								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
-							}
-							else if (temp_pointer->read(L"type") == L"varbl")
-							{
-								if (temp_pointer->read(L"prop") == L"undef")
-								{
-									temp_pointer->var_id.replace(temp_pointer->var_id.find_first_of(L'#') + 1, 5, L"defnd");
-									general_var_const->push_back(temp_pointer);
-								}
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(temp_pointer);
-								current_element->point_collar->point_collar = current_element;
-								current_element->point_left = current_element->point_collar;
-								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + temp_pointer->read(L"name") + L")");
-								current_element->var_id.replace(0, 5, L"funct");
-								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
-							}
-							else if (temp_pointer->read(L"type") == L"exprs")
-							{
-								current_element->point_left = temp_pointer->point_left;
-								current_element->var_id.replace(0, 5, L"const");
-								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
-							}
-							else if (temp_pointer->read(L"type") == L"const")
-							{
-								current_element->var = temp_pointer->var;
-								current_element->var_id.replace(0, 5, L"const");
-								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
-							}
-						}
-						else if (current_element->read(L"type") == L"funct")
-						{
-							if (temp_pointer->read(L"type") == L"funct")
-							{
-								if (current_element->read(L"nvar") == temp_pointer->read(L"nvar"))
-								{
-									if (current_element->read(L"prop") == L"defnd")
-									{
-										//явно заданная функция слева и какая-то функция справа - переопределение той что слева
-										current_element->point_left = temp_pointer->point_left;
-									}
-									else
-									{
-										//неявно заданная ф-ция слева - уравнение
-										current_element->var_id.replace(0, 5, L"equat");
-										current_element->point_right = temp_pointer->point_left;
-										current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"unslv");
-									}
-								}
-								else
-								{
-									//тут доделать функции/уравнения нескольких переменных									
-									ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
-									return NULL;
-								}
-							}
-							else if (temp_pointer->read(L"type") == L"varbl")
-							{
-								if (current_element->read(L"nvar") == temp_pointer->read(L"name"))
-								{
-									if (current_element->read(L"prop") == L"defnd")
-									{
-										//явно заданная функция слева и переменная этой функции справа - переопределение той что слева
-										current_element->point_left = temp_pointer;
-									}
-									else
-									{
-										//неявно заданная ф-ция слева - уравнение
-										current_element->var_id.replace(0, 5, L"equat");
-										current_element->point_right = temp_pointer;
-										current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"unslv");
-									}
-								}
-								else
-								{
-									if (temp_pointer->read(L"prop") == L"undef")
-									{
-										temp_pointer->var_id.replace(temp_pointer->var_id.find_first_of(L'#') + 1, 5, L"defnd");
-										general_var_const->push_back(temp_pointer);
-									}
-									//копия переменной с указателем на функцию
-									current_element->point_collar = new var_const(temp_pointer);
-									current_element->point_collar->point_collar = current_element;
-
-									current_element->point_left = current_element->point_collar;
-									current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + temp_pointer->read(L"name") + L")");
-									current_element->var_id.replace(0, 5, L"funct");
-									current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"defnd");
-								}
-							}
-							else if (temp_pointer->read(L"type") == L"exprs")
-							{
-								//уравнение вида f(x) = 2
-								if (current_element->read(L"prop") == L"defnd")
-								{
-									high_pointer = current_element;
-									current_element = new var_const(L"equat@(" + high_pointer->read(L"nvar") + L")#unslv", 0, high_pointer, temp_pointer->point_left, new var_const(high_pointer->point_collar));
-									current_element->point_collar->point_collar = current_element;
-								}
-								else
-								{
-
-									current_element->var_id.replace(0, 5, L"equat");
-									current_element->point_right = temp_pointer->point_right;
-									current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"unslv");
-								}
-							}
-							else if (temp_pointer->read(L"type") == L"const")
-							{
-								//уравнение вида f(x) = const
-								if (current_element->read(L"prop") == L"defnd")
-								{
-									high_pointer = current_element;
-									current_element = new var_const(L"equat@(" + high_pointer->read(L"nvar") + L")#unslv", 0, high_pointer, temp_pointer, new var_const(high_pointer->point_collar));
-									current_element->point_collar->point_collar = current_element;
-								}
-								else
-								{
-
-									current_element->var_id.replace(0, 5, L"equat");
-									current_element->point_right = temp_pointer;
-									current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"unslv");
-								}
-							}
-						}
-						else if (current_element->read(L"type") == L"exprs")
-						{
-							//слева - конст выражение - справа функция => уравнение
-							if (temp_pointer->read(L"type") == L"funct")
-							{
-								current_element->var_id.replace(0, 5, L"equat");
-								current_element->point_right = temp_pointer;
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(temp_pointer->point_collar);
-								current_element->point_collar->point_collar = current_element;
-								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"unslv");
-								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + temp_pointer->read(L"nvar") + L")");
-							}
-							else if (temp_pointer->read(L"type") == L"varbl")
-							{
-								current_element->var_id.replace(0, 5, L"equat");
-								current_element->point_right = temp_pointer;
-								//тут уже должна вылезать копия переменной
 								current_element->point_collar = temp_pointer;
 								current_element->point_collar->point_collar = current_element;
-								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"unslv");
-								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + temp_pointer->read(L"name") + L")");
+								current_element->point_collar->var = 0;
+								current_element->point_collar->point_left = current_element->point_collar;
+								current_element->point_collar->point_right = current_element->point_collar;
+								current_element->point_left = current_element->point_collar;
+								current_element->var = 1;
+								current_element->type = funct;
+								current_element->prop = defnd;
+								current_element->actn = write;
 							}
-							else if ((temp_pointer->read(L"type") == L"const") || (temp_pointer->read(L"type") == L"exprs"))
+							else if (temp_pointer->type == exprs)
+							{
+								//тут любопытно получилось. Если запись вида с=с+1, где с была записана как константа, программа сначала посчитает со старым значением с выражение, а потом - запишет вместо c.
+								current_element->point_left = temp_pointer->point_left;
+								current_element->prop = defnd;
+								current_element->actn = write;
+								delete temp_pointer;
+							}
+							else if (temp_pointer->type == cnst)
+							{
+								current_element->var = temp_pointer->var;
+								current_element->type = defnd;
+								current_element->actn = write;
+								delete temp_pointer;
+							}
+						}
+						else if (current_element->type == varbl)
+						{
+							temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+							if (temp_pointer = NULL)
+								return temp_pointer;
+							//тут происходит переопределение переменых в качестве функций. Могут возникнуть проблемы, т.к. появятся два разных по типу объекта с одним именем.
+							if (temp_pointer->type == funct)
+							{
+								low_pointer = temp_pointer->find_varbl(current_element);
+								if (low_pointer == NULL)
+								{
+									//если переменная слева от равно не появляется справа - переопределение переменной в функцию. н-р : y=2*x+1
+									current_element->define_funct(temp_pointer);
+									current_element->type = funct;
+									current_element->prop = defnd;
+									current_element->actn = write;
+									delete temp_pointer;
+								}
+								else
+								{
+									delete current_element;
+									//если переменная слева от равно появляется так же справа - уравнение. н-р : x=2*x+1
+									current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, low_pointer, temp_pointer, temp_pointer->point_collar);
+								}
+							}
+							else if (temp_pointer->type == varbl)
+							{
+								if (temp_pointer->name == current_element->name)
+								{
+									//вид выаражения х=х, где х - переменная. Не знаю что это может значить и кто подобное напишет
+								}
+								else
+								{
+									if (temp_pointer->prop == undef)
+									{
+										temp_pointer->prop = defnd;
+										general_var_const->push_back(temp_pointer);
+									}
+									current_element->point_collar = temp_pointer;
+									current_element->point_collar->point_collar = current_element;
+									current_element->point_collar->var = 0;
+									current_element->point_collar->point_left = current_element->point_collar;
+									current_element->point_collar->point_right = current_element->point_collar;
+									current_element->point_left = current_element->point_collar;
+									current_element->var = 1;
+									current_element->type = funct;
+									current_element->prop = defnd;
+									current_element->actn = write;
+								}
+							}
+							else if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
+							{
+								/*вообще подобное переопределение переменной в константу возможно только если эта переменная не используется ни в одной функции/уравнении.
+								Поскольку на данном этапе объявление переменных как отдельных объектов (не в составе функций) невозможно - данная запись будет считаться ошибкой.
+								*/
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::VARBL_BLOCKED);
+								return NULL;
+							}
+
+						}
+						else if (current_element->type == funct)
+						{
+							if (current_element->prop == defnd)
+							{
+								temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+								if (temp_pointer == NULL)
+									return temp_pointer;
+								//случай записи f=... где f - заранее определённая функция.
+								//полагаем, что если после равно находится функция (неважно от каких переменных) - переопределение f новым выражением (с новыми переменными)
+								//если после равно константа или выражение - уравнение вида f(x) = const
+								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
+								{
+									high_pointer = current_element;
+									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
+								}
+								else if (temp_pointer->type == varbl)
+								{
+									if (temp_pointer->prop == undef)
+									{
+										temp_pointer->prop = defnd;
+										general_var_const->push_back(temp_pointer);
+									}
+									temp_pointer->var = 0;
+									temp_pointer->point_left = temp_pointer;
+									temp_pointer->point_right = temp_pointer;
+									temp_pointer->point_collar = current_element;
+									current_element->point_collar = temp_pointer;
+									current_element->point_left = current_element->point_collar;
+									current_element->point_right = NULL;
+									current_element->var = 1;
+								}
+								else if (temp_pointer->type == funct)
+								{
+									if (temp_pointer->prop == arg_c)
+									{
+										high_pointer = current_element;
+										current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
+									}
+									else
+									{
+										current_element->define_funct(temp_pointer);
+										current_element->actn = write;
+									}
+								}
+							}
+							else if (current_element->prop == undef)
+							{
+								if (current_element->actn == write)
+								{
+									//сразу создаём функцию с указателем на список переменных данной функции
+									temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", funct, undef, current_element->var, current_element->point_collar), brakets + brakets_counter);
+									if (temp_pointer == NULL)
+										return temp_pointer;
+									//если вылезло что угодно кроме функции - ошибка
+									if (temp_pointer->type != funct)
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
+										return NULL;
+									}
+									else
+									{
+										//забираем указатель сразу на дерево операций
+										current_element->point_left = temp_pointer->point_left;
+										current_element->prop = defnd;
+									}
+								}
+								else
+								{
+									/*При записи уравнений надо составлять общий список переменных в левой и правой частях. Поскольку это менее критично, чем при записи функций,
+									возможно данное действие оставить на последующий анализ уравнения
+									*/
+									temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+									if (temp_pointer == NULL)
+										return temp_pointer;
+									high_pointer = current_element;
+									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
+								}
+							}
+							else if (current_element->prop == arg_c)
+							{
+								temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+								if (temp_pointer == NULL)
+									return temp_pointer;
+								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
+								{
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
+									return NULL;
+								}
+								else if (temp_pointer->type == varbl)
+								{
+									if (temp_pointer->prop == undef)
+									{
+										temp_pointer->prop = defnd;
+										general_var_const->push_back(temp_pointer);
+									}
+									high_pointer = current_element;
+									current_element = new math_obj(L"", equat, unslv, write, 1, high_pointer, temp_pointer, temp_pointer);
+								}
+								else if (temp_pointer->type == funct)
+								{
+									if (temp_pointer->prop == arg_c)
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
+										return NULL;
+									}
+									else
+									{
+										high_pointer = current_element;
+										current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer->point_collar);
+									}
+								}
+							}
+							else if (current_element->prop == arg_v)
+							{
+								//TODO:если аргументация состоит только из переменых и справа от равно находятся только эти переменные - переопределение функции
+								temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+								if (temp_pointer == NULL)
+									return temp_pointer;
+								high_pointer = current_element;
+								current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer->point_collar);
+							}
+						}
+						else if (current_element->type == exprs)
+						{							
+							temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+							if (temp_pointer == NULL)
+								return temp_pointer;
+							//слева - конст выражение - справа функция => уравнение
+							if (temp_pointer->type == funct)
+							{
+								if (temp_pointer->prop == arg_c)
+								{
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
+									return NULL;
+								}
+								else
+								{
+									high_pointer = current_element;
+									current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer->point_collar);
+								}
+							}
+							else if (temp_pointer->type == varbl)
+							{
+								if (temp_pointer->prop == undef)
+								{
+									temp_pointer->prop = defnd;
+									general_var_const->push_back(temp_pointer);
+								}
+								high_pointer = current_element;
+								current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer);
+							}
+							else if ((temp_pointer->type == cnst) || (temp_pointer->type == exprs))
 							{
 								//запись вида 2+3=7. Пока не знаю как реагировать на такое
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
@@ -735,7 +433,7 @@ namespace Project {
 					else if (high_pointer == low_pointer)
 					{
 						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
-						current_element->point_left = new var_const(L"+", brakets_counter + brakets, low_pointer, NULL, current_element);
+						current_element->point_left = new math_obj(L"+", addit, brakets_counter + brakets, low_pointer, NULL, current_element);
 						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_element->point_left;
 					}
@@ -746,7 +444,7 @@ namespace Project {
 						if (high_pointer->get_priority() <= (brakets_counter + brakets + 1))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-							high_pointer->point_right = new var_const(L"+", brakets_counter + brakets, low_pointer, NULL, high_pointer);
+							high_pointer->point_right = new math_obj(L"+", addit, brakets_counter + brakets, low_pointer, NULL, high_pointer);
 							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
 						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
@@ -755,7 +453,7 @@ namespace Project {
 							if (current_element->point_left->get_priority() >= (brakets_counter + brakets + 1))
 							{
 								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-								high_pointer = new var_const(L"+", brakets_counter + brakets, current_element->point_left, NULL, current_element);
+								high_pointer = new math_obj(L"+", addit, brakets_counter + brakets, current_element->point_left, NULL, current_element);
 								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_element->point_left->point_collar = high_pointer;
 								//указываем левым рукавом константы на созданную операцию
@@ -764,7 +462,7 @@ namespace Project {
 							else
 							{
 								high_pointer = high_pointer->prioritize(brakets_counter + brakets + 1);
-								high_pointer->point_right->point_collar = new var_const(L"+", brakets_counter + brakets, high_pointer->point_right, NULL, high_pointer);
+								high_pointer->point_right->point_collar = new math_obj(L"+", addit, brakets_counter + brakets, high_pointer->point_right, NULL, high_pointer);
 								high_pointer->point_right = high_pointer->point_right->point_collar;
 								high_pointer = high_pointer->point_right;
 							}
@@ -772,7 +470,7 @@ namespace Project {
 						}
 					}
 					pDest++;
-					temp = wcspbrk(pDest, L")+-*^/=");
+					temp = wcspbrk(pDest, L")+-*^/=,");
 					if (pDest == temp)
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
@@ -791,7 +489,7 @@ namespace Project {
 					else if (high_pointer == low_pointer)
 					{
 						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
-						current_element->point_left = new var_const(L"*", brakets_counter + brakets, low_pointer, NULL, current_element);
+						current_element->point_left = new math_obj(L"*", mltpl, brakets_counter + brakets, low_pointer, NULL, current_element);
 						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_element->point_left;
 					}
@@ -799,10 +497,10 @@ namespace Project {
 					else
 					{
 						//если приоритет предыдущей обработанной операции !МЕНЬШЕ! или равен  приоритету текущей
-						if (high_pointer->get_priority() <= (brakets_counter+ brakets + 2))
+						if (high_pointer->get_priority() <= (brakets_counter + brakets + 2))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-							high_pointer->point_right = new var_const(L"*", brakets_counter + brakets, low_pointer, NULL, high_pointer);
+							high_pointer->point_right = new math_obj(L"*", mltpl, brakets_counter + brakets, low_pointer, NULL, high_pointer);
 							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
 						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
@@ -811,7 +509,7 @@ namespace Project {
 							if (current_element->point_left->get_priority() >= (brakets_counter + brakets + 2))
 							{
 								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-								high_pointer = new var_const(L"*", brakets_counter + brakets, current_element->point_left, NULL, current_element);
+								high_pointer = new math_obj(L"*", mltpl, brakets_counter + brakets, current_element->point_left, NULL, current_element);
 								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_element->point_left->point_collar = high_pointer;
 								//указываем левым рукавом константы на созданную операцию
@@ -820,7 +518,7 @@ namespace Project {
 							else
 							{
 								high_pointer = high_pointer->prioritize(brakets_counter + brakets + 2);
-								high_pointer->point_right->point_collar = new var_const(L"*", brakets_counter + brakets, high_pointer->point_right, NULL, high_pointer);
+								high_pointer->point_right->point_collar = new math_obj(L"*", mltpl, brakets_counter + brakets, high_pointer->point_right, NULL, high_pointer);
 								high_pointer->point_right = high_pointer->point_right->point_collar;
 								high_pointer = high_pointer->point_right;
 							}
@@ -828,7 +526,7 @@ namespace Project {
 						}
 					}
 					pDest++;
-					temp = wcspbrk(pDest, L")+-*^/=");
+					temp = wcspbrk(pDest, L")+-*^/=,");
 					if (pDest == temp)
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
@@ -846,7 +544,7 @@ namespace Project {
 					else if (high_pointer == low_pointer)
 					{
 						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
-						current_element->point_left = new var_const(L"/", brakets_counter + brakets, low_pointer, NULL, current_element);
+						current_element->point_left = new math_obj(L"/", divis, brakets_counter + brakets, low_pointer, NULL, current_element);
 						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_element->point_left;
 					}
@@ -857,7 +555,7 @@ namespace Project {
 						if (high_pointer->get_priority() <= (brakets_counter + brakets + 3))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-							high_pointer->point_right = new var_const(L"/", brakets_counter + brakets, low_pointer, NULL, high_pointer);
+							high_pointer->point_right = new math_obj(L"/", divis, brakets_counter + brakets, low_pointer, NULL, high_pointer);
 							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
 						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
@@ -866,7 +564,7 @@ namespace Project {
 							if (current_element->point_left->get_priority() >= (brakets_counter + brakets + 3))
 							{
 								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-								high_pointer = new var_const(L"/", brakets_counter + brakets, current_element->point_left, NULL, current_element);
+								high_pointer = new math_obj(L"/", divis, brakets_counter + brakets, current_element->point_left, NULL, current_element);
 								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_element->point_left->point_collar = high_pointer;
 								//указываем левым рукавом константы на созданную операцию
@@ -875,7 +573,7 @@ namespace Project {
 							else
 							{
 								high_pointer = high_pointer->prioritize(brakets_counter + brakets + 3);
-								high_pointer->point_right->point_collar = new var_const(L"/", brakets_counter + brakets, high_pointer->point_right, NULL, high_pointer);
+								high_pointer->point_right->point_collar = new math_obj(L"/", divis, brakets_counter + brakets, high_pointer->point_right, NULL, high_pointer);
 								high_pointer->point_right = high_pointer->point_right->point_collar;
 								high_pointer = high_pointer->point_right;
 							}
@@ -883,7 +581,7 @@ namespace Project {
 						}
 					}
 					pDest++;
-					temp = wcspbrk(pDest, L")+-*^/=");
+					temp = wcspbrk(pDest, L")+-*^/=,");
 					if (pDest == temp)
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
@@ -902,7 +600,7 @@ namespace Project {
 					else if (high_pointer == low_pointer)
 					{
 						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
-						current_element->point_left = new var_const(L"^", brakets_counter + brakets, low_pointer, NULL, current_element);
+						current_element->point_left = new math_obj(L"^", power, brakets_counter + brakets, low_pointer, NULL, current_element);
 						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_element->point_left;
 					}
@@ -913,7 +611,7 @@ namespace Project {
 						if (high_pointer->get_priority() <= (brakets_counter + brakets + 4))
 						{
 							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-							high_pointer->point_right = new var_const(L"^", brakets_counter + brakets, low_pointer, NULL, high_pointer);
+							high_pointer->point_right = new math_obj(L"^", power, brakets_counter + brakets, low_pointer, NULL, high_pointer);
 							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
 						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
@@ -922,7 +620,7 @@ namespace Project {
 							if (current_element->point_left->get_priority() >= (brakets_counter + brakets + 4))
 							{
 								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-								high_pointer = new var_const(L"^", brakets_counter + brakets, current_element->point_left, NULL, current_element);
+								high_pointer = new math_obj(L"^", power, brakets_counter + brakets, current_element->point_left, NULL, current_element);
 								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_element->point_left->point_collar = high_pointer;
 								//указываем левым рукавом константы на созданную операцию
@@ -931,7 +629,7 @@ namespace Project {
 							else
 							{
 								high_pointer = high_pointer->prioritize(brakets_counter + brakets + 4);
-								high_pointer->point_right->point_collar = new var_const(L"^", brakets_counter + brakets, high_pointer->point_right, NULL, high_pointer);
+								high_pointer->point_right->point_collar = new math_obj(L"^", power, brakets_counter + brakets, high_pointer->point_right, NULL, high_pointer);
 								high_pointer->point_right = high_pointer->point_right->point_collar;
 								high_pointer = high_pointer->point_right;
 							}
@@ -939,7 +637,7 @@ namespace Project {
 						}
 					}
 					pDest++;
-					temp = wcspbrk(pDest, L")+-*^/=");
+					temp = wcspbrk(pDest, L")+-*^/=,");
 					if (pDest == temp)
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
@@ -953,8 +651,8 @@ namespace Project {
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						//создание элемента класса и запись числа, воротник -> константу
-						current_element->point_left = new var_const(general_var_const->at(2));
-						current_element->point_left->var_id.replace(current_element->point_left->var_id.find_first_of(L"#") + 1, 5, L"defnd");
+						current_element->point_left = new math_obj(general_var_const->at(3));
+						current_element->point_left->prop = arg_c;
 
 						//оба указателя -> на число, тебуется для проверки условия при записи операции
 						low_pointer = current_element->point_left;
@@ -967,11 +665,11 @@ namespace Project {
 						if (high_pointer == low_pointer)
 						{
 							//сначала записываем операцию, левый рукав -> на предыдущее число, воротник на конст
-							current_element->point_left = new var_const(L"+", brakets_counter, low_pointer, NULL, current_element);
+							current_element->point_left = new math_obj(L"+", addit, brakets_counter + brakets, low_pointer, NULL, current_element);
 							high_pointer = current_element->point_left;
-							high_pointer->point_right = new var_const(general_var_const->at(2));
+							high_pointer->point_right = new math_obj(general_var_const->at(3));
 
-							high_pointer->point_right->var_id.replace(high_pointer->point_right->var_id.find_first_of(L"#") + 1, 5, L"defnd");
+							high_pointer->point_right->prop = arg_c;
 
 							low_pointer = high_pointer->point_right;
 						}
@@ -982,10 +680,10 @@ namespace Project {
 							if (high_pointer->get_priority() <= (brakets_counter + brakets + 1))
 							{
 								//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
-								high_pointer->point_right = new var_const(L"+", brakets_counter, low_pointer, NULL, high_pointer);
+								high_pointer->point_right = new math_obj(L"+", addit, brakets_counter + brakets, low_pointer, NULL, high_pointer);
 								high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
-								high_pointer->point_right = new var_const(general_var_const->at(2));
-								high_pointer->point_right->var_id.replace(high_pointer->point_right->var_id.find_first_of(L"#") + 1, 5, L"specf");
+								high_pointer->point_right = new math_obj(general_var_const->at(3));
+								high_pointer->point_right->prop = arg_c;
 								low_pointer = high_pointer->point_right;
 							}
 
@@ -994,31 +692,30 @@ namespace Project {
 								if (current_element->point_left->get_priority() >= (brakets_counter + brakets + 1))
 								{
 									//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
-									high_pointer = new var_const(L"+", brakets_counter, current_element->point_left, NULL, current_element);
+									high_pointer = new math_obj(L"+", addit, brakets_counter + brakets, current_element->point_left, NULL, current_element);
 									//воротник предыдущей легчайшей операции -> на новую операцию
 									current_element->point_left->point_collar = high_pointer;
 									//указываем левым рукавом константы на созданную операцию
 									current_element->point_left = high_pointer;
-									high_pointer->point_right = new var_const(general_var_const->at(2));
-									high_pointer->point_right->var_id.replace(high_pointer->point_right->var_id.find_first_of(L"#") + 1, 5, L"defnd");
+									high_pointer->point_right = new math_obj(general_var_const->at(3));
+									high_pointer->point_right->prop = arg_c;
 									low_pointer = high_pointer->point_right;
 								}
 								else
 								{
 									high_pointer = high_pointer->prioritize(brakets_counter + brakets + 1);
-									high_pointer->point_right->point_collar = new var_const(L"+", brakets_counter + brakets, high_pointer->point_right, NULL, high_pointer);
+									high_pointer->point_right->point_collar = new math_obj(L"+", addit, brakets_counter + brakets, high_pointer->point_right, NULL, high_pointer);
 									high_pointer->point_right = high_pointer->point_right->point_collar;
 									high_pointer = high_pointer->point_right;
-									high_pointer->point_right = new var_const(general_var_const->at(2));
-									high_pointer->point_right->var_id.replace(high_pointer->point_right->var_id.find_first_of(L"#") + 1, 5, L"defnd");
+									high_pointer->point_right = new math_obj(general_var_const->at(3));
+									high_pointer->point_right->prop = arg_c;
 									low_pointer = high_pointer->point_right;
 								}
-
 							}
 						}
 					}
 					pDest++;
-					temp = wcspbrk(pDest, L")+-*^/=");
+					temp = wcspbrk(pDest, L")+-*^/=,");
 					if (pDest == temp)
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
@@ -1035,11 +732,8 @@ namespace Project {
 					{
 						temp++;
 						//если попали в конец строчки не найдя закрывающих скобок
-						if (temp == endPtr+1)
+						if (temp == endPtr + 1)
 						{
-							//high_pointer = new var_const(L"error@", 2);
-							//general_var_const->pop_back();
-							//return high_pointer;
 							ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
 							return NULL;
 						}
@@ -1053,682 +747,320 @@ namespace Project {
 						}
 						else if (*temp == '=') //открытая скобка и дальше равно
 						{
-							//high_pointer = new var_const(L"error@", 3);
-							//general_var_const->pop_back();
-							//return high_pointer;
 							ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
 							return NULL;
 						}
 					}
 					if (pDest + 1 == temp)
 					{
-						//пустая строка в скобках. вроде не ошибка, но можно и запретить)
+						//пустая строка в скобках. вроде не ошибка, но можно и запретить). Вообще в контекте построения дерева это означает запись нуля. Поэтому пока запрещено.
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::EMTY_BRACKETS);
+						return NULL;
 					}
 					else
 					{
 						name.assign(pDest + 1, temp);
-
-						temp_pointer = filling_vector(&name[0], &name[name.length()-1], new var_const(L"exprs@#undef", 0, low_pointer), brakets + brakets_counter);
+						temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+						if (temp_pointer == NULL)
+						{
+							return temp_pointer;
+						}
 						//скобка в самом начале строки
 						if ((high_pointer == NULL) && (low_pointer == NULL))
 						{
-							if ((temp_pointer->read(L"type") == L"exprs") || (temp_pointer->read(L"type") == L"const"))
+							if (temp_pointer->type == cnst)
 							{
 								current_element->point_left = temp_pointer;
 								high_pointer = temp_pointer;
 								low_pointer = high_pointer;
 							}
-							else if (temp_pointer->read(L"type") == L"varbl")
+							else if (temp_pointer->type == exprs)
 							{
-								current_element->var_id.replace(0, 5, L"funct");
-								current_element->var_id.insert(current_element->var_id.find_first_of('@') + 1, L"(" + temp_pointer->read(L"name") + L")");
-								if (temp_pointer->read(L"prop") == L"undfn")
+								//может быть не будет работать правильно
+								current_element->point_left = temp_pointer->point_left;
+								high_pointer = current_element->point_left;
+								low_pointer = current_element->point_left;
+								delete temp_pointer;
+								temp_pointer = NULL;
+							}
+							else if (temp_pointer->type == varbl)
+							{
+								if (current_element->type == exprs)
 								{
-									temp_pointer->var_id.replace(current_element->var_id.find_first_of('#') + 1, 5, L"defnd");
-									general_var_const->push_back(new var_const(temp_pointer));
+									current_element->type = funct;
+									current_element->var = 1;
+									if (temp_pointer->prop == undef)
+									{
+										temp_pointer->type = defnd;
+										general_var_const->push_back(new math_obj(temp_pointer));
+									}
+									current_element->point_collar = temp_pointer;
+									current_element->point_left = current_element->point_collar;
+									high_pointer = current_element->point_left;
+									low_pointer = high_pointer;
 								}
-								current_element->point_collar = temp_pointer;
-								current_element->point_left = temp_pointer;
-								high_pointer = current_element->point_left;
-								low_pointer = high_pointer;
+								else if (current_element->type == funct)
+								{
+									if (current_element->point_collar->point_right != NULL)
+									{
+										multiple_var = current_element->find_varbl(temp_pointer);
+										if (multiple_var == NULL)
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
+										else
+										{
+											current_element->point_left = multiple_var;
+										}
+									}
+									//так как скобка стоит в самом начале строки, если текущий элемент - функция, её список переменных всегда замкнут
+									else
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
+										return NULL;
+									}
+								}
 							}
-							else if (temp_pointer->read(L"type") == L"funct")
+							else if (temp_pointer->type == funct)
 							{
-								current_element->var_id.replace(0, 5, L"funct");
-								current_element->var_id.insert(current_element->var_id.find_first_of('@') + 1, L"(" + temp_pointer->read(L"nvar") + L")");
-								current_element->point_collar = temp_pointer->point_collar;
-								current_element->point_left = temp_pointer;
-								high_pointer = current_element->point_left;
-								low_pointer = high_pointer;
+								if (temp_pointer->prop == arg_c)
+								{
+									current_element->point_left = temp_pointer;
+									high_pointer = temp_pointer;
+									low_pointer = high_pointer;
+								}
+								else if (current_element->type == exprs)
+								{
+									current_element->type = funct;
+									current_element->prop = undef;
+									current_element->var = 1;
+									current_element->point_collar = new math_obj(&temporary_variable);
+									current_element->point_right = temp_pointer;
+									current_element->point_collar->var = 0; //просто для достоверности)
+									current_element->point_collar->point_collar = current_element;
+									current_element->point_left = current_element->point_collar;
+									high_pointer = current_element->point_left;
+									low_pointer = high_pointer;
+								}
+								else if (current_element->type == funct)
+								{
+									if (current_element->point_collar->point_right != NULL)
+									{
+										if (current_element->var_list_compare(temp_pointer) != 0)
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
+										else
+										{
+											current_element->point_left = temp_pointer;
+										}
+									}
+									//так как скобка стоит в самом начале строки, если текущий элемент - функция, её список переменных всегда замкнут
+									else
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
+										return NULL;
+									}
+								}
 							}
-							//что-то должно происходить после закрытой скобки
 						}
-						// вначале строки что-то стоит - минус или буква - потом скобка
+
+						// вначале строки стоит минус
 						else if (low_pointer == high_pointer)
 						{
 							//перед скобкой стоит минус
-							if (high_pointer->read(L"name") == L"minus")
+							if (high_pointer->name == L"minus")
 							{
-								if ((temp_pointer->read(L"type") == L"exprs") || (temp_pointer->read(L"type") == L"const"))
+								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
 								{
-									high_pointer->point_right = temp_pointer;									
-								}
-								else if (temp_pointer->read(L"type") == L"varbl")
-								{
-									current_element->var_id.replace(0, 5, L"funct");
-									current_element->var_id.insert(current_element->var_id.find_first_of('@') + 1, L"(" + temp_pointer->read(L"name") + L")");
-									if (temp_pointer->read(L"prop") == L"undfn")
-									{
-										temp_pointer->var_id.replace(current_element->var_id.find_first_of('#') + 1, 5, L"defnd");
-										general_var_const->push_back(new var_const(temp_pointer));
-									}
-									current_element->point_collar = temp_pointer;
-									high_pointer->point_right = temp_pointer;									
-								}
-								else if (temp_pointer->read(L"type") == L"funct")
-								{
-									current_element->var_id.replace(0, 5, L"funct");
-									current_element->var_id.insert(current_element->var_id.find_first_of('@') + 1, L"(" + temp_pointer->read(L"nvar") + L")");
-									current_element->point_collar = new var_const(temp_pointer->point_collar);
 									high_pointer->point_right = temp_pointer;
-									
 								}
-								//что-то должно происходить после закрытой скобки
-							}
-							//перед скобкой стоит буквосочетание
-							else
-							{
-								if (current_element->read(L"prop") == L"defnd")
+								else if (temp_pointer->type == varbl)
 								{
-									if ((temp_pointer->read(L"type") == L"exprs") || (temp_pointer->read(L"type") == L"const"))
-									{										
-										high_pointer = new var_const(current_element);
-										current_element = new var_const(L"exprs@#undef", 0, high_pointer, NULL, NULL);
-										low_pointer = high_pointer;
-										high_pointer->point_right = temp_pointer;
-									}
-									else if (temp_pointer->read(L"type") == L"varbl")
+									if (current_element->type == exprs)
 									{
-										//после закрытой скобки стоит равно
-										if (*(temp + 1) == L'=')
-										{	
-											if (current_element->read(L"nvar") != temp_pointer->read(L"name"))											
+										current_element->type = funct;
+										current_element->var = 1;
+										if (temp_pointer->prop == undef)
+										{
+											temp_pointer->prop = defnd;
+											general_var_const->push_back(new math_obj(temp_pointer));
+										}
+										current_element->point_collar = temp_pointer;
+										high_pointer->point_right = current_element->point_collar;
+									}
+									else if (current_element->type == funct)
+									{
+										if (current_element->point_collar->point_right != NULL)
+										{
+											multiple_var = current_element->find_varbl(temp_pointer);
+											if (multiple_var == NULL)
 											{
-												if (temp_pointer->read(L"prop") == L"undef")
-												{
-													temp_pointer->var_id.replace(current_element->var_id.find_first_of('#') + 1, 5, L"defnd");
-													general_var_const->push_back(new var_const(temp_pointer));
-												}
-												//записываем новую переменную 
-												current_element->point_collar = temp_pointer;
-												name.assign(L"funct@" + current_element->read(L"name") + L"(" + temp_pointer->read(L"name") + L")#undef");
-												current_element->var_id = name;
+												ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+												return NULL;
 											}
 											else
 											{
-												//ничего не делать!
+												high_pointer->point_right = multiple_var;
 											}
 										}
+										//так как скобка стоит в самом начале строки, если текущий элемент - функция, её список переменных всегда замкнут
 										else
 										{
-											name.assign(L"funct@" + current_element->read(L"name") + L"(" + temp_pointer->read(L"name") + L")#undef");
-											high_pointer = new var_const(current_element);
-											current_element = new var_const(L"funct@("+ temp_pointer->read(L"name") +L")#undef", 0, high_pointer, NULL, temp_pointer);																	
-											
-											if (temp_pointer->read(L"prop") == L"undef")
-											{
-												temp_pointer->var_id.replace(current_element->var_id.find_first_of('#') + 1, 5, L"defnd");
-												general_var_const->push_back(new var_const(temp_pointer));
-											}
-											high_pointer->var_id = name;
-											low_pointer = high_pointer;
-										}
-									}
-									//тут пока так и оставлю. вложенные функции надо додумать
-									else if (temp_pointer->read(L"type") == L"funct")
-									{
-										current_element->var_id.replace(0, 5, L"funct");
-										current_element->var_id.insert(current_element->var_id.find_first_of('@') + 1, L"(" + temp_pointer->read(L"nvar") + L")");
-										current_element->point_collar = temp_pointer->point_collar;
-										current_element->point_left = temp_pointer;
-										high_pointer = current_element->point_left;
-										low_pointer = high_pointer;
-									}
-
-
-								}
-
-
-								//какая-то новая функция
-								else if (current_element->read(L"prop") == L"undef")
-								{
-									if ((temp_pointer->read(L"type") == L"exprs") || (temp_pointer->read(L"type") == L"const"))
-									{
-										//попытка посчитать неопределённую ранее функцию от числа/константы. 
-										//Возможно для константы сделать отдельную проверку и в этом случае переопределить её как переменную. Приэтом удалится её значение
-										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
-										return NULL;
-									}
-									else if (temp_pointer->read(L"type") == L"varbl")
-									{
-										//после закрытой скобки стоит равно
-										if (*(temp + 1) == L'=')
-										{
-											if (temp_pointer->read(L"prop") == L"undef")
-											{
-												temp_pointer->var_id.replace(current_element->var_id.find_first_of('#') + 1, 5, L"defnd");
-												general_var_const->push_back(new var_const(temp_pointer));
-											}
-											//записываем новую переменную 
-											current_element->point_collar = temp_pointer; //тут проверить выдаётся ли копия в случае используемой переменной
-											name.assign(L"funct@"+ current_element->read(L"name") + L"("+ temp_pointer->read(L"name")+L")#defnd");
-											current_element->var_id = name;
-										}
-										else
-										{
-											//пока ошибка. Вообще это неявное определение функции через какое-то уравнение. 
-											//в таком случае разумнее подобное определение ограничить результатом решения уравнений нескольких переменных относительно какой-то одной.
-											//а такую запись считать синтаксической ошибкой.
-											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
 											return NULL;
 										}
 									}
-									//тут пока так и оставлю. вложенные функции надо додумать
-									else if (temp_pointer->read(L"type") == L"funct")
-									{
-										//неопределённая функция с определённой в качестве аргумента - не знаю как это рассматривать и где это может встретится
-										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
-										return NULL;
-									}
 								}
-							}
-
-						}
-						//если стоящая перед скобкой операция не имеет правого операнда
-						else if (high_pointer->point_right == NULL)
-						{
-							if ((temp_pointer->read(L"type") == L"exprs") || (temp_pointer->read(L"type") == L"const"))
-							{
-								high_pointer->point_right = temp_pointer;
-								low_pointer = high_pointer->point_right;
-							}
-							else if (temp_pointer->read(L"type") == L"varbl")
-							{
-								if (current_element->read(L"type") == L"funct")
+								else if (temp_pointer->type == funct)
 								{
-									if (current_element->read(L"nvar") == temp_pointer->read(L"name"))
+									if (temp_pointer->prop == arg_c)
 									{
 										high_pointer->point_right = temp_pointer;
-										low_pointer = high_pointer->point_right;
 									}
-									else
+									else if (current_element->type == exprs)
 									{
-										//тут доделать функции/уравнения нескольких переменных
-										//high_pointer = new var_const(L"error@", -5);
-										//general_var_const->pop_back();
-										//return high_pointer;
-										ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
-										return NULL;
+										current_element->type = funct;
+										current_element->prop = undef;
+										current_element->var = 1;
+										current_element->point_collar = new math_obj(&temporary_variable);
+										current_element->point_right = temp_pointer;
+										current_element->point_collar->var = 0; //просто для достоверности)
+										current_element->point_collar->point_collar = current_element;
+										high_pointer->point_right = current_element->point_collar;
 									}
-								}
-								else if (current_element->read(L"type") == L"exprs")
-								{
-									current_element->var_id.replace(0, 5, L"funct");
-									current_element->var_id.insert(current_element->var_id.find_first_of('@') + 1, L"(" + temp_pointer->read(L"name") + L")");
-									if (temp_pointer->read(L"prop") == L"undfn")
+									else if (current_element->type == funct)
 									{
-										temp_pointer->var_id.replace(current_element->var_id.find_first_of('#') + 1, 5, L"defnd");
-										general_var_const->push_back(new var_const(temp_pointer));
-									}
-									current_element->point_collar = temp_pointer;
-									high_pointer->point_right = current_element->point_collar;
-									low_pointer = high_pointer->point_right;;
-								}
-							}
-							else if (temp_pointer->read(L"type") == L"funct")
-							{
-								if (current_element->read(L"type") == L"funct")
-								{
-									if (current_element->read(L"nvar") == temp_pointer->read(L"nvar"))
-									{
-										high_pointer->point_right = temp_pointer;
-										low_pointer = high_pointer->point_right;
-									}
-									else
-									{
-										//тут доделать функции/уравнения нескольких переменных
-										//high_pointer = new var_const(L"error@", -5);
-										//general_var_const->pop_back();
-										//return high_pointer;
-										ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
-										return NULL;
-									}
-								}
-								else if (current_element->read(L"type") == L"exprs")
-								{
-									current_element->var_id.replace(0, 5, L"funct");
-									current_element->var_id.insert(current_element->var_id.find_first_of('@') + 1, L"(" + temp_pointer->read(L"nvar") + L")");
-									current_element->point_collar = temp_pointer->point_collar;
-									high_pointer->point_left = temp_pointer;
-									low_pointer = high_pointer->point_left;
-								}
-							}
-						}
-						//если что-то ещё
-						else
-						{
-							if (low_pointer->read(L"type") == L"funct")
-							{
-								if (low_pointer->read(L"name") == L"minus")
-								{
-									if (low_pointer->point_right == NULL)
-									{
-										//еще проверки
-										low_pointer->point_right = temp_pointer;
-									}
-									else
-									{
-										//тут отложу пока - минус перед функцией или конст или переменной и дальше скобка
-										//high_pointer = new var_const(L"error@", -7);
-										//general_var_const->pop_back();
-										//return high_pointer;
-										ProjectError::SetProjectLastError(ProjectError::ErrorCode::NEGATIVE_FUNC);
-										return NULL;
-									}
-								}
-								else
-								{
-									if (temp_pointer->read(L"type") == L"exprs")
-									{
-										low_pointer->point_right = temp_pointer->point_left;
-									}
-									else if (temp_pointer->read(L"type") == L"funct")
-									{
-										if (current_element->point_collar == NULL)
+										if (current_element->point_collar->point_right != NULL)
 										{
-											low_pointer->point_right = temp_pointer;
-											low_pointer->point_collar = temp_pointer->point_collar;
-											current_element->point_collar = temp_pointer->point_collar;
-											current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + temp_pointer->read(L"nvar") + L")");
-										}
-										else
-										{
-											if (temp_pointer->read(L"nvar") == current_element->read(L"nvar"))
+											if (current_element->var_list_compare(temp_pointer) != 0)
 											{
-												low_pointer->point_right = temp_pointer;
+												ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+												return NULL;
 											}
 											else
 											{
-												//тут доделать функции/уравнения нескольких переменных
-												//high_pointer = new var_const(L"error@", -5);
-												//general_var_const->pop_back();
-												//return high_pointer;
-												ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
-												return NULL;
+												high_pointer->point_right = temp_pointer;
 											}
 										}
-									}
-									else if (temp_pointer->read(L"type") == L"const")
-									{
-										low_pointer->point_right = temp_pointer;
-									}
-									else if (temp_pointer->read(L"type") == L"varbl")
-									{
-										if (current_element->point_collar == NULL)
-										{
-											low_pointer->point_collar = temp_pointer;
-											current_element->point_collar = temp_pointer;
-											current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + temp_pointer->read(L"namer") + L")");
-										}
+										//так как скобка стоит в самом начале строки, если текущий элемент - функция, её список переменных всегда замкнут
 										else
 										{
-											if (temp_pointer->read(L"name") != current_element->read(L"nvar"))
-											{
-												//тут доделать функции/уравнения нескольких переменных
-												/*high_pointer = new var_const(L"error@", -5);
-												general_var_const->pop_back();
-												return high_pointer;*/
-												ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
-												return NULL;
-											}
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
+											return NULL;
 										}
 									}
 								}
 							}
-							else if (low_pointer->read(L"type") == L"varbl")
+							//перед скобкой что-то кроме минуса. Перед скобкой может стоять какое-либо число, н-р 5(...) = 5*(...). Пока ошибка. 
+							else
 							{
-
-							}
-							else if (low_pointer->read(L"type") == L"const")
-							{
-
-							}
-							else if (low_pointer->read(L"type") == L"numbr")
-							{
-								//возможно этот случай лучше исключить в разделе обработки чисел
-							}
-							else if (low_pointer->read(L"type") == L"opert")
-							{
-								//high_pointer = new var_const(L"error@", -6);
-								//general_var_const->pop_back();
-								//return high_pointer;
-								ProjectError::SetProjectLastError(ProjectError::ErrorCode::INTERNAL_POINTER_ERR);
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
 								return NULL;
 							}
+
 						}
-					}
-					//сразу переходим к следующей позиции после скобки
-					brakets_counter -= 4;
-					pDest = temp + 1;
-					if (*pDest == '(')
-					{
-						//по идее запись вида )( может означать )*(. Потом добавть сюда определение для подобного случая
-						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
-						return NULL;
-					}
-				}
-				else if ((*pDest == '1') || (*pDest == '2') || (*pDest == '3') || (*pDest == '4') || (*pDest == '5') || (*pDest == '6') || (*pDest == '7') || (*pDest == '8') || (*pDest == '9') || (*pDest == '0'))
-				{                   //любое число имеет id "0"					
-					// если данное число первое в записи выражения
-					if ((high_pointer == NULL) && (low_pointer == NULL))
-					{
-						//создание элемента класса и запись числа, воротник -> константу
-						current_element->point_left = new var_const(L"0", wcstod(pDest, &pDest), current_element);
-						//оба указателя -> на число, тебуется для проверки условия при записи операции
-						low_pointer = current_element->point_left;
-						high_pointer = low_pointer;
-					}
-					// если данное число не первое в записи (была какая-либо операция)
-					else
-					{
-						//создание элемента класса и запись числа, воротник -> пред операцию 						
-						if ((high_pointer->point_right != NULL) && (low_pointer->read(L"name") == L"minus"))
-						{
-							low_pointer->point_right = new var_const(L"0", wcstod(pDest, &pDest), low_pointer);
-						}
+						//если скобка стоит не в начале строки - подразумевается наличие какой-либо операции перед ней
 						else
 						{
-							high_pointer->point_right = new var_const(L"0", wcstod(pDest, &pDest), high_pointer);
-							low_pointer = high_pointer->point_right;
-						}
-					}
-				}
-				else
-				{
-					temp_size_of_vect = general_var_const->size();
-					temp = wcspbrk(pDest, L"()+-*^/=");
-					//если строчка начинается с cимвола
-					if ((high_pointer == NULL) && (low_pointer == NULL))
-					{
-						if ((temp == NULL) && (brakets == 0))
-						{
-							//high_pointer = new var_const(L"error@", 2);
-							//general_var_const->pop_back();
-							//return high_pointer;
-							ProjectError::SetProjectLastError(ProjectError::ErrorCode::EQUALY_MISSING);
-							return NULL;
-						}
-						else if (temp == NULL)
-						{
-							name.assign(pDest, endPtr+1);
-							pDest = endPtr+1;
-						}
-						else
-						{
-							name.assign(pDest, temp);
-							pDest = temp;
-						}
-						high_pointer = run_vector(name);
-						if (high_pointer == NULL)
-						{
-							if (temp == NULL)
+							if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
 							{
-								current_element->var_id = L"varbl@";
-								current_element->var_id += name;
-								current_element->var_id += L"#undef";
-								high_pointer = current_element;
-								low_pointer = high_pointer;
-							}
-							else if (*temp == '=')
-							{
-								current_element->var_id = L"const@";
-								current_element->var_id += name;
-								current_element->var_id += L"#undef";
-								high_pointer = current_element;
-								low_pointer = high_pointer;
-							}
-							else if (*temp == '(')
-							{
-								current_element->var_id = L"funct@";
-								current_element->var_id += name;
-								current_element->var_id += L"#undef";
-								high_pointer = current_element;
-								low_pointer = high_pointer;
-							}
-							else if (*temp == ')')
-							{
-								//high_pointer = new var_const(L"error@", 7);
-								//general_var_const->pop_back();
-								//return high_pointer;
-								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
-								return NULL;
-							}
-							else
-							{
-								current_element->var_id = L"funct@";
-								current_element->var_id += L"(" + name + L")";
-								current_element->var_id += L"#undef";
-								name.insert(0, L"varbl@");
-								name += L"#defnd";
-								general_var_const->push_back(new var_const(name, 0));
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(general_var_const->at(temp_size_of_vect));
-								current_element->point_left = current_element->point_collar;
-								current_element->point_left->point_collar = current_element;
-								high_pointer = current_element->point_left;
-								low_pointer = high_pointer;
-							}
-						}
-						else if (high_pointer->read(L"type") == L"const")
-						{
-							if (temp == NULL)
-							{
-								current_element->copy(high_pointer);
-								high_pointer = current_element;
-								low_pointer = high_pointer;
-							}
-							else if (*temp == '=')
-							{
-								current_element = high_pointer;
-								low_pointer = high_pointer;
-								//general_var_const->pop_back();
-							}
-							else if (*temp == '(')
-							{
-								current_element = high_pointer;
-								current_element->point_collar = new var_const();
-								low_pointer = high_pointer;
-							}
-							else if (*temp == ')')
-							{
-								/*high_pointer = new var_const(L"error@", 7);
-								general_var_const->pop_back();
-								return high_pointer;*/
-								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
-								return NULL;
-							}
-							else
-							{
-								current_element->point_left = new var_const(high_pointer);
-								current_element->point_left->point_collar = current_element;
-								high_pointer = current_element->point_left;
-								low_pointer = high_pointer;
-							}
-						}
-						else if (high_pointer->read(L"type") == L"varbl")
-						{
-							if (temp == NULL)
-							{
-								current_element->copy(high_pointer);
-								high_pointer = current_element;
-								low_pointer = high_pointer;
-
-							}
-							else if (*temp == '=')
-							{
-								current_element = high_pointer;
-								low_pointer = high_pointer;
-								//general_var_const->pop_back();
-							}
-							else if (*temp == ')')
-							{
-								/*high_pointer = new var_const(L"error@", 7);
-								general_var_const->pop_back();
-								return high_pointer;*/
-								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
-								return NULL;
-							}
-							else if (*temp == '(')
-							{
-
-								current_element = high_pointer;
-								low_pointer = high_pointer;
-								current_element->point_collar = new var_const();
-							}
-							else
-							{
-								current_element->var_id = L"funct@";
-								current_element->var_id += L"(" + name + L")";
-								current_element->var_id += L"#undef";
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(high_pointer);
-								current_element->point_left = current_element->point_collar;
-								current_element->point_left->point_collar = current_element;
-								high_pointer = current_element->point_left;
-								low_pointer = high_pointer;
-							}
-						}
-						else if (high_pointer->read(L"type") == L"funct")
-						{
-							if (temp == NULL)
-							{
-								current_element->copy(high_pointer);
-								high_pointer = current_element;
-								low_pointer = high_pointer;
-
-							}
-							else if ((*temp == '=')|| (*temp == '('))
-							{
-								current_element = high_pointer;
-								low_pointer = high_pointer;
-								//general_var_const->pop_back();
-							}
-							else if (*temp == ')')
-							{
-								/*high_pointer = new var_const(L"error@", 7);
-								general_var_const->pop_back();
-								return high_pointer;*/
-								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
-								return NULL;
-							}
-							/*else if (*temp == '(') //тут пока вопрос
-							{
-								current_element->var_id = L"funct@";
-								current_element->var_id += L"(" + high_pointer->read(L"nvar") + L")";
-								current_element->var_id += L"#undef";
-								current_element->point_left = new var_const(high_pointer);
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(high_pointer->point_collar);
-								current_element->point_collar->point_collar = current_element;
-								high_pointer = current_element->point_left;
-								high_pointer->var_id.replace(high_pointer->var_id.find_first_of('#') + 1, 5, L"undef");
-								//если в самом начале строки найдена существующая ф-ция перед скобкой. счтием её undef - в скобках что-то важное
-								low_pointer = high_pointer;
-							}*/
-							else
-							{
-								current_element->var_id = L"funct@";
-								current_element->var_id += L"(" + high_pointer->read(L"nvar") + L")";
-								current_element->var_id += L"#undef";
-								current_element->point_left = new var_const(high_pointer);
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(high_pointer->point_collar);
-								current_element->point_collar->point_collar = current_element;
-								//просто название самой функции без аргументов
-								high_pointer = current_element->point_left;
-								high_pointer->var_id.replace(high_pointer->var_id.find_first_of('#') + 1, 5, L"defnd");
-								low_pointer = high_pointer;
-							}
-						}
-					}
-					//символ не в начале строки
-					else
-					{
-						if (temp == NULL)
-						{
-							name.assign(pDest, endPtr+1);
-							pDest = endPtr+1;
-						}
-						else
-						{
-							name.assign(pDest, temp);
-							pDest = temp;
-						}
-						low_pointer = run_vector(name);
-						if (low_pointer == NULL)
-						{
-							if (current_element->read(L"type") == L"funct")
-							{
-								//тут доделать функции/уравнения нескольких переменных
-								/*high_pointer = new var_const(L"error@", -5);
-								general_var_const->pop_back();
-								return high_pointer;*/
-								ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
-								return NULL;
-							}
-
-							else if (current_element->read(L"type") == L"exprs")
-							{
-								// выражение в undef функцию 
-								current_element->var_id.replace(0, 6, L"funct@");
-								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"undef");
-								current_element->var_id.insert(current_element->var_id.find_first_of(L'@') + 1, L"(" + name + L")");
-								name.insert(0, L"varbl@");
-								name += L"#defnd";
-								general_var_const->push_back(new var_const(name, 0));
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(general_var_const->at(temp_size_of_vect));
-								current_element->point_collar->point_collar = current_element;
-								//тут проблема может возникнуть
-								if ((high_pointer->point_right != NULL) && (high_pointer->point_right->read(L"name") == L"minus"))
+								if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 								{
-									high_pointer->point_right->point_right = current_element->point_collar;
+									high_pointer->point_right->point_right = temp_pointer;
 								}
 								else
 								{
-									high_pointer->point_right = current_element->point_collar;
+									high_pointer->point_right = temp_pointer;
 								}
 								low_pointer = high_pointer->point_right;
 							}
-						}
-						else if (low_pointer->read(L"type") == L"varbl")
-						{
-							if (current_element->read(L"type") == L"funct")
-								if (low_pointer->read(L"name") != current_element->read(L"nvar"))
+							else if (temp_pointer->type == varbl)
+							{
+								if (current_element->type == funct)
 								{
-									//тут доделать функции/уравнения нескольких переменных
-									/*high_pointer = new var_const(L"error@", -5);
-									general_var_const->pop_back();
-									return high_pointer;*/
-									ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
-									return NULL;
+									//список переменных замкнут
+									multiple_var = current_element->find_varbl(temp_pointer);
+									if (current_element->point_collar->point_right != NULL)
+									{
+
+										if (multiple_var == NULL)
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
+										else
+										{
+											//стоит ли перед переменной минус
+											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+											{
+												high_pointer->point_right->point_right = multiple_var;
+											}
+											else
+											{
+												high_pointer->point_right = multiple_var;
+											}
+											low_pointer = high_pointer->point_right;
+										}
+									}
+									//не замкнут
+									else
+									{
+										if (multiple_var == NULL)
+										{
+											if (temp_pointer->prop == undef)
+											{
+												temp_pointer->type = defnd;
+												general_var_const->push_back(new math_obj(temp_pointer));
+											}
+											multiple_var = current_element->var_list_back();
+											multiple_var->point_left = temp_pointer;
+											multiple_var->point_left->point_right = multiple_var;
+											multiple_var->point_left->point_collar = current_element;
+											multiple_var->point_left->var = current_element->var;
+											current_element->var += 1;
+											//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
+											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
+											{
+												high_pointer->point_right->point_right = multiple_var->point_left;
+											}
+											else
+											{
+												high_pointer->point_right = multiple_var->point_left;
+											}
+											low_pointer = high_pointer->point_right;
+										}
+										else
+										{
+											//стоит ли перед переменной минус
+											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+											{
+												high_pointer->point_right->point_right = multiple_var;
+											}
+											else
+											{
+												high_pointer->point_right = multiple_var;
+											}
+											low_pointer = high_pointer->point_right;
+										}
+									}
 								}
-								else
+								else if (current_element->type == exprs)
 								{
-									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->read(L"name") == L"minus"))
+									current_element->type = funct;
+									current_element->var = 1;
+									if (temp_pointer->prop == undef)
+									{
+										temp_pointer->prop = defnd;
+										general_var_const->push_back(new math_obj(temp_pointer));
+									}
+									current_element->point_collar = temp_pointer;
+									//учитывается минус перед переменной
+									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
 										high_pointer->point_right->point_right = current_element->point_collar;
-
 									}
 									else
 									{
@@ -1736,18 +1068,1104 @@ namespace Project {
 									}
 									low_pointer = high_pointer->point_right;
 								}
-
-							else if (current_element->read(L"type") == L"exprs")
+							}
+							else if (temp_pointer->type == funct)
 							{
-								current_element->var_id.replace(0, 6, L"funct@");
-								current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"undef");
-								current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + name + L")");
+								if (temp_pointer->prop == arg_c)
+								{
+									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+									{
+										high_pointer->point_right->point_right = temp_pointer;
+									}
+									else
+									{
+										high_pointer->point_right = temp_pointer;
+									}
+									low_pointer = high_pointer->point_right;
+								}
+								else if (current_element->type == exprs)
+								{
+									current_element->type = funct;
+									current_element->prop = undef;
+									current_element->var = 1;
+									current_element->point_collar = new math_obj(&temporary_variable);
+									current_element->point_right = temp_pointer;
+									current_element->point_collar->var = 0; //просто для достоверности)
+									current_element->point_collar->point_collar = current_element;
+
+									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+									{
+										high_pointer->point_right->point_right = current_element->point_collar;
+									}
+									else
+									{
+										high_pointer->point_right = current_element->point_collar;
+									}
+									low_pointer = high_pointer->point_right;
+								}
+								else if (current_element->type == funct)
+								{
+									if (current_element->point_collar->point_right != NULL)
+									{
+										if (current_element->var_list_compare(temp_pointer) != 0)
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
+										else
+										{
+											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+											{
+												high_pointer->point_right->point_right = temp_pointer;
+											}
+											else
+											{
+												high_pointer->point_right = temp_pointer;
+											}
+											low_pointer = high_pointer->point_right;
+										}
+									}
+									else
+									{
+										current_element->arg_copy_plus_1();
+										current_element->point_right[(int)current_element->var - 1] = temp_pointer;
+										temp_pointer = NULL;
+										temp_pointer = current_element->var_list_back();
+										temp_pointer->point_left = new math_obj(&temporary_variable);
+										temp_pointer->point_left->point_right = temp_pointer;
+										temp_pointer->point_left->var = current_element->var - 1;
+
+										if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+										{
+											high_pointer->point_right->point_right = temp_pointer->point_left;
+										}
+										else
+										{
+											high_pointer->point_right = temp_pointer->point_left;
+										}
+										low_pointer = high_pointer->point_right;
+									}
+								}
+							}
+						}
+					}
+					//сразу переходим к следующей позиции после скобки
+					brakets_counter -= 4;
+					pDest = temp + 1;
+					if (*pDest == '(,')
+					{
+						//по идее запись вида )( может означать )*(. Потом добавть сюда определение для подобного случая
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+						return NULL;
+					}
+				}
+				else if (*pDest == '|')
+				{
+					//ну как бы модуль. маленькая проблема - в случае со скобками открывающая ( и закрывающая ) - разные символы. 
+					//В случае с модулем | - эта палочка - один и тот же символ. Модуль доступен через вызов abs().
+				}
+				else if ((*pDest == '1') || (*pDest == '2') || (*pDest == '3') || (*pDest == '4') || (*pDest == '5') || (*pDest == '6') || (*pDest == '7') || (*pDest == '8') || (*pDest == '9') || (*pDest == '0'))
+				{
+					// если данное число первое в записи выражения
+					if ((high_pointer == NULL) && (low_pointer == NULL))
+					{
+						//создание элемента класса и запись числа, воротник -> константу
+						current_element->point_left = new math_obj(L"", numbr, real, wcstod(pDest, &pDest), current_element);
+						//оба указателя -> на число, тебуется для проверки условия при записи операции
+						low_pointer = current_element->point_left;
+						high_pointer = low_pointer;
+					}
+					//перед числом в начале строки стоит минус
+					else if (high_pointer == low_pointer)
+					{
+						if (high_pointer->name == L"minus")
+						{
+							high_pointer->point_right = new math_obj(L"", numbr, real, wcstod(pDest, &pDest), low_pointer);
+						}
+						else
+						{
+							ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
+							return NULL;
+						}
+					}
+					// если данное число не первое в записи (была какая-либо операция)
+					else
+					{
+						//создание элемента класса и запись числа, воротник -> пред операцию 						
+						if ((high_pointer->point_right != NULL) && (low_pointer->name == L"minus"))
+						{
+							low_pointer->point_right = new math_obj(L"", numbr, real, wcstod(pDest, &pDest), low_pointer);
+						}
+						else
+						{
+							high_pointer->point_right = new math_obj(L"", numbr, real, wcstod(pDest, &pDest), high_pointer);
+							low_pointer = high_pointer->point_right;
+						}
+					}
+				}
+
+				//случай с символами в строке
+				else
+				{
+					temp = wcspbrk(pDest, L"()+-*^/=");
+					//если строчка начинается с cимвола
+					if ((high_pointer == NULL) && (low_pointer == NULL))
+					{
+						if ((temp == NULL) && (brakets == 0))
+						{
+							ProjectError::SetProjectLastError(ProjectError::ErrorCode::EQUALY_MISSING);
+							return NULL;
+						}
+						else if (temp == NULL)
+						{
+							name.assign(pDest, endPtr + 1);
+							pDest = endPtr + 1;
+						}
+						else
+						{
+							name.assign(pDest, temp);
+							pDest = temp;
+						}
+						high_pointer = run_vector(name);
+						//если не найден ни один элемент массива с таким именем
+						if (high_pointer == NULL)
+						{
+							//считаем найденный элемент переменной
+							if (temp == NULL)
+							{
+								current_element->type = varbl;
+								current_element->name = name;
+								current_element->prop = undef;
+								high_pointer = current_element;
+								low_pointer = high_pointer;
+							}
+							//считаем найденный элемент конст
+							else if (*temp == '=')
+							{
+								current_element->type = cnst;
+								current_element->name = name;
+								current_element->prop = undef;
+								current_element->actn = write;
+								high_pointer = current_element;
+								low_pointer = high_pointer;
+							}
+							//считаем найденный элемент функцией
+							else if (*temp == '(')
+							{
+								brakets_counter += 4;
+								count = 1;
+								comma = 0;
+								while (count != 0)
+								{
+									temp++;
+									//если попали в конец строчки не найдя закрывающих скобок
+									if (temp == endPtr + 1)
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
+										return NULL;
+									}
+									else if (*temp == '(')
+									{
+										count++;
+									}
+									else if (*temp == ')')
+									{
+										count--;
+									}
+									else if (*temp == '=') //открытая скобка и дальше равно
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
+										return NULL;
+									}
+									else if (*temp == ',')
+									{
+										//считаем запятые. количество запятых в скобках +1 = число различных переменных
+										comma++;
+									}
+								}
+								if (*(temp + 1) != '=')
+								{
+									//если в самом начале строки стоит новое буквосочетание и дальше скобка - это всегда определение новой функции
+									//если после этого нет равно - ошибка
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
+									return NULL;
+								}
+								//далее ВСЕГДА рассматриваем случай с равно после скобки
+								if (pDest + 1 == temp)
+								{
+									//пустая строка в скобках.  создание функции от неопределённого количества переменных
+									//аналогично заданию функции вообще без указания переменных. Указатель на переменные - пустой
+									current_element->type = funct;
+									current_element->name = name;
+									current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
+									current_element->actn = write;  //на заполнение
+									high_pointer = current_element;
+									low_pointer = high_pointer;
+								}
+								else
+								{
+									//запоминаем число переменных
+									current_element->var = comma + 1;
+									current_element->type = funct;
+									current_element->name = name;
+									current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
+									current_element->actn = write;  //на заполнение
+									for (count = 0; count < comma + 1; count++)
+									{
+										temp = wcspbrk(pDest + 1, L",)");
+										name.assign(pDest + 1, temp);
+										temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, 0, current_element), brakets + brakets_counter);
+										if (temp_pointer == NULL)
+											return temp_pointer;
+										if (temp_pointer->type == varbl)
+										{
+											if (temp_pointer->prop == undef)
+											{
+												temp_pointer->prop = defnd;
+												general_var_const->push_back(new math_obj(temp_pointer));
+											}
+											temp_pointer->point_collar = current_element;
+											temp_pointer->var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
+
+											if (count == 0)
+												//сразу же получаем уазатель на первую переменную в списке
+												current_element->point_collar = temp_pointer;
+											else
+											{
+												//создание двунаправленного списка переменных, где на нулевой элемент указывает воротник функции.
+												temp_pointer->point_right = current_element->var_list_back();
+												temp_pointer->point_right->point_left = temp_pointer;
+											}
+											if (count == comma)
+											{
+												//создание замкнутого в кольцо двунаправленного списка переменных. Нулевой элемент = последнему.
+												temp_pointer->point_left = current_element->point_collar;
+												current_element->point_collar->point_right = temp_pointer;
+											}
+											//temp_pointer в данном случае удалять нельзя. Можно занулить, но удалять нельзя
+										}
+										else
+										{
+											//поскольку функция ещё неопределённая передавать ей любые аргументы будет неверно
+											//TODO:чистить мусор перед уходом
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
+											return NULL;
+										}
+										pDest = temp;
+									}
+									high_pointer = current_element;
+									low_pointer = high_pointer;
+								}
+								brakets_counter -= 4;
+								pDest = temp + 1;
+							}
+							else if (*temp == ')')
+							{
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+								return NULL;
+							}
+							//считаем найденный элемент переменной, а текущее выражение - функцией
+							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
+							{
+								current_element->type = funct;
+								current_element->prop = undef;
+								//запоминаем число переменных
+								current_element->var = 1;
+								general_var_const->push_back(new math_obj(name, varbl, defnd, 0));
 								//копия переменной с указателем на функцию
-								current_element->point_collar = new var_const(low_pointer);
+								current_element->point_collar = new math_obj(general_var_const->back());
+								current_element->point_left = current_element->point_collar;
+								current_element->point_left->point_collar = current_element;
+								high_pointer = current_element->point_left;
+								low_pointer = high_pointer;
+							}
+							else
+							{
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+								return NULL;
+							}
+						}
+						//найден элемент массива с совпадающим именем - константа
+						else if (high_pointer->type == cnst)
+						{
+							//копируем константу
+							if ((temp == NULL) || (*temp == '='))
+							{
+								current_element->copy(high_pointer);
+								high_pointer = current_element;
+								low_pointer = high_pointer;
+							}
+							//тут идея в том, что если уже есть какая-то константа - какие бы ни были аргументы для неё - ответом будет являться константа.
+							//однако данная запись может означать переопределение конст в виде функции
+							else if (*temp == '(')
+							{
+								//тогда сразу лучше прояснить что именно тут происходит,
+								//заглядываем в скобки и смотрим что там
+								//current_element->copy(high_pointer);
+								brakets_counter += 4;
+								count = 1;
+								comma = 0;
+								while (count != 0)
+								{
+									temp++;
+									//если попали в конец строчки не найдя закрывающих скобок
+									if (temp == endPtr + 1)
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
+										return NULL;
+									}
+									else if (*temp == '(')
+									{
+										count++;
+									}
+									else if (*temp == ')')
+									{
+										count--;
+									}
+									else if (*temp == '=') //открытая скобка и дальше равно
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
+										return NULL;
+									}
+									else if (*temp == ',')
+									{
+										//считаем запятые. количество запятых в скобках +1 = число различных переменных
+										comma++;
+									}
+								}
+								if (*(temp + 1) != '=') //два варианта - стоит равно после скобки или нет
+								{
+									//если его нет, то данная запись в любом случае равносильна просто вызову константы, какие бы аргументы ей не передавались
+									//копируем константу
+									if (*(temp + 1) == NULL) // если мы вышли в конец строки - то ноль - т.е. после скобки отсутствуют символы
+									{
+										current_element->copy(high_pointer);
+										high_pointer = current_element;
+										low_pointer = high_pointer;
+									}
+									else if ((*(temp + 1) == '+') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^') || (*(temp + 1) == '-'))
+									{
+										current_element->point_left = new math_obj(high_pointer);
+										current_element->point_left->point_collar = current_element;
+										high_pointer = current_element->point_left;
+										low_pointer = high_pointer;
+									}
+									/*else if ((*(temp + 1) == '('))
+									{
+										//пока оставлю зто условие. Запись типа с(...)(...) - обычно это означает произведение с()*(...)
+									}*/
+									else
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+										return NULL;
+									}
+								}
+								//далее ВСЕГДА рассматриваем случай с равно после скобки
+								else if (pDest + 1 == temp)
+								{
+									// тут либо вывод значения, либо новое определение c()=
+									current_element->copy(high_pointer);
+									high_pointer = current_element;
+									low_pointer = high_pointer;
+								}
+								//тут надо только проверить, чтобы аргументы в скобках были переменными
+								else
+								{
+									current_element->copy(high_pointer);
+									for (count = 0; count < comma + 1; count++)
+									{
+										temp = wcspbrk(pDest + 1, L",)");
+										name.assign(pDest + 1, temp);
+										temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, 0, current_element), brakets + brakets_counter);
+										if (temp_pointer == NULL)
+											return temp_pointer;
+										if (temp_pointer->type == varbl)
+										{
+											if (temp_pointer->prop == undef)
+											{
+												temp_pointer->prop = defnd;
+												general_var_const->push_back(new math_obj(temp_pointer));
+											}
+											temp_pointer->point_collar = current_element;
+											temp_pointer->var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
+
+											if (count == 0)
+												//сразу же получаем уазатель на первую переменную в списке
+												current_element->point_collar = temp_pointer;
+											else
+											{
+												//создание двунаправленного списка переменных, где на нулевой элемент указывает воротник функции.
+												temp_pointer->point_right = current_element->var_list_back();
+												temp_pointer->point_right->point_left = temp_pointer;
+											}
+											if (count == comma)
+											{
+												//создание замкнутого в кольцо двунаправленного списка переменных. Нулевой элемент = последнему.
+												temp_pointer->point_left = current_element->point_collar;
+												current_element->point_collar->point_right = temp_pointer;
+											}
+											//temp_pointer в данном случае удалять нельзя. Можно занулить, но удалять нельзя
+										}
+										else
+										{
+											//TODO:в случае этой ветки чистить список уже заполненных переменных
+											break;
+										}
+										pDest = temp;
+									}
+
+									if ((count == comma + 1) && (high_pointer->prop != fundm))//за искл фундаментальных констант
+									{
+										//запоминаем число переменных
+										current_element->var = comma + 1;
+										current_element->type = funct;
+										current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
+										current_element->actn = write; //на запись										
+										low_pointer = high_pointer;
+									}
+									else
+									{
+										// тут либо вывод значения, либо новое определение, игнорируя аргументы
+										//тут ещё может означать умножение с(...) = с*(...). К примеру запрос на расчёт с*(...)= 
+										//однако в данном случае это умножение на вектор - что не реализовано, возможно стоит как-то отдельно делать	
+										high_pointer = current_element;
+										low_pointer = high_pointer;
+									}
+								}
+								brakets_counter -= 4;
+								pDest = temp + 1;
+							}
+							else if (*temp == ')')
+							{
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+								return NULL;
+							}
+							//текущий элемент остаётся выражением, найденная константа (её копия) - один из операндов
+							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
+							{
+								current_element->point_left = new math_obj(high_pointer);
+								current_element->point_left->point_collar = current_element;
+								high_pointer = current_element->point_left;
+								low_pointer = high_pointer;
+							}
+							else
+							{
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+								return NULL;
+							}
+						}
+						//найден элемент массива с совпадающим именем - переменная
+						else if (high_pointer->type == varbl)
+						{
+							//копируем переменную
+							if ((temp == NULL) || (*temp == '='))
+							{
+								current_element->copy(high_pointer);
+								high_pointer = current_element;
+								low_pointer = high_pointer;
+
+							}
+							else if (*temp == ')')
+							{
+
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+								return NULL;
+							}
+							//такая запись может означать ТОЛЬКО переопределение переменной в качестве функции нового аргумента
+							else if (*temp == '(')
+							{
+								brakets_counter += 4;
+								count = 1;
+								comma = 0;
+								while (count != 0)
+								{
+									temp++;
+									//если попали в конец строчки не найдя закрывающих скобок
+									if (temp == endPtr + 1)
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
+										return NULL;
+									}
+									else if (*temp == '(')
+									{
+										count++;
+									}
+									else if (*temp == ')')
+									{
+										count--;
+									}
+									else if (*temp == '=') //открытая скобка и дальше равно
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
+										return NULL;
+									}
+									else if (*temp == ',')
+									{
+										//считаем запятые. количество запятых в скобках +1 = число различных переменных
+										comma++;
+									}
+								}
+								if (*(temp + 1) != '=')
+								{
+									//если в самом начале строки стоит переменная и далее скобка - считаем что это определение новой функции
+									//если после этого нет равно - ошибка
+									//так же - может быть умножение вида x(...) что значит x*(...)
+									//однако не стоит забывать о неявном определении функций. Может она тут через уравнение задаётся
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
+									return NULL;
+								}
+								//далее ВСЕГДА рассматриваем случай с равно после скобки
+								else if (pDest + 1 == temp)
+								{
+									//пустая строка в скобках. получается, наверное создание функции от неопределённого количества переменных
+									//аналогично заданию функции вообще без указания переменных. Указатель на переменные - пустой
+									current_element->copy(high_pointer);
+									current_element->type = funct;
+									current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя		
+									current_element->actn = write; //на запись
+									high_pointer = current_element;
+									low_pointer = high_pointer;
+								}
+								else
+								{
+									current_element->copy(high_pointer);
+									for (count = 0; count < comma + 1; count++)
+									{
+										temp = wcspbrk(pDest + 1, L",)");
+										name.assign(pDest + 1, temp);
+										temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, L"", 0, current_element), brakets + brakets_counter);
+										if (temp_pointer == NULL)
+											return temp_pointer;
+										if (temp_pointer->type == varbl)
+										{
+											if (temp_pointer->prop == undef)
+											{
+												temp_pointer->prop = defnd;
+												general_var_const->push_back(new math_obj(temp_pointer));
+											}
+											temp_pointer->point_collar = current_element;
+											temp_pointer->var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
+
+											if (count == 0)
+												//сразу же получаем уазатель на первую переменную в списке
+												current_element->point_collar = temp_pointer;
+											else
+											{
+												//создание двунаправленного списка переменных, где на нулевой элемент указывает воротник функции.
+												temp_pointer->point_right = current_element->var_list_back();
+												temp_pointer->point_right->point_left = temp_pointer;
+											}
+											if (count == comma)
+											{
+												//создание замкнутого в кольцо двунаправленного списка переменных. Нулевой элемент = последнему.
+												temp_pointer->point_left = current_element->point_collar;
+												current_element->point_collar->point_right = temp_pointer;
+											}
+											//temp_pointer в данном случае удалять нельзя. Можно занулить, но удалять нельзя
+										}
+										else
+										{
+											//поскольку функция ещё неопределённая передавать ей любые аргументы будет неверно
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
+											return NULL;
+										}
+										pDest = temp;
+									}
+									//запоминаем число переменных
+									current_element->var = comma + 1;
+									current_element->type = funct;
+									current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
+									current_element->actn = write; //на запись	
+									high_pointer = current_element;
+									low_pointer = high_pointer;
+								}
+								brakets_counter -= 4;
+								pDest = temp + 1;
+							}
+							//текущий элемент => функция, аргументом является копия переменной
+							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
+							{
+								if (current_element->type == exprs)
+								{
+									current_element->type = funct;
+									current_element->prop = undef;
+									//запоминаем число переменных
+									current_element->var = 1;
+									//копия переменной с указателем на функцию
+									current_element->point_collar = new math_obj(high_pointer);
+									current_element->point_left = current_element->point_collar;
+									current_element->point_left->point_collar = current_element;
+									high_pointer = current_element->point_left;
+									low_pointer = high_pointer;
+								}								
+								else if(current_element->type == funct)
+								{
+									//случай, когда текущее выражение - функция, которой заранее дан список переменных
+									temp_pointer = current_element->find_varbl(high_pointer);
+									if (temp_pointer == NULL)
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+										return NULL;
+									}
+									current_element->point_left = temp_pointer;
+									high_pointer = current_element->point_left;
+									low_pointer = high_pointer;
+								}
+							}
+							else
+							{
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+								return NULL;
+							}
+						}
+						//найден элемент массива с совпадающим именем - функция
+						else if (high_pointer->type == funct)
+						{
+							//копируем функцию
+							if ((temp == NULL) || (*temp == '='))
+							{
+								current_element->copy(high_pointer);
+								high_pointer = current_element;
+								low_pointer = high_pointer;
+								//данная функция может быть использована в каком-то уравнении/другой функции в качестве операнда. 
+								//может так же означать её переопределение с неизвестным количеством переменных
+							}
+							//в данном случае открытая скобка после названия уже определённой ф-ции (н-р f(x)) может значить:
+							//--новое определение, в том числе от новых переменных
+							//--передачу функции аргументов, как константных выражений, так и новых переменных. В этом случае считаем, 
+							//что подразумевается f(t)= - запрос на вывод выражения от t, либо участие f в уравнении с переменной t, за искл. случая с переопределением.
+							//--передачу функции в качестве аргумента новую функцию g(s) - при этом получившаяся функция f(g(s)) должна всюду зависеть от s, а не от х,
+							//однако должна состоять из копий оригинальных функций, исключение g(s) - неявно задана - f(5*s+2)
+							else if (*temp == '(')
+							{
+								brakets_counter += 4;
+								count = 1;
+								comma = 0;
+								while (count != 0)
+								{
+									temp++;
+									//если попали в конец строчки не найдя закрывающих скобок
+									if (temp == endPtr + 1)
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
+										return NULL;
+									}
+									else if (*temp == '(')
+									{
+										count++;
+									}
+									else if (*temp == ')')
+									{
+										count--;
+									}
+									else if (*temp == '=') //открытая скобка и дальше равно
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
+										return NULL;
+									}
+									else if (*temp == ',')
+									{
+										//считаем запятые. количество запятых в скобках +1 = число различных переменных
+										comma++;
+									}
+								}
+								if (pDest + 1 == temp)
+								{
+									//пустая строка в скобках. получается, либо определение функции от неопределённого количества переменных или просто использование функции в выражении
+									//аналогично заданию функции вообще без указания переменных. Указатель на переменные - тот что был раньше
+									if ((*(temp + 1) == NULL) || (*(temp + 1) == '='))
+									{
+										current_element->copy(high_pointer);
+										high_pointer = current_element;
+										low_pointer = high_pointer;
+									}
+									//случай, аналогичный последнему условию в данной ветке 
+									else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
+									{
+										current_element->type = funct;
+										current_element->prop = arg_v;
+										current_element->var = 1; // одна переменная
+										current_element->point_right = new math_obj(high_pointer); //найденная функция - аргумент текущей
+										//копия служебной переменной с указателем на функцию
+										current_element->point_collar = new math_obj(&temporary_variable);
+										current_element->point_collar->var = 0; //просто для достоверности)
+										current_element->point_collar->point_collar = current_element;
+										current_element->point_left = current_element->point_collar;
+
+										high_pointer = current_element->point_left;
+										low_pointer = high_pointer;
+									}
+								}
+								//число аргументов в скобках совпадает с числом аргументов у определённой заранее функции
+								else if (high_pointer->var == comma + 1)
+								{
+									//нет запятых 
+									if (comma == 0)
+									{
+										name.assign(pDest + 1, temp);
+										temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, L"", 0, current_element), brakets + brakets_counter);
+										if (temp_pointer == NULL)
+											return temp_pointer;
+										if ((temp_pointer->type == cnst) || (temp_pointer->type == exprs))
+										{
+											if ((*(temp + 1) == NULL) || (*(temp + 1) == '='))
+											{
+												current_element->copy(high_pointer);
+												current_element->point_right = temp_pointer;
+												current_element->prop = arg_c; //указываем что в функцию передали аргумент
+												high_pointer = current_element;
+												low_pointer = high_pointer;
+											}
+											else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
+											{
+												current_element->point_left = new math_obj(high_pointer);
+												current_element->point_left->point_right = temp_pointer;
+												current_element->point_left->prop = arg_c;
+												high_pointer = current_element->point_left;
+												low_pointer = high_pointer;
+											}
+										}
+										else if (temp_pointer->type == funct)
+										{
+											if (temp_pointer->prop == arg_c)
+											{
+												if ((*(temp + 1) == NULL) || (*(temp + 1) == '='))
+												{
+													current_element->copy(high_pointer);
+													current_element->point_right = temp_pointer;
+													current_element->prop = arg_c; //указываем что в функцию передали аргумент
+													high_pointer = current_element;
+													low_pointer = high_pointer;
+												}
+												else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
+												{
+													current_element->point_left = new math_obj(high_pointer);
+													current_element->point_left->point_right = temp_pointer;
+													current_element->point_left->prop = arg_c;
+													high_pointer = current_element->point_left;
+													low_pointer = high_pointer;
+												}
+											}
+											else
+											{
+												if ((*(temp + 1) == NULL) || (*(temp + 1) == '='))
+												{
+													current_element->copy(high_pointer);
+													current_element->point_right = temp_pointer;
+													current_element->prop = arg_v; //указываем что в функцию передали аргумент
+													high_pointer = current_element;
+													low_pointer = high_pointer;
+												}
+												else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
+												{
+													current_element->type = funct;
+													current_element->prop = arg_v;
+													current_element->var = 1; // одна переменная
+													current_element->point_right = new math_obj(high_pointer); //найденная функция - аргумент текущей
+																												//копия служебной переменной с указателем на функцию
+													current_element->point_collar = new math_obj(&temporary_variable);
+													current_element->point_collar->var = 0; //просто для достоверности)
+													current_element->point_collar->point_collar = current_element;
+													current_element->point_left = current_element->point_collar;
+													current_element->point_right->point_right = temp_pointer;
+													current_element->point_right->prop = arg_v;
+													high_pointer = current_element->point_left;
+													low_pointer = high_pointer;
+												}
+											}
+										}
+										else if (temp_pointer->type == varbl)
+										{
+											if (temp_pointer->prop == undef)
+											{
+												temp_pointer->prop = defnd;
+												general_var_const->push_back(new math_obj(temp_pointer));
+											}
+											if ((*(temp + 1) == NULL) || (*(temp + 1) == '='))
+											{
+												current_element->copy(high_pointer);
+												current_element->point_right = temp_pointer;
+												current_element->prop = arg_v; //указываем что в функцию передали аргумент
+												high_pointer = current_element;
+												low_pointer = high_pointer;
+											}
+											else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
+											{
+												current_element->type = funct;
+												current_element->prop = arg_v;
+												current_element->var = 1; // одна переменная
+												current_element->point_right = new math_obj(high_pointer); //найденная функция - аргумент текущей
+																											//копия служебной переменной с указателем на функцию
+												current_element->point_collar = new math_obj(&temporary_variable);
+												current_element->point_collar->var = 0; //просто для достоверности)
+												current_element->point_collar->point_collar = current_element;
+												current_element->point_left = current_element->point_collar;
+												current_element->point_right->point_right = temp_pointer;
+												current_element->point_right->prop = arg_v;
+												high_pointer = current_element->point_left;
+												low_pointer = high_pointer;
+											}
+										}
+									}
+									//если в скобках стоят запятые - определение функции нескольких переменных
+									else
+									{
+										multiple_var = new math_obj[comma + 1];
+										count_var = 0;
+										for (count = 0; count < comma + 1; count++)
+										{
+											temp = wcspbrk(pDest + 1, L",)");
+											name.assign(pDest + 1, temp);
+											temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, L"", 0, current_element), brakets + brakets_counter);
+											if (temp_pointer == NULL)
+												return temp_pointer;
+											//заполняем массив аргументов
+											if (temp_pointer->type == varbl)
+											{
+												count_var++;
+												if (temp_pointer->prop == undef)
+												{
+													temp_pointer->prop = defnd;
+													general_var_const->push_back(new math_obj(temp_pointer));
+												}
+											}
+											else if (temp_pointer->type == funct)
+											{
+												if (temp_pointer->prop != arg_c)
+												{
+													count_var++;
+												}
+											}
+											multiple_var[count].copy(temp_pointer);
+											pDest = temp;
+										}
+										if (count_var != 0)//если среди аргументов хотя бы одна переменная
+										{
+											if ((*(temp + 1) == NULL) || (*(temp + 1) == '='))
+											{
+												current_element->copy(high_pointer);
+												current_element->point_right = multiple_var;
+												current_element->prop = arg_v; //указываем что в функцию передали аргумент
+												high_pointer = current_element;
+												low_pointer = high_pointer;
+											}
+											else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
+											{
+												current_element->type = funct;
+												current_element->prop = arg_v;
+												current_element->var = 1; // одна переменная
+												current_element->point_right = new math_obj(high_pointer); //найденная функция - аргумент текущей
+																											//копия служебной переменной с указателем на функцию
+												current_element->point_collar = new math_obj(&temporary_variable);
+												current_element->point_collar->var = 0; //просто для достоверности)
+												current_element->point_collar->point_collar = current_element;
+												current_element->point_left = current_element->point_collar;
+												current_element->point_right->point_right = multiple_var;
+												current_element->point_right->prop = arg_v;
+												high_pointer = current_element->point_left;
+												low_pointer = high_pointer;
+											}
+										}
+										else // все аргументы не переменные
+										{
+											if ((*(temp + 1) == NULL) || (*(temp + 1) == '='))
+											{
+												current_element->copy(high_pointer);
+												current_element->point_right = multiple_var;//в качестве аргумента - массив объектов
+												current_element->prop = arg_c; //указываем что в функцию передали аргумент
+												high_pointer = current_element;
+												low_pointer = high_pointer;
+											}
+											else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
+											{
+												current_element->point_left = new math_obj(high_pointer);
+												current_element->point_left->point_right = multiple_var;
+												current_element->point_left->prop = arg_c;
+												high_pointer = current_element->point_left;
+												low_pointer = high_pointer;
+											}
+										}
+									}
+								}
+								//число переменных - различное 
+								else
+								{
+									if (*(temp + 1) != '=')
+									{
+										//тут ошибка: ранее была f(x,y), записали f(k)+... - количество переменных в вызываемой функции не совпадает
+										//TODO:здесь надо будет написать исключения для функций нескольких аргументов, которые могут пониматься как функция одного аргумента
+										//пример root(5) - квадратный корень из 5, root (5,2) - тоже самое, root (5,3) - кубический корень из 5
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+										return NULL;
+
+									}
+									//но если далее стоит равно - всё нормально,  переопределение. 									
+
+									else
+									{
+										current_element->copy(high_pointer);
+										for (count = 0; count < comma + 1; count++)
+										{
+											temp = wcspbrk(pDest + 1, L",)");
+											name.assign(pDest + 1, temp);
+											temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, L"", 0, current_element), brakets + brakets_counter);
+											if (temp_pointer == NULL)
+												return temp_pointer;
+											if (temp_pointer->type == varbl)
+											{
+												if (temp_pointer->prop == undef)
+												{
+													temp_pointer->prop = defnd;
+													general_var_const->push_back(new math_obj(temp_pointer));
+												}
+												temp_pointer->point_collar = current_element;
+												temp_pointer->var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
+
+												if (count == 0)
+													//сразу же получаем уазатель на первую переменную в списке
+													current_element->point_collar = temp_pointer;
+												else
+												{
+													//создание двунаправленного списка переменных, где на нулевой элемент указывает воротник функции.
+													temp_pointer->point_right = current_element->var_list_back();
+													temp_pointer->point_right->point_left = temp_pointer;
+												}
+												if (count == comma)
+												{
+													//создание замкнутого в кольцо двунаправленного списка переменных. Нулевой элемент = последнему.
+													temp_pointer->point_left = current_element->point_collar;
+													current_element->point_collar->point_right = temp_pointer;
+												}
+												//temp_pointer в данном случае удалять нельзя. Можно занулить, но удалять нельзя
+											}
+											else
+											{
+												//поскольку функция ещё неопределённая передавать ей любые аргументы будет неверно, т.к. количество аргументов не совпадает
+												ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
+												return NULL;
+											}
+											pDest = temp;
+										}
+										//запоминаем число переменных
+										current_element->var = comma + 1;
+										current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
+										current_element->actn = write;  //на заполнение		
+										high_pointer = current_element;
+										low_pointer = high_pointer;
+									}
+
+								}
+								brakets_counter -= 4;
+								pDest = temp + 1;
+							}
+							else if (*temp == ')')
+							{
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+								return NULL;
+							}
+							//текущее выражение => функция, копия найденной функции - аргумент выражения.
+							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
+							{
+								current_element->type = funct;
+								current_element->prop = arg_v;
+								current_element->point_right = new math_obj(high_pointer); //полагаем новую неопределённую функцию, которая зависит от какой-либо переменной,
+																							//имеющей аргумент в виде другой (определённой) функции. При этом если окажется, что
+																							//в выражении участвуют несколько функций (f+g), то функция, котрая их объединяет
+																							//будет считаться функцией нескольких переменных, 
+																							//даже если все функции в её выражении зависят от одной и той же переменной.
+								//копия служебной переменной с указателем на функцию, которая иемеет номер ноль
+								current_element->point_collar = new math_obj(&temporary_variable);
+								current_element->point_collar->var = 0; //просто для достоверности)
 								current_element->point_collar->point_collar = current_element;
-								if ((high_pointer->point_right != NULL) && (high_pointer->point_right->read(L"name") == L"minus"))
+								current_element->point_left = current_element->point_collar;//т.о. каждая функция будет иметь одну и туже структуру и пониматься всегда, 
+																							//как функция зависящая от переменных, которой в качетве аргументов что-то передаётся
+								current_element->var = 1; //количество переменных								
+								high_pointer = current_element->point_left;
+								low_pointer = high_pointer;
+							}
+							else
+							{
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+								return NULL;
+							}
+						}
+					}
+					//символ находится не в начале строки
+					else
+					{
+						if (temp == NULL)
+						{
+							name.assign(pDest, endPtr + 1);
+							pDest = endPtr + 1;
+						}
+						else
+						{
+							name.assign(pDest, temp);
+							pDest = temp;
+						}
+						low_pointer = run_vector(name);
+
+						//далее всегда может быть только два варианта - текщуий элемент либо функция, либо выражение, причём всегда undef.
+						//если не найден ни один элемент массива с таким именем
+						if (low_pointer == NULL)
+						{
+							if (*temp == '(),')
+							{
+								//ошибка - после переменной стоит открывающаяся скобка. Вообще не совсем бессмысленная запись, возможно нужен другой код ошибки или придумать как такое исключение обрабатывать.
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+								return NULL;
+							}
+							//если текущий элемент - функция, то очевидно найдена новая переменная в записи выражения. 
+
+
+							if (current_element->type == funct)
+							{
+								if (current_element->point_collar->point_right != NULL)
+								{
+									//значит список переменных замкнут => новая переменная - лишняя
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+									return NULL;
+								}
+								//список не замкнут - можно добавить больше переменных
+								else
+								{
+									general_var_const->push_back(new math_obj(name, varbl, defnd, 0));
+									temp_pointer = current_element->var_list_back();
+									temp_pointer->point_left = new math_obj(general_var_const->back());
+									temp_pointer->point_left->point_right = temp_pointer;
+									temp_pointer->point_left->point_collar = current_element;
+									temp_pointer->point_left->var = current_element->var;
+									current_element->var += 1;
+									//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
+									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
+									{
+										high_pointer->point_right->point_right = temp_pointer->point_left;
+										high_pointer->point_right->prop = arg_v;
+									}
+									else
+									{
+										high_pointer->point_right = temp_pointer->point_left;
+									}
+									low_pointer = high_pointer->point_right;
+									temp_pointer = NULL;
+								}
+							}
+							//если выражение
+							else if (current_element->type == exprs)
+							{
+								// выражение в undef функцию 
+								current_element->type = funct;
+								current_element->prop = undef;
+								general_var_const->push_back(new math_obj(name, varbl, defnd, 0));
+								//копия переменной с указателем на функцию
+								current_element->point_collar = new math_obj(general_var_const->back());
+								current_element->point_collar->point_collar = current_element;
+								current_element->var = 1;//одна переменная
+								//тут проблема может возникнуть - я не помню какая))
+								if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 								{
 									high_pointer->point_right->point_right = current_element->point_collar;
+									high_pointer->point_right->prop = arg_v;
 								}
 								else
 								{
@@ -1756,121 +2174,366 @@ namespace Project {
 								low_pointer = high_pointer->point_right;
 							}
 						}
-						else if (low_pointer->read(L"type") == L"const")
+						//найден элемент массива с совпадающим именем - переменная
+						else if (low_pointer->type == varbl)
 						{
-							if ((high_pointer->point_right != NULL) && (high_pointer->point_right->read(L"name") == L"minus"))
+							if (*temp == '(),')
 							{
-								high_pointer->point_right->point_right = new var_const(low_pointer);
+								//ошибка - после переменной стоит открывающаяся скобка. Вообще не совсем бессмысленная запись, возможно нужен другой код ошибки или придумать как такое исключение обрабатывать.
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+								return NULL;
+							}
+							if (current_element->type == funct)
+							{
+								temp_pointer = current_element->find_varbl(low_pointer);
+								if (current_element->point_collar->point_right != NULL)
+								{
+									if (temp_pointer == NULL)
+									{
+										//значит список переменных замкнут => новая переменная - лишняя
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+										return NULL;
+									}
+									else
+									{
+										if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+										{
+											high_pointer->point_right->point_right = temp_pointer;//указатель на нужное место в списке переменных
+											high_pointer->point_right->prop = arg_v;
+										}
+										else
+										{
+											high_pointer->point_right = temp_pointer;
+										}
+										low_pointer = high_pointer->point_right;
+									}
+								}
+								//список не замкнут - можно добавить больше переменных
+								else if (temp_pointer == NULL) //если нет совпадений имён переменных - найдена новая переменная
+								{
+									temp_pointer = current_element->var_list_back();
+									temp_pointer->point_left = new math_obj(low_pointer);
+									temp_pointer->point_left->point_right = temp_pointer;
+									temp_pointer->point_left->point_collar = current_element;
+									temp_pointer->point_left->var = current_element->var;
+									current_element->var += 1;
+									//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
+									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
+									{
+										high_pointer->point_right->point_right = temp_pointer->point_left;
+										high_pointer->point_right->prop = arg_v;
+									}
+									else
+									{
+										high_pointer->point_right = temp_pointer->point_left;
+									}
+									low_pointer = high_pointer->point_right;
+								}
+								else //при совпадении просто записываем переменную в выражение
+								{
+									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+									{
+										high_pointer->point_right->point_right = temp_pointer;//указатель на нужное место в списке переменных
+										high_pointer->point_right->prop = arg_v;
+									}
+									else
+									{
+										high_pointer->point_right = temp_pointer;
+									}
+									low_pointer = high_pointer->point_right;
+								}
+							}
+							else if (current_element->type == exprs)
+							{
+								current_element->type = funct;
+								current_element->prop = undef;
+								//копия переменной с указателем на функцию
+								current_element->point_collar = new math_obj(low_pointer);
+								current_element->point_collar->point_collar = current_element;
+								current_element->var = 1;//одна переменная
+								if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+								{
+									high_pointer->point_right->point_right = current_element->point_collar;
+									high_pointer->point_right->prop = arg_v;
+								}
+								else
+								{
+									high_pointer->point_right = current_element->point_collar;
+								}
+								low_pointer = high_pointer->point_right;
+							}
+						}
+						//найден элемент массива с совпадающим именем - константа - просто записываем её в выражение
+						else if (low_pointer->type == cnst)
+						{
+							if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+							{
+								high_pointer->point_right->point_right = new math_obj(low_pointer);
 							}
 							else
 							{
-								high_pointer->point_right = new var_const(low_pointer);
+								high_pointer->point_right = new math_obj(low_pointer);
 							}
 							low_pointer = high_pointer->point_right;
 						}
-						else if (low_pointer->read(L"type") == L"funct")
+						//найден элемент массива с совпадающим именем - функция 
+						else if (low_pointer->type == funct)
 						{
-							if (current_element->read(L"type") == L"funct")
+							if (*temp = '(')
 							{
-								if (low_pointer->read(L"nvar") == current_element->read(L"nvar"))
+								brakets_counter += 4;
+								count = 1;
+								comma = 0;
+								while (count != 0)
 								{
-									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->read(L"name") == L"minus"))
+									temp++;
+									//если попали в конец строчки не найдя закрывающих скобок
+									if (temp == endPtr + 1)
 									{
-										high_pointer->point_right->point_right = new var_const(low_pointer);
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
+										return NULL;
 									}
-									else
+									else if (*temp == '(')
 									{
-										high_pointer->point_right = new var_const(low_pointer);
+										count++;
 									}
-									low_pointer = high_pointer->point_right;
+									else if (*temp == ')')
+									{
+										count--;
+									}
+									else if (*temp == '=') //открытая скобка и дальше равно
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
+										return NULL;
+									}
+									else if (*temp == ',')
+									{
+										//считаем запятые. количество запятых в скобках +1 = число различных переменных
+										comma++;
+									}
 								}
-								else
+								//если количество аргументов не совпадает с количеством переменных
+								if (comma + 1 != low_pointer->var)
 								{
-									//тут доделать функции/уравнения нескольких переменных
-									/*high_pointer = new var_const(L"error@", -5);
-									general_var_const->pop_back();
-									return high_pointer;*/
-									ProjectError::SetProjectLastError(ProjectError::ErrorCode::MULTIPLE_VARIABLES);
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
 									return NULL;
 								}
-							}
-							else if (current_element->read(L"type") == L"exprs")
-							{
-								if (*temp == '(')
+								multiple_var = new math_obj[comma + 1];
+								count_var = 0;
+								for (count = 0; count < comma + 1; count++)
 								{
-									current_element->var_id.replace(0, 6, L"funct@");
-									current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + low_pointer->read(L"nvar") + L")");
-									current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"undef");
-									//копия переменной с указателем на функцию
-									current_element->point_collar = new var_const(low_pointer->point_collar);
-									current_element->point_collar->point_collar = current_element;
-									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->read(L"name") == L"minus"))
+									temp = wcspbrk(pDest + 1, L",)");
+									name.assign(pDest + 1, temp);
+									temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, 0, current_element), brakets + brakets_counter);
+									if (temp_pointer == NULL)
+										return temp_pointer;
+									//заполняем массив аргументов
+									if (temp_pointer->type == varbl)
 									{
-										high_pointer->point_right->point_right = new var_const(low_pointer);
-										high_pointer->point_right->point_right->var_id.replace(high_pointer->point_right->point_right->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+										count_var++;
+										if (temp_pointer->prop == undef)
+										{
+											temp_pointer->prop = defnd;
+											general_var_const->push_back(temp_pointer);
+										}
+										multiple_var[count].copy(temp_pointer);
+									}
+									else if ((temp_pointer->type == cnst) || (temp_pointer->type == exprs))
+									{
+										multiple_var[count].copy(temp_pointer);
+									}
+									else if (temp_pointer->type == funct)
+									{
+										//тут в качестве аргумента получается переменная функция, которая либо defnd, либо undef
+										if (temp_pointer->prop != arg_c)
+										{
+											count_var++;
+											if ((temp_pointer->prop == defnd) || (temp_pointer->prop == undef))
+												multiple_var[count].copy(temp_pointer);
+											else if (temp_pointer->prop == arg_v)
+											{
+												multiple_var[count].copy(temp_pointer);
+												temp_pointer->point_right = NULL;//зануляем массив аргументов. Без очистки!
+											}
+										}
+										else //тут вегда подразумевается defnd функция с конст аргументами										
+											multiple_var[count].copy(temp_pointer);
+									}
+									pDest = temp;
+								}
+							}
+							else if ((*temp == NULL) || (*temp == '+') || (*temp == '-') || (*temp == '*') || (*temp == '/') || (*temp == '^'))
+							{
+								count_var = -1;
+							}
+							else
+							{
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+								return NULL;
+							}
+							if (current_element->type == funct)
+							{
+								//если все аргументы полученные от функции либо константы, либо конст. выражения, либо функции с конст аргументами
+								if (count_var == 0)
+								{
+									temp_pointer = new math_obj(low_pointer);
+									temp_pointer->point_right = multiple_var;
+									multiple_var = NULL;
+									temp_pointer->prop = arg_c;//указываем что аргументы - константы
+									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+									{
+										high_pointer->point_right->point_right = temp_pointer;
 									}
 									else
 									{
-										high_pointer->point_right = new var_const(low_pointer);
-										high_pointer->point_right->var_id.replace(high_pointer->point_right->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+										high_pointer->point_right = temp_pointer;
 									}
 									low_pointer = high_pointer->point_right;
 								}
+								//в качестве аргументов есть переменные
 								else
 								{
-									//тут нужна доп проверка на именные функции. для них всегда надо явно указывать переменные.
-									current_element->var_id.replace(0, 6, L"funct@");
-									current_element->var_id.replace(current_element->var_id.find_first_of(L'#') + 1, 5, L"undef");
-									current_element->var_id.insert(current_element->var_id.find_first_of(L'#'), L"(" + low_pointer->read(L"nvar") + L")");
-									//копия переменной с указателем на функцию
-									current_element->point_collar = new var_const(low_pointer->point_collar);
-									current_element->point_collar->point_collar = current_element;
-									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->read(L"name") == L"minus"))
+									temp_pointer = new math_obj(low_pointer);
+									if (count_var != -1)
 									{
-										high_pointer->point_right->point_right = new var_const(low_pointer);
-										high_pointer->point_right->point_right->var_id.replace(high_pointer->point_right->point_right->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+										temp_pointer->point_right = multiple_var;
+										multiple_var = NULL;
+										temp_pointer->prop = arg_v;//указываем что среди аргументов есть переменные
+									}
+									//если список переменных не замкнут
+									if (current_element->point_collar->point_right == NULL)
+									{
+										current_element->arg_copy_plus_1();
+										current_element->point_right[(int)current_element->var - 1] = temp_pointer;
+										temp_pointer = NULL;
+										temp_pointer = current_element->var_list_back();
+										temp_pointer->point_left = new math_obj(&temporary_variable);
+										temp_pointer->point_left->point_right = temp_pointer;
+										temp_pointer->point_left->var = current_element->var - 1;
+
+										if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+										{
+											high_pointer->point_right->point_right = temp_pointer->point_left;
+											high_pointer->point_right->prop = arg_v;
+										}
+										else
+										{
+											high_pointer->point_right = temp_pointer->point_left;
+										}
+										low_pointer = high_pointer->point_right;
+
+									}
+									//замкнут
+									else
+									{
+										//если среди переменных аргументов найденной функции есть хоть один не входящий в замкнутый список
+										if (current_element->var_list_compare(temp_pointer) != 0)
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
+										//все переменные найденной функции входят в список переменных текущего элемента
+										else
+										{
+											//копия найденной функции добавляется в выражение
+											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+											{
+												high_pointer->point_right->point_right = temp_pointer;
+												high_pointer->point_right->prop = arg_v;
+											}
+											else
+											{
+												high_pointer->point_right = temp_pointer;
+											}
+											low_pointer = high_pointer->point_right;
+										}
+									}
+								}
+							}
+							else if (current_element->type == exprs)
+							{
+								//текущий элемент остаётся выражением.
+								if (count_var == 0)
+								{
+									temp_pointer = new math_obj(low_pointer);
+									temp_pointer->point_right = multiple_var;
+									multiple_var = NULL;
+									temp_pointer->prop = arg_c;//указываем что аргументы - константы
+
+									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+									{
+										high_pointer->point_right->point_right = temp_pointer;
+
 									}
 									else
 									{
-										high_pointer->point_right = new var_const(low_pointer);
-										high_pointer->point_right->var_id.replace(high_pointer->point_right->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+										high_pointer->point_right = temp_pointer;
 									}
 									low_pointer = high_pointer->point_right;
+								}
+								//текущий элемент становится функцией.
+								else
+								{
+									temp_pointer = new math_obj(low_pointer);
+									temp_pointer->point_right = multiple_var;
+									multiple_var = NULL;
+									temp_pointer->prop = arg_v;//указываем что среди аргументов есть переменные
+									current_element->type = funct;
+									current_element->prop = arg_v;
+									current_element->point_right = temp_pointer; //полагаем новую неопределённую функцию, которая зависит от какой-либо переменной,
+																								//имеющей аргумент в виде другой (определённой) функции. При этом если окажется, что
+																								//в выражении участвуют несколько функций (f+g), то функция, котрая их объединяет
+																								//будет считаться функцией нескольких переменных, 
+																								//даже если все функции в её выражении зависят от одной и той же переменной.
+																								//копия служебной переменной с указателем на функцию, которая иемеет номер ноль
+									current_element->point_collar = new math_obj(&temporary_variable);
+									current_element->point_collar->var = 0; //просто для достоверности)
+									current_element->point_collar->point_collar = current_element;
+
+									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+									{
+										high_pointer->point_right->point_right = current_element->point_collar;
+										high_pointer->point_right->prop = arg_v;
+									}
+									else
+									{
+										high_pointer->point_right = current_element->point_collar;
+									}
+									low_pointer = high_pointer->point_right;
+									current_element->var = 1; //количество переменных
+									
 								}
 							}
 						}
 					}
 				}
 			}
-
 			return current_element;
 		}
 
 
 		/*Функция выполняет проверку/анализ результата заполнения дерева операций и запросов пользователя.
 		Возвращает строку с результатом текущей итерации вычислений.*/
-		wstring analized_output(wchar_t* _pDest, wchar_t* _endPtr, var_const* _current_element)
+		wstring analized_output(wchar_t* _pDest, wchar_t* _endPtr, math_obj* _current_element)
 		{
-			var_const* CE = filling_vector(_pDest, _endPtr, _current_element, 0);
-			if ((general_var_const->back()->read(L"type") == L"exprs") || (general_var_const->back()->point_left == NULL))
-				general_var_const->pop_back();
+			math_obj* CE = filling_vector(_pDest, _endPtr, _current_element, 0);
 			wstring output;
+			math_obj* temp;
 			size_t output_size;
-			//if (_current_element->read(L"type") == L"error")
 			if (CE == NULL)
 			{
 				ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
 				ProjectError::GetProjectLastError(err);
 				return err->GetErrorWStr();
 			}
-			else if (CE->read(L"type") == L"exprs")
+			else if (CE->type == exprs)
 			{
 				CE->arithmetic();
 				output = to_string(CE->var, var_type::FRACTIONAL, 2);
 				CE->tree_destruct();
-				delete CE;				
+				delete CE;
 			}
-			else if (CE->read(L"type") == L"equat")
+			else if (CE->type == equat)
 			{
 				// ну делать тут как бы ничего не надо. Пользователь вбил уравнение и оно просто записалось. Когда научимся делать парралельные потоки вычислений можно на этом
 				//моменте решать это уравнение с низким приоритетом, чтобы когда пользователь запросил ответ - вычисления занимали меньше времени - для него.
@@ -1879,60 +2542,93 @@ namespace Project {
 				//thread* ptTest;	//для глобальной видимости потока, можно глобально хранить на него указатель
 				//ptTest = new thread(testfunc);	//инициализировать, и он сразу запуститься
 				//mut->unlock();
+				CE->actn = solve;
+				general_var_const->push_back(CE);
 			}
-			else if (CE->read(L"type") == L"funct")
+			else if (CE->type == funct)
 			{
-				if (CE->read(L"prop") == L"solve")//тут ещё условие
+				if (CE->actn == solve)
 				{
-					if (CE->point_right == NULL)
+					if (CE->prop == arg_c)
 					{
-						output = CE->expresion(1);
-						CE->var_id.replace(CE->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+						CE->arithmetic();
+						output = to_string(CE->var, var_type::FRACTIONAL, 2);
+						CE->tree_destruct();
+						delete CE;
 					}
 					else
 					{
-						CE->arithmetic();
+						output = CE->expresion(1);
 					}
 				}
-				else if (CE->read(L"prop") == L"undef")
-				{
-					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
-					ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
-					ProjectError::GetProjectLastError(err);
-					return err->GetErrorWStr();
-				}
-				else if (CE->read(L"prop") == L"defnd")
+				else if (CE->actn == write)
 				{
 					//опять же, видимой реакции от программы быть не должно. Забили функцию - записали. Возможно в отдельный поток отдать разложение сложной функции 
 					//на элементарные. Можно и не в отдельный, врядли там будет высокая сложность вычислений
+
+					if (CE->name.size() != 0)
+					{
+						CE->actn = L"";
+						temp = run_vector(CE->name);
+						if (temp == NULL)
+						{
+							general_var_const->push_back(CE);
+						}
+						else
+						{
+							temp->tree_destruct();
+							for (int count = 0; count < general_var_const->size(); count++)
+							{
+								if (temp == general_var_const->at(count))
+								{
+									general_var_const->at(count) = CE;
+									delete temp;
+									break;
+								}
+							}
+						}
+					}
+					else
+					{
+						//ошибка
+					}
 				}
+				else
+				{
+					//сюда попасть не должны. На всякий случай оставил удаление
+					CE->tree_destruct();
+					delete CE;
+				}				
 			}
-			else if (CE->read(L"type") == L"const")
+			else if (CE->type == cnst)
 			{
-				if (CE->read(L"prop") == L"solve")
+				if (CE->actn == solve)
 				{
 					//ответ 
 					output = to_string(CE->var, var_type::FRACTIONAL, 2);
-					CE->var_id.replace(CE->var_id.find_first_of(L'#') + 1, 5, L"defnd");
 
 				}
-				else if (CE->read(L"prop") == L"undef")
+				else if (CE->actn == write)
 				{
-					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
-					ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
-					ProjectError::GetProjectLastError(err);
-					return err->GetErrorWStr();
-				}
-				else if (CE->read(L"prop") == L"defnd")
-				{
-					//заполнили - посчитали
-					CE->arithmetic();
-					CE->tree_destruct();
+					if (CE->prop == undef)
+					{
+						CE->tree_destruct();
+						delete CE;
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
+						ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+						ProjectError::GetProjectLastError(err);
+						return err->GetErrorWStr();
+					}
+					else if (CE->prop == defnd)
+					{						
+						CE->arithmetic();
+						CE->tree_destruct();
+					}
 				}
 			}
-			else if (CE->read(L"type") == L"varbl")
+			else if (CE->type == varbl)
 			{
-				CE->var_id.replace(CE->var_id.find_first_of(L'#') + 1, 5, L"defnd");
+				delete CE;
 				//один из вариантов запроса на решение уравнения (скорее всего - последнего записанного)
 				ProjectError::SetProjectLastError(ProjectError::ErrorCode::IS_EQUATION);
 				ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
@@ -1958,12 +2654,12 @@ namespace Project {
 
 			size_t size_of_vect = general_var_const->size();
 
-			wstring temp = L"exprs@#undef";			
-			general_var_const->push_back(new var_const(temp, 0));
+
+			//general_var_const->push_back(new var_const(L"", exprs, undef, write, 0));
 
 			wchar_t* point_start = input;	//start pointer
 			wchar_t* point_end = input + wcslen(input) - 1;	//end pointer	
-			return analized_output(point_start, point_end, general_var_const->at(size_of_vect));
+			return analized_output(point_start, point_end, new math_obj(L"", exprs, undef, 0));
 		}
 	}
 }

@@ -55,6 +55,8 @@
 			UNEXPECTED_SYMBOL = 15,
 			//Неверное количество переменных в вызове функции
 			UNEQUAL_NUM_OF_VAR = 16,
+			//При вычислении нашлась функция с переменными аргументами
+			VARIABL_FUNCT = 17
 		};
 
 		//Преобразование кода в текстовое представление
@@ -105,6 +107,8 @@
 				return L"Неизвестный символ";
 			case ErrorCode::UNEQUAL_NUM_OF_VAR:
 				return L"Неверное количество переменных в вызове функции";
+			case ErrorCode::VARIABL_FUNCT:
+				return L"При вычислении нашлась функция с переменными аргументами";
 			case ErrorCode::UNREAL_ERROR:
 				return L"Невозможная ошибка!";
 			default:

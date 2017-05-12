@@ -9,10 +9,10 @@
 #include <vector>
 //#include <thread>
 //#include <mutex>
-#include "classes.h"
 #include "error.h"
 #include "IO.h"
 #include "filters.h"
+#include "classes.h"
 
 
 namespace Project {
@@ -306,12 +306,46 @@ namespace Project {
 							}
 							else if (current_element->prop == undef)
 							{
-								/*TODO:При определении уравнений необходимо будет прорабатывать списки переменных таким же образом, как при определении функций.
-								Возможен вариант оставлять уравнение в "сыром" виде, а делать всё при анализе.*/
-								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
+								if (current_element->actn == write)
 								{
+									//сразу создаём функцию с указателем на список переменных данной функции
+									temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", funct, undef, current_element->var, current_element->point_collar), brakets + brakets_counter);
+									if (temp_pointer = NULL)
+										return temp_pointer;
+									//если вылезло что угодно кроме функции - ошибка
+									if (temp_pointer->type != funct)
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
+										return NULL;
+									}
+									else
+									{
+										//забираем указатель сразу на дерево операций
+										current_element->point_left = temp_pointer->point_left;
+										current_element->prop = defnd;
+									}
+								}
+								else
+								{
+									/*При записи уравнений надо составлять общий список переменных в левой и правой частях. Поскольку это менее критично, чем при записи функций,
+									возможно данное действие оставить на последующий анализ уравнения
+									*/
+									temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+									if (temp_pointer = NULL)
+										return temp_pointer;
 									high_pointer = current_element;
 									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
+								}
+							}
+							else if (current_element->prop == arg_c)
+							{
+								temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+								if (temp_pointer = NULL)
+									return temp_pointer;
+								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
+								{
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
+									return NULL;
 								}
 								else if (temp_pointer->type == varbl)
 								{
@@ -321,82 +355,59 @@ namespace Project {
 										general_var_const->push_back(temp_pointer);
 									}
 									high_pointer = current_element;
-									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
+									current_element = new math_obj(L"", equat, unslv, write, 1, high_pointer, temp_pointer, temp_pointer);
 								}
 								else if (temp_pointer->type == funct)
 								{
-									high_pointer = current_element;
-									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
-								}
-							}
-							else if (current_element->prop == arg_c)
-							{
-								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
-								{
-									ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
-									return NULL;
-								}
-								else if (temp_pointer->type == varbl)
-								{
-
-								}
-								else if (temp_pointer->type == funct)
-								{
-
+									if (temp_pointer->prop == arg_c)
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
+										return NULL;
+									}
+									else
+									{
+										high_pointer = current_element;
+										current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer->point_collar);
+									}
 								}
 							}
 							else if (current_element->prop == arg_v)
 							{
-								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
-								{
-
-								}
-								else if (temp_pointer->type == varbl)
-								{
-
-								}
-								else if (temp_pointer->type == funct)
-								{
-
-								}
+								temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+								if (temp_pointer = NULL)
+									return temp_pointer;
+								high_pointer = current_element;
+								current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer->point_collar);
 							}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 						}
 						else if (current_element->type == exprs)
-						{
+						{							
+							temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+							if (temp_pointer = NULL)
+								return temp_pointer;
 							//слева - конст выражение - справа функция => уравнение
 							if (temp_pointer->type == funct)
 							{
-								current_element->type = equat;
-								current_element->point_right = temp_pointer;
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new math_obj(temp_pointer->point_collar);
-								current_element->point_collar->point_collar = current_element;
-								current_element->prop = unslv;
+								if (temp_pointer->prop == arg_c)
+								{
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
+									return NULL;
+								}
+								else
+								{
+									high_pointer = current_element;
+									current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer->point_collar);
+								}
 							}
 							else if (temp_pointer->type == varbl)
 							{
-								current_element->type = equat;
-								current_element->point_right = temp_pointer;
-								//тут уже должна вылезать копия переменной
-								current_element->point_collar = temp_pointer;
-								current_element->point_collar->point_collar = current_element;
-								current_element->prop = unslv;
+								if (temp_pointer->prop == undef)
+								{
+									temp_pointer->prop = defnd;
+									general_var_const->push_back(temp_pointer);
+								}
+								high_pointer = current_element;
+								current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer);
 							}
 							else if ((temp_pointer->type == cnst) || (temp_pointer->type == exprs))
 							{
@@ -639,7 +650,7 @@ namespace Project {
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						//создание элемента класса и запись числа, воротник -> константу
-						current_element->point_left = new math_obj(general_var_const->at(2));
+						current_element->point_left = new math_obj(general_var_const->at(3));
 						current_element->point_left->type = defnd;
 
 						//оба указателя -> на число, тебуется для проверки условия при записи операции
@@ -670,7 +681,7 @@ namespace Project {
 								//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
 								high_pointer->point_right = new math_obj(L"+", addit, brakets_counter + brakets, low_pointer, NULL, high_pointer);
 								high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
-								high_pointer->point_right = new math_obj(general_var_const->at(2));
+								high_pointer->point_right = new math_obj(general_var_const->at(3));
 								high_pointer->point_right->type = defnd;
 								low_pointer = high_pointer->point_right;
 							}
@@ -685,7 +696,7 @@ namespace Project {
 									current_element->point_left->point_collar = high_pointer;
 									//указываем левым рукавом константы на созданную операцию
 									current_element->point_left = high_pointer;
-									high_pointer->point_right = new math_obj(general_var_const->at(2));
+									high_pointer->point_right = new math_obj(general_var_const->at(3));
 									high_pointer->point_right->type = defnd;
 									low_pointer = high_pointer->point_right;
 								}
@@ -695,11 +706,10 @@ namespace Project {
 									high_pointer->point_right->point_collar = new math_obj(L"+", addit, brakets_counter + brakets, high_pointer->point_right, NULL, high_pointer);
 									high_pointer->point_right = high_pointer->point_right->point_collar;
 									high_pointer = high_pointer->point_right;
-									high_pointer->point_right = new math_obj(general_var_const->at(2));
+									high_pointer->point_right = new math_obj(general_var_const->at(3));
 									high_pointer->point_right->type = defnd;
 									low_pointer = high_pointer->point_right;
 								}
-
 							}
 						}
 					}
@@ -2462,6 +2472,7 @@ namespace Project {
 		{
 			math_obj* CE = filling_vector(_pDest, _endPtr, _current_element, 0);
 			wstring output;
+			math_obj* temp;
 			size_t output_size;
 			if (CE == NULL)
 			{
@@ -2485,32 +2496,57 @@ namespace Project {
 				//thread* ptTest;	//для глобальной видимости потока, можно глобально хранить на него указатель
 				//ptTest = new thread(testfunc);	//инициализировать, и он сразу запуститься
 				//mut->unlock();
+				CE->actn = solve;
+				general_var_const->push_back(CE);
 			}
 			else if (CE->type == funct)
 			{
-				if (CE->actn == solve)//тут ещё условие
+				if (CE->actn == solve)
 				{
-					if (CE->point_right == NULL)
+					if (CE->prop == arg_c)
 					{
-						output = CE->expresion(1);
+						CE->arithmetic();
+						output = to_string(CE->var, var_type::FRACTIONAL, 2);
+						CE->tree_destruct();
+						delete CE;
 					}
 					else
 					{
-						CE->arithmetic();
+						output = CE->expresion(1);
 					}
 				}
-				else if (CE->prop == undef)
-				{
-					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
-					ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
-					ProjectError::GetProjectLastError(err);
-					return err->GetErrorWStr();
-				}
-				else if (CE->prop == defnd)
+				else if (CE->actn == write)
 				{
 					//опять же, видимой реакции от программы быть не должно. Забили функцию - записали. Возможно в отдельный поток отдать разложение сложной функции 
 					//на элементарные. Можно и не в отдельный, врядли там будет высокая сложность вычислений
+					if (CE->name.size() != 0)
+					{
+						temp = run_vector(CE->name);
+						if (temp == NULL)
+						{
+							general_var_const->push_back(CE);
+						}
+						else
+						{
+							temp->tree_destruct();
+							for (int count = 0; count < general_var_const->size(); count++)
+							{
+								if (temp == general_var_const->at(count))
+								{
+									general_var_const->at(count) = CE;
+									delete temp;
+									break;
+								}
+							}
+						}
+					}
 				}
+				else
+				{
+					//сюда попасть не должны. На всякий случай оставил удаление
+					CE->tree_destruct();
+					delete CE;
+				}				
 			}
 			else if (CE->type == cnst)
 			{
@@ -2520,23 +2556,27 @@ namespace Project {
 					output = to_string(CE->var, var_type::FRACTIONAL, 2);
 
 				}
-				else if (CE->prop == undef)
+				else if (CE->actn == write)
 				{
-					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
-					ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
-					ProjectError::GetProjectLastError(err);
-					return err->GetErrorWStr();
-				}
-				else if (CE->prop == defnd)
-				{
-					//заполнили - посчитали
-					CE->arithmetic();
-					CE->tree_destruct();
+					if (CE->prop == undef)
+					{
+						CE->tree_destruct();
+						delete CE;
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
+						ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+						ProjectError::GetProjectLastError(err);
+						return err->GetErrorWStr();
+					}
+					else if (CE->prop == defnd)
+					{						
+						CE->arithmetic();
+						CE->tree_destruct();
+					}
 				}
 			}
 			else if (CE->type == varbl)
 			{
-				CE->type = defnd;
+				delete CE;
 				//один из вариантов запроса на решение уравнения (скорее всего - последнего записанного)
 				ProjectError::SetProjectLastError(ProjectError::ErrorCode::IS_EQUATION);
 				ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
@@ -2567,7 +2607,7 @@ namespace Project {
 
 			wchar_t* point_start = input;	//start pointer
 			wchar_t* point_end = input + wcslen(input) - 1;	//end pointer	
-			return analized_output(point_start, point_end, new math_obj(L"", exprs, undef, write, 0));
+			return analized_output(point_start, point_end, new math_obj(L"", exprs, undef, 0));
 		}
 	}
 }

@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Project {
 	namespace Filters {
 		class KalmanFilter {	//Простой, для одной переменной

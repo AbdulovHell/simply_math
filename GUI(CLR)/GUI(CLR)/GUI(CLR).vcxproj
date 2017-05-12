@@ -89,6 +89,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalUsingDirectories>..\..\src;%(AdditionalUsingDirectories)</AdditionalUsingDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -137,7 +138,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\classes.cpp" />
+    <ClCompile Include="..\..\src\core.cpp" />
+    <ClCompile Include="..\..\src\error.cpp" />
     <ClCompile Include="..\..\src\filters.cpp" />
+    <ClCompile Include="..\..\src\IO.cpp" />
     <ClCompile Include="MainForm.cpp" />
   </ItemGroup>
   <ItemGroup>

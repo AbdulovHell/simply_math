@@ -2,6 +2,9 @@
 #include <iostream>
 #include <vcclr.h>
 #include <Windows.h>
+#include "../../src/error.h"
+#include "../../src/IO.h"
+#include "../../src/filters.h"
 #include "../../src/core.h"
 
 namespace GUICLR {
@@ -288,8 +291,7 @@ namespace GUICLR {
 	}
 	private: System::Void clr_rst(System::Object^  sender, System::EventArgs^  e) {
 		textBox1->Clear();
-		Project::Core::general_var_const->clear();
-		delete Project::Core::general_var_const;
+		Project::Core::ClearGeneral();
 		Project::Core::Init();
 	}
 };

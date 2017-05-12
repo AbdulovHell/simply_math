@@ -2,6 +2,7 @@
 
 namespace Project {
 	namespace Filters {
+		//KalmanFilter
 		KalmanFilter::KalmanFilter(double f, double h, double r, double q) {
 			Q = q;
 			R = r;
@@ -24,5 +25,6 @@ namespace Project {
 			State = X0 + K * (data - H * X0);
 			Covariance = (1 - K * H) * P0;
 		}
+		//
 	}
 }

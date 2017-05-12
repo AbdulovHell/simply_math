@@ -1,6 +1,10 @@
-﻿namespace Project {
-	using namespace std;
+﻿#pragma once
+#ifndef ERROR_H
+#define ERROR_H
+#include <string>
 
+namespace Project {
+	using namespace std;
 	namespace ProjectError {
 
 		enum class ErrorCode : int {
@@ -16,9 +20,9 @@
 			INTERNAL_POINTER_ERR = -6,
 			//Пустые скобки ()
 			EMTY_BRACKETS = -2,
-			
 
-			
+
+
 
 			//Невозможная ошибка
 			UNREAL_ERROR = 0,
@@ -60,118 +64,31 @@
 		};
 
 		//Преобразование кода в текстовое представление
-		static wstring GetProjectError(ErrorCode code) {
-			switch (code)
-			{
-			case ErrorCode::VARBL_BLOCKED:
-				return L"Переопределение переменной в качестве константы";
-			case ErrorCode::UNDEFINED_FUNC:
-				return L"Неопределенная функция";
-			case ErrorCode::IMPLICIT_FUNC:
-				return L"Неявное вложение функции";
-			case ErrorCode::IS_EQUATION:
-				return L"Уравнения не реализованы";
-			case ErrorCode::MULTIPLE_VARIABLES:
-				return L"Функция/уравнение нескольких переменных";
-			case ErrorCode::INTERNAL_POINTER_ERR:
-				return L"Неверный указатель";
-			case ErrorCode::EMTY_BRACKETS:
-				return L"Пустые скобки ()";
-			case ErrorCode::EQUALY_FIRST:
-				return L"Строка начинается с '='";
-			case ErrorCode::EQUALY_MISSING:
-				return L"В выражении отсутствует знак '='";
-			case ErrorCode::LBRACKET_NOT_CLOSED:
-				return L"Не закрыта открывающая скобка";
-			case ErrorCode::USING_VAR_AS_FUNC:
-				return L"Использование переменной в качестве функции";
-			case ErrorCode::BAD_NAME:
-				return L"Имя переменной/функции не может начинаться с цифры";
-			case ErrorCode::UNEXPECTED_BRACKET:
-				return L"Неожиданное положение скобки в выражении";
-			case ErrorCode::UNDEFINED_VARIABLE:
-				return L"Неопределенная переменная";
-			case ErrorCode::UNEXPECTED_OPERATION:
-				return L"Неожиданная положение операции в выражении";
-			case ErrorCode::BRACKET_COUNT:
-				return L"Количество открывающих и закрывающих скобок не совпадает";
-			case ErrorCode::UNEXPECTED_EQUALY:
-				return L"Строка содержит более одного знака '='";
-			case ErrorCode::SERVICE_SYMBOL:
-				return L"Строка содержит служебные символы";
-			case ErrorCode::BOOL_EXPRESSION:
-				return L"Попытка получить результат булева выражения вне условной области";
-			case ErrorCode::FUNDAMENTAL_CONST:
-				return L"Попытка переопределить фундаментальную константу";
-			case ErrorCode::UNEXPECTED_SYMBOL:
-				return L"Неизвестный символ";
-			case ErrorCode::UNEQUAL_NUM_OF_VAR:
-				return L"Неверное количество переменных в вызове функции";
-			case ErrorCode::VARIABL_FUNCT:
-				return L"При вычислении нашлась функция с переменными аргументами";
-			case ErrorCode::UNREAL_ERROR:
-				return L"Невозможная ошибка!";
-			default:
-				return L"Unresolved error";
-			}
-		}
+		wstring GetProjectError(ErrorCode);
 
 		class _ErrorPresent {
 			wstring _textPresent;
 			ErrorCode _code;
 		public:
-			_ErrorPresent() {}
-			_ErrorPresent(ErrorCode code) {
-				_code = code;
-			}
+			_ErrorPresent();
+			_ErrorPresent(ErrorCode code);
 			//Конструктор, цепляющий последнюю ошибку программы
-			/*_ErrorPresent(bool last) {
-				if (last) {
-					ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
-					ProjectError::GetProjectLastError(err);
-					_textPresent= err->_textPresent;
-					_code = err->_code;
-					delete err;
-				}
-			}*/
+			_ErrorPresent(bool last);
 			//Представление кода как текст и сохранение в классе
-			void TextPresent() {
-				_textPresent = GetProjectError(_code);
-			}
+			void TextPresent();
 			//Возвращает текст ошибки
-			wstring GetErrorWStr() {
-				_textPresent = GetProjectError(_code);
-				return _textPresent;
-			}
+			wstring GetErrorWStr();
 			//Копирование
-            void copy(_ErrorPresent* orig) {
-                _code = orig->_code;
-				_textPresent = orig->_textPresent;
-			}
+			void copy(_ErrorPresent* orig);
 		};
 
-		//protected:
-		static Project::ProjectError::_ErrorPresent* last_err;
-		static int NewLastError;
-
 		//Передает в класс последнюю ошибку программы
-        static void GetProjectLastError(Project::ProjectError::_ErrorPresent* errprsnt) {
-			errprsnt->copy(last_err);
-			NewLastError = false;
-		}
+		void GetProjectLastError(Project::ProjectError::_ErrorPresent* errprsnt);
 		//Задает код текущей ошибки как последнюю
-        static void SetProjectLastError(Project::ProjectError::ErrorCode code) {
-			if (last_err) delete last_err;
-			last_err = new Project::ProjectError::_ErrorPresent(code);
-			NewLastError = true;
-		}
+		void SetProjectLastError(Project::ProjectError::ErrorCode code);
 		//Инициализация указателя последней ошибки, не обязательно
-		static void Init() {
-			Project::ProjectError::last_err = new Project::ProjectError::_ErrorPresent();
-		}
-
+		void Init();
 	};
-
 }
 
 #pragma region Пример 1
@@ -188,3 +105,5 @@
 //}
 
 #pragma endregion
+
+#endif //ERROR_H

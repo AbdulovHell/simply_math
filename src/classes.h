@@ -3,13 +3,48 @@
 #include <string>
 #include <stack>
 //#include "IO.h"
-
+//#include "error.h"
 
 namespace Project {
 	namespace Core {
 		using namespace std;
 		using namespace Project;
 		using namespace Project::IO;
+
+		//ГІГЁГЇГ» Г®ГЎГљГҐГЄГІГ®Гў	(type)	
+		wstring cnst = L"const";
+		wstring funct = L"funct";
+		wstring varbl = L"varbl";
+		wstring equat = L"equat";
+		wstring exprs = L"exprs";
+		wstring numbr = L"numbr";
+		wstring addit = L"oper+";
+		wstring mltpl = L"oper*";
+		wstring divis = L"oper/";
+		wstring power = L"oper^";
+		//Г±ГўГ®Г©Г±ГІГўГ  Г®ГЎГљГҐГЄГІГ®Гў (prop)		
+		wstring defnd = L"defnd";//Г®ГЎГ№ГҐГҐ Г±ГўГ®Г©Г±ГІГўГ®
+		wstring undef = L"undef";//Г®ГЎГ№ГҐГҐ Г±ГўГ®Г©Г±ГІГўГ®
+
+		wstring arg_c = L"arg_c"; //ГґГіГ­ГЄГ¶ГЁГї Г± ГЄГ®Г­Г±ГІГ Г­ГІГ­Г»Г¬ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІГ Г¬ГЁ
+		wstring arg_v = L"arg_v"; //ГґГіГ­ГЄГ¶ГЁГї Г± ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Г¬ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІГ Г¬ГЁ 
+		wstring empty = L"empty"; //"ГЇГіГ±ГІГ Гї" ГґГіГ­ГЄГ¶ГЁГї. Г‘ГўГ®Г©Г±ГІГўГ® ГЁГ¬ГҐГ­Г­Г»Гµ Г­ГҐГЁГ­ГЁГ¶ГЁГ Г«ГЁГ§ГЁГ°Г®ГўГ Г­Г­Г»Гµ ГґГіГ­ГЄГ¶ГЁГ©
+
+		wstring fundm = L"fundm";//Г”ГіГ­Г¤Г Г¬ГҐГ­ГІГ Г«ГјГ­Г Гї ГЄГ®Г­Г±ГІГ Г­ГІГ 
+
+		wstring unslv = L"unslv";//Г±ГўГ®Г©Г±ГІГўГ® ГіГ°Г ГўГ­ГҐГ­ГЁГ© ГЁ ГґГіГ­ГЄГ¶ГЁГ© Г®ГІ ГЄГ®Г­Г±ГІ ГўГ»Г°Г Г¦ГҐГ­ГЁГ©
+		wstring solvd = L"solvd";//Г±ГўГ®Г©Г±ГІГўГ® ГіГ°Г ГўГ­ГҐГ­ГЁГ© ГЁ ГґГіГ­ГЄГ¶ГЁГ© Г®ГІ ГЄГ®Г­Г±ГІ ГўГ»Г°Г Г¦ГҐГ­ГЁГ©
+
+		wstring real = L"real_";//Г±ГўГ®Г©Г±ГІГўГ  Г·ГЁГ±ГҐГ«
+		wstring cmplx = L"cmplx";//Г±ГўГ®Г©Г±ГІГўГ  Г·ГЁГ±ГҐГ«
+
+		wstring servc = L"servc";//Г±ГўГ®Г©Г±ГІГўГ® Г±Г«ГіГ¦ГҐГЎГ­Г»Гµ Г®ГЎГєГҐГЄГІГ®Гў
+								 //Г¤ГҐГ©Г±ГІГўГЁГї Г­Г Г¤ Г®ГЎГєГҐГЄГІГ Г¬ГЁ (actn)
+		wstring solve = L"solve";
+		wstring write = L"write";
+		wstring read = L"read_";
+
+
 		class math_obj {
 		private:
 			int tree_destruct_processing(math_obj* pointer)
@@ -17,7 +52,7 @@ namespace Project {
 				if (pointer == NULL) return 0;
 				int temp = 0;
 
-				if (pointer->type == numbr)
+				if ((pointer->type == numbr)|| (pointer->type == cnst))
 				{
 					delete pointer;
 					pointer = NULL;
@@ -44,16 +79,24 @@ namespace Project {
 					if (pointer->prop == undef)
 					{
 						temp += tree_destruct_processing(pointer->point_left);
-						temp += tree_destruct_processing(pointer->point_right);
-						delete pointer->point_collar;
+						temp += tree_destruct_processing(pointer->point_collar);		
 						delete pointer;
 						pointer = NULL;
 						return temp;
 					}
-					else
+					else if(pointer->prop == defnd)
+					{	
+						delete pointer;
+						pointer = NULL;
+						return temp;
+					}
+					else if ((pointer->prop == arg_c) || (pointer->prop == arg_v))
 					{
-						temp += tree_destruct_processing(pointer->point_right);
-						delete pointer->point_collar;
+						//ГІГіГІ ГЇГ®ГЄГ  ГіГІГҐГ·ГЄГ  ГЇГ Г¬ГїГІГЁ Г®Г±ГІГ ВёГІГ±Гї
+						if (pointer->var>1)
+							delete []pointer->point_right;
+						else
+							delete pointer->point_right;
 						delete pointer;
 						pointer = NULL;
 						return temp;
@@ -64,55 +107,48 @@ namespace Project {
 
 			math_obj *prioritize_processing(math_obj *pc, int current_priority)
 			{
-				//если приоритет проверяемой операции !БОЛЬШЕ! текущей операции
+				//ГҐГ±Г«ГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГЇГ°Г®ГўГҐГ°ГїГҐГ¬Г®Г© Г®ГЇГҐГ°Г Г¶ГЁГЁ !ГЃГЋГ‹ГњГГ…! ГІГҐГЄГіГ№ГҐГ© Г®ГЇГҐГ°Г Г¶ГЁГЁ
 				if (pc->get_priority() > current_priority)
 				{
-					//вызываем метод ещё раз для следующей операции
+					//ГўГ»Г§Г»ГўГ ГҐГ¬ Г¬ГҐГІГ®Г¤ ГҐГ№Вё Г°Г Г§ Г¤Г«Гї Г±Г«ГҐГ¤ГіГѕГ№ГҐГ© Г®ГЇГҐГ°Г Г¶ГЁГЁ
 					return prioritize_processing(pc, current_priority);
 				}
-				//если приоритет проверяемой операции !МЕНЬШЕ! или равен приоритету текущей операции
+				//ГҐГ±Г«ГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГЇГ°Г®ГўГҐГ°ГїГҐГ¬Г®Г© Г®ГЇГҐГ°Г Г¶ГЁГЁ !ГЊГ…ГЌГњГГ…! ГЁГ«ГЁ Г°Г ГўГҐГ­ ГЇГ°ГЁГ®Г°ГЁГІГҐГІГі ГІГҐГЄГіГ№ГҐГ© Г®ГЇГҐГ°Г Г¶ГЁГЁ
 				else
 				{
-					//вернуть указатель на проверенную операцию
+					//ГўГҐГ°Г­ГіГІГј ГіГЄГ Г§Г ГІГҐГ«Гј Г­Г  ГЇГ°Г®ГўГҐГ°ГҐГ­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
 					return pc;
 				}
 			}
 
-			double processing(math_obj *pointer, math_obj * last_func)
+			double arithmetic_processing(math_obj *pointer, math_obj * last_arg)
 			{
-				//TODO: застраховать от ошибок вычисления
-
 				if (pointer->type == addit)
-					return processing(pointer->point_left, last_func) + processing(pointer->point_right, last_func);
+					return arithmetic_processing(pointer->point_left, last_arg) + arithmetic_processing(pointer->point_right, last_arg);
 				else if (pointer->type == mltpl)
-					return processing(pointer->point_left, last_func) * processing(pointer->point_right, last_func);
+					return arithmetic_processing(pointer->point_left, last_arg) * arithmetic_processing(pointer->point_right, last_arg);
 				else if (pointer->type == divis)
-					return processing(pointer->point_left, last_func) / processing(pointer->point_right, last_func);
+					return arithmetic_processing(pointer->point_left, last_arg) / arithmetic_processing(pointer->point_right, last_arg);
 				else if (pointer->type == power)
-					return pow(processing(pointer->point_left, last_func), processing(pointer->point_right, last_func));
+					return pow(arithmetic_processing(pointer->point_left, last_arg), arithmetic_processing(pointer->point_right, last_arg));
 				else if ((pointer->type == numbr) || (pointer->type == cnst))
 					return pointer->var;
 				else if (pointer->type == exprs)
-					return processing(pointer->point_left, last_func);
-				//для функции - просто проходим по указателю дальше к выражению для неё
+					return arithmetic_processing(pointer->point_left, last_arg);
+				//Г¤Г«Гї ГґГіГ­ГЄГ¶ГЁГЁ - ГЇГ°Г®Г±ГІГ® ГЇГ°Г®ГµГ®Г¤ГЁГ¬ ГЇГ® ГіГЄГ Г§Г ГІГҐГ«Гѕ Г¤Г Г«ГјГёГҐ ГЄ ГўГ»Г°Г Г¦ГҐГ­ГЁГѕ Г¤Г«Гї Г­ГҐВё
 				else if (pointer->type == funct)
 				{
-					//возможно существует более изящное решение для функции знак, но я не придумал. Только прямо проверять знак числа - сравнивать с нулём.
-					/*if (pointer->read(L"name") == L"sgn")
-					{
-					return signum(processing(pointer->point_right, pointer));
-					}
-					else*/ if (pointer->name == L"root")
-					{
-						return sqrt(processing(pointer->point_right, last_func));
-					}
-					else
-						return processing(pointer->point_left, pointer);
+					if (pointer->prop==arg_c)
+						return arithmetic_processing(pointer->point_left, pointer->point_right);
+						else
+						{
+							//Г«Г®ГўГЁГІГј ГЅГІГі Г®ГёГЁГЎГЄГі ГЇГ®Г±Г«ГҐ ГўГ»ГЇГ®Г«Г­ГҐГ­ГЁГї Г Г°ГЁГґГ¬ГҐГІГЁГ·ГҐГ±ГЄГ®ГЈГ® Г¬ГҐГІГ®Г¤Г .
+							ProjectError::SetProjectLastError(ProjectError::ErrorCode::VARIABL_FUNCT);
+							return 0;
+						}
 				}
-				//когда находим переменную - ссылаемся на функцию для этой переменной, потом на выражение/константу/число вложенную в данную функцию. 
-				//Поэтому у каждой функции должна быть переменная с уникальным указателем
 				else if (pointer->type == varbl)
-					return processing(last_func->point_right, last_func);
+					return arithmetic_processing(&last_arg[(int)pointer->var], last_arg);
 			}
 
 			wstring expression_processing(math_obj *pointer, int* comma)
@@ -226,7 +262,7 @@ namespace Project {
 				math_obj* mass_arg = new math_obj[size]; 
 				for (int count = 0; count < size; count ++)
 				{
-					mass_arg[count].copy = var_list;
+					mass_arg[count].copy(var_list);
 					mass_arg[count].point_left = NULL;
 					mass_arg[count].point_right = NULL;
 					mass_arg[count].point_collar = NULL;
@@ -256,7 +292,7 @@ namespace Project {
 				}
 				else
 				{
-					iter = var_list_back_processing(var_list);//указатель на последний элемент списка
+					iter = var_list_back_processing(var_list);//ГіГЄГ Г§Г ГІГҐГ«Гј Г­Г  ГЇГ®Г±Г«ГҐГ¤Г­ГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ Г±ГЇГЁГ±ГЄГ 
 					for (int count = 0; count < size; count++)
 					{
 						place = find_varbl_processing(var_list, &mass_arg[count]);
@@ -323,7 +359,7 @@ namespace Project {
 			}
 
 		public:
-			//Нулевой конструктор
+			//ГЌГіГ«ГҐГўГ®Г© ГЄГ®Г­Г±ГІГ°ГіГЄГІГ®Г°
 			math_obj()
 			{
 				name = L"";
@@ -338,7 +374,7 @@ namespace Project {
 				point_collar = NULL;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ЧИСЛО типа double) 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double) 
 			math_obj(wstring _name, double _num)
 			{
 				name = _name;
@@ -353,7 +389,7 @@ namespace Project {
 				point_collar = NULL;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ТИП объекта, ЧИСЛО типа double) 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double) 
 			math_obj(wstring _name, wstring _type, double _num)
 			{
 				name = _name;
@@ -368,7 +404,7 @@ namespace Project {
 				point_collar = NULL;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ЧИСЛО типа double) 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г‘Г‚ГЋГ‰Г‘Г’Г‚ГЋ Г®ГЎГєГҐГЄГІГ , Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double) 
 			math_obj(wstring _name, wstring _type, wstring _prop, double _num)
 			{
 				name = _name;
@@ -383,7 +419,7 @@ namespace Project {
 				point_collar = NULL;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ДЕЙСТВИЕ над объектом (указание), ЧИСЛО типа double) 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г‘Г‚ГЋГ‰Г‘Г’Г‚ГЋ Г®ГЎГєГҐГЄГІГ , Г„Г…Г‰Г‘Г’Г‚Г€Г… Г­Г Г¤ Г®ГЎГєГҐГЄГІГ®Г¬ (ГіГЄГ Г§Г Г­ГЁГҐ), Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double) 
 			math_obj(wstring _name, wstring _type, wstring _prop, wstring _actn, double _num)
 			{
 				name = _name;
@@ -398,7 +434,7 @@ namespace Project {
 				point_collar = NULL;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "воротник") 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double, Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГўГ®Г°Г®ГІГ­ГЁГЄ") 
 			math_obj(wstring _name, double _num, math_obj *_pc)
 			{
 				name = _name;
@@ -413,7 +449,7 @@ namespace Project {
 				point_collar = _pc;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ТИП объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "воротник") 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double, Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГўГ®Г°Г®ГІГ­ГЁГЄ") 
 			math_obj(wstring _name, wstring _type, double _num, math_obj *_pc)
 			{
 				name = _name;
@@ -428,7 +464,7 @@ namespace Project {
 				point_collar = _pc;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "воротник") 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г‘Г‚ГЋГ‰Г‘Г’Г‚ГЋ Г®ГЎГєГҐГЄГІГ , Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double, Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГўГ®Г°Г®ГІГ­ГЁГЄ") 
 			math_obj(wstring _name, wstring _type, wstring _prop, double _num, math_obj *_pc)
 			{
 				name = _name;
@@ -443,7 +479,7 @@ namespace Project {
 				point_collar = _pc;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ДЕЙСТВИЕ над объектом (указание), ЧИСЛО типа double, УКАЗАТЕЛЬ "воротник") 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г‘Г‚ГЋГ‰Г‘Г’Г‚ГЋ Г®ГЎГєГҐГЄГІГ , Г„Г…Г‰Г‘Г’Г‚Г€Г… Г­Г Г¤ Г®ГЎГєГҐГЄГІГ®Г¬ (ГіГЄГ Г§Г Г­ГЁГҐ), Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double, Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГўГ®Г°Г®ГІГ­ГЁГЄ") 
 			math_obj(wstring _name, wstring _type, wstring _prop, wstring _actn, double _num, math_obj *_pc)
 			{
 				name = _name;
@@ -458,7 +494,7 @@ namespace Project {
 				point_collar = _pc;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав") 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double, Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "Г«ГҐГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГЇГ°Г ГўГ»Г© Г°ГіГЄГ Гў") 
 			math_obj(wstring _name, double _num, math_obj * _pl, math_obj *_pr) {
 				name = _name;
 				type = L"";
@@ -472,7 +508,7 @@ namespace Project {
 				point_collar = NULL;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ТИП объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав") 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double, Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "Г«ГҐГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГЇГ°Г ГўГ»Г© Г°ГіГЄГ Гў") 
 			math_obj(wstring _name, wstring _type, double _num, math_obj * _pl, math_obj *_pr) {
 				name = _name;
 				type = _type;
@@ -486,7 +522,7 @@ namespace Project {
 				point_collar = NULL;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав") 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г‘Г‚ГЋГ‰Г‘Г’Г‚ГЋ Г®ГЎГєГҐГЄГІГ , Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double, Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "Г«ГҐГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГЇГ°Г ГўГ»Г© Г°ГіГЄГ Гў") 
 			math_obj(wstring _name, wstring _type, wstring _prop, double _num, math_obj * _pl, math_obj *_pr) {
 				name = _name;
 				type = _type;
@@ -500,7 +536,7 @@ namespace Project {
 				point_collar = NULL;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ДЕЙСТВИЕ над объектом (указание), ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав") 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г‘Г‚ГЋГ‰Г‘Г’Г‚ГЋ Г®ГЎГєГҐГЄГІГ , Г„Г…Г‰Г‘Г’Г‚Г€Г… Г­Г Г¤ Г®ГЎГєГҐГЄГІГ®Г¬ (ГіГЄГ Г§Г Г­ГЁГҐ), Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double, Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "Г«ГҐГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГЇГ°Г ГўГ»Г© Г°ГіГЄГ Гў") 
 			math_obj(wstring _name, wstring _type, wstring _prop, wstring _actn, double _num, math_obj * _pl, math_obj *_pr) {
 				name = _name;
 				type = _type;
@@ -514,7 +550,7 @@ namespace Project {
 				point_collar = NULL;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник") 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double, Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "Г«ГҐГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГЇГ°Г ГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГўГ®Г°Г®ГІГ­ГЁГЄ") 
 			math_obj(wstring _name, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc) {
 				name = _name;
 				type = L"";
@@ -528,7 +564,7 @@ namespace Project {
 				point_collar = _pc;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ТИП объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник") 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double, Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "Г«ГҐГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГЇГ°Г ГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГўГ®Г°Г®ГІГ­ГЁГЄ") 
 			math_obj(wstring _name, wstring _type, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc) {
 				name = _name;
 				type = _type;
@@ -542,7 +578,7 @@ namespace Project {
 				point_collar = _pc;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник") 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г‘Г‚ГЋГ‰Г‘Г’Г‚ГЋ Г®ГЎГєГҐГЄГІГ , Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double, Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "Г«ГҐГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГЇГ°Г ГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГўГ®Г°Г®ГІГ­ГЁГЄ") 
 			math_obj(wstring _name, wstring _type, wstring _prop, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc) {
 				name = _name;
 				type = _type;
@@ -556,7 +592,7 @@ namespace Project {
 				point_collar = _pc;
 			}
 
-			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ДЕЙСТВИЕ над объектом (указание), ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник") 
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° Г§Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г‘Г‚ГЋГ‰Г‘Г’Г‚ГЋ Г®ГЎГєГҐГЄГІГ , Г„Г…Г‰Г‘Г’Г‚Г€Г… Г­Г Г¤ Г®ГЎГєГҐГЄГІГ®Г¬ (ГіГЄГ Г§Г Г­ГЁГҐ), Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double, Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "Г«ГҐГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГЇГ°Г ГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГўГ®Г°Г®ГІГ­ГЁГЄ") 
 			math_obj(wstring _name, wstring _type, wstring _prop, wstring _actn, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc) {
 				name = _name;
 				type = _type;
@@ -570,7 +606,7 @@ namespace Project {
 				point_collar = _pc;
 			}
 
-			//Полный конструктор. Записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ДЕЙСТВИЕ над объектом (указание), ЧИСЛО типа double (модуль), ЧИСЛО типа double (аргумент), ЧИСЛО типа int (степень 10), УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник") 
+			//ГЏГ®Г«Г­Г»Г© ГЄГ®Г­Г±ГІГ°ГіГЄГІГ®Г°. Г‡Г ГЇГЁГ±Г»ГўГ ГҐГІ (Г€ГЊГџ Г®ГЎГєГҐГЄГІГ , Г’Г€ГЏ Г®ГЎГєГҐГЄГІГ , Г‘Г‚ГЋГ‰Г‘Г’Г‚ГЋ Г®ГЎГєГҐГЄГІГ , Г„Г…Г‰Г‘Г’Г‚Г€Г… Г­Г Г¤ Г®ГЎГєГҐГЄГІГ®Г¬ (ГіГЄГ Г§Г Г­ГЁГҐ), Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double (Г¬Г®Г¤ГіГ«Гј), Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  double (Г Г°ГЈГіГ¬ГҐГ­ГІ), Г—Г€Г‘Г‹ГЋ ГІГЁГЇГ  int (Г±ГІГҐГЇГҐГ­Гј 10), Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "Г«ГҐГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГЇГ°Г ГўГ»Г© Г°ГіГЄГ Гў", Г“ГЉГЂГ‡ГЂГ’Г…Г‹Гњ "ГўГ®Г°Г®ГІГ­ГЁГЄ") 
 			math_obj(wstring _name, wstring _type, wstring _prop, wstring _actn, double _num, double _arg, double _exp, math_obj * _pl, math_obj *_pr, math_obj *_pc) {
 				name = _name;
 				type = _type;
@@ -584,7 +620,7 @@ namespace Project {
 				point_collar = _pc;
 			}
 
-			//Конструктор копирования
+			//ГЉГ®Г­Г±ГІГ°ГіГЄГІГ®Г° ГЄГ®ГЇГЁГ°Г®ГўГ Г­ГЁГї
 			math_obj(math_obj* var1)
 			{
 				name = var1->name;
@@ -599,13 +635,13 @@ namespace Project {
 				point_collar = var1->point_collar;
 			}
 
-			//Деструктор
+			//Г„ГҐГ±ГІГ°ГіГЄГІГ®Г°
 			~math_obj()
 			{
 
 			}
 
-			//Метод копирования.
+			//ГЊГҐГІГ®Г¤ ГЄГ®ГЇГЁГ°Г®ГўГ Г­ГЁГї.
 			void copy(math_obj* ref) {
 				name = ref->name;
 				type = ref->type;
@@ -619,12 +655,12 @@ namespace Project {
 				point_collar = ref->point_collar;
 			}
 
-			/*Метод возвращает приоритет операции.
-			1 - сложение
-			2 - умножение
-			3 - деление
-			4 - возведение в степень
-			0 - не операция*/
+			/*ГЊГҐГІГ®Г¤ ГўГ®Г§ГўГ°Г Г№Г ГҐГІ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ Г®ГЇГҐГ°Г Г¶ГЁГЁ.
+			1 - Г±Г«Г®Г¦ГҐГ­ГЁГҐ
+			2 - ГіГ¬Г­Г®Г¦ГҐГ­ГЁГҐ
+			3 - Г¤ГҐГ«ГҐГ­ГЁГҐ
+			4 - ГўГ®Г§ГўГҐГ¤ГҐГ­ГЁГҐ Гў Г±ГІГҐГЇГҐГ­Гј
+			0 - Г­ГҐ Г®ГЇГҐГ°Г Г¶ГЁГї*/
 			int get_priority()
 			{
 				if (type == addit)
@@ -639,55 +675,74 @@ namespace Project {
 					return 0;
 			}
 
-			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и коструирующую строку с формальной записью текущего выражения.
-			Возвращает строку. ПОКА НЕ РАБОТАЕТ*/
+			/*ГЊГҐГІГ®Г¤ ГўГ»Г§Г»ГўГ ГҐГІ Г°ГҐГЄГіГ°Г±ГЁГўГ­ГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ, ГЇГ°Г®ГµГ®Г¤ГїГ№ГіГѕ ГЇГ® Г¤ГҐГ°ГҐГўГі Г®ГЇГҐГ°Г Г¶ГЁГ© ГЁ ГЄГ®Г±ГІГ°ГіГЁГ°ГіГѕГ№ГіГѕ Г±ГІГ°Г®ГЄГі Г± ГґГ®Г°Г¬Г Г«ГјГ­Г®Г© Г§Г ГЇГЁГ±ГјГѕ ГІГҐГЄГіГ№ГҐГЈГ® ГўГ»Г°Г Г¦ГҐГ­ГЁГї.
+			Г‚Г®Г§ГўГ°Г Г№Г ГҐГІ Г±ГІГ°Г®ГЄГі. ГЏГЋГЉГЂ ГЌГ… ГђГЂГЃГЋГ’ГЂГ…Г’*/
 			wstring expresion(int comma)
 			{
 				return name + L" = " + expression_processing(point_left, &comma);
 			}
 
-			/*Метод вызывает рекурсивную функцию проверки приоритета операций в текущем дереве операций.
-			Возвращает указатель на элемент дерева (операцию), имеющий приоритет меньший или равный в сравнении с текущим элементом. */
+			/*ГЊГҐГІГ®Г¤ ГўГ»Г§Г»ГўГ ГҐГІ Г°ГҐГЄГіГ°Г±ГЁГўГ­ГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ ГЇГ°Г®ГўГҐГ°ГЄГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІГ  Г®ГЇГҐГ°Г Г¶ГЁГ© Гў ГІГҐГЄГіГ№ГҐГ¬ Г¤ГҐГ°ГҐГўГҐ Г®ГЇГҐГ°Г Г¶ГЁГ©.
+			Г‚Г®Г§ГўГ°Г Г№Г ГҐГІ ГіГЄГ Г§Г ГІГҐГ«Гј Г­Г  ГЅГ«ГҐГ¬ГҐГ­ГІ Г¤ГҐГ°ГҐГўГ  (Г®ГЇГҐГ°Г Г¶ГЁГѕ), ГЁГ¬ГҐГѕГ№ГЁГ© ГЇГ°ГЁГ®Г°ГЁГІГҐГІ Г¬ГҐГ­ГјГёГЁГ© ГЁГ«ГЁ Г°Г ГўГ­Г»Г© Гў Г±Г°Г ГўГ­ГҐГ­ГЁГЁ Г± ГІГҐГЄГіГ№ГЁГ¬ ГЅГ«ГҐГ¬ГҐГ­ГІГ®Г¬. */
 			math_obj *prioritize(int current_priority)
 			{
 				return prioritize_processing(point_collar, current_priority);
 			}
 
-			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и выполняющую их.
-			Результатом работы метода является запись результата вычислений в double var текущего элемента класса. */
+			/*ГЊГҐГІГ®Г¤ ГўГ»Г§Г»ГўГ ГҐГІ Г°ГҐГЄГіГ°Г±ГЁГўГ­ГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ, ГЇГ°Г®ГµГ®Г¤ГїГ№ГіГѕ ГЇГ® Г¤ГҐГ°ГҐГўГі Г®ГЇГҐГ°Г Г¶ГЁГ© ГЁ ГўГ»ГЇГ®Г«Г­ГїГѕГ№ГіГѕ ГЁГµ.
+			ГђГҐГ§ГіГ«ГјГІГ ГІГ®Г¬ Г°Г ГЎГ®ГІГ» Г¬ГҐГІГ®Г¤Г  ГїГўГ«ГїГҐГІГ±Гї Г§Г ГЇГЁГ±Гј Г°ГҐГ§ГіГ«ГјГІГ ГІГ  ГўГ»Г·ГЁГ±Г«ГҐГ­ГЁГ© Гў double var ГІГҐГЄГіГ№ГҐГЈГ® ГЅГ«ГҐГ¬ГҐГ­ГІГ  ГЄГ«Г Г±Г±Г . */
 			void arithmetic()
 			{
-				wchar_t* id_a = wcsstr(&name[0], L"@");
-				wstring type;
-				type.assign(name, 0, 5);
-				if (type == L"funct")
+				if (type == funct)
 				{
-					var = processing(point_left, point_collar->point_collar);
+					if (prop ==arg_c)
+						var = arithmetic_processing(point_left, point_right);
+					else
+					{
+						//Г­ГЁГ·ГҐГЈГ® Г­ГҐ Г¤Г Г«Г ГІГј, Г¬Г®Г¦Г­Г® ГўГ»Г¤Г ГІГј Г®ГёГЁГЎГЄГі.
+					}
 				}
-				else
-					var = processing(point_left, NULL);
+				else if ((type == cnst)||(type== exprs))
+					var = arithmetic_processing(point_left, NULL);
+				else 
+				{
+					//Г­ГЁГ·ГҐГЈГ® Г­ГҐ Г¤ГҐГ«Г ГІГј			
+				}
 			}
 
-			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и очищающую память.
-			Метод должен возвращать число ошибок при использовании delete. Это надо дописать
+			/*ГЊГҐГІГ®Г¤ ГўГ»Г§Г»ГўГ ГҐГІ Г°ГҐГЄГіГ°Г±ГЁГўГ­ГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ, ГЇГ°Г®ГµГ®Г¤ГїГ№ГіГѕ ГЇГ® Г¤ГҐГ°ГҐГўГі Г®ГЇГҐГ°Г Г¶ГЁГ© ГЁ Г®Г·ГЁГ№Г ГѕГ№ГіГѕ ГЇГ Г¬ГїГІГј.
+			ГЊГҐГІГ®Г¤ Г¤Г®Г«Г¦ГҐГ­ ГўГ®Г§ГўГ°Г Г№Г ГІГј Г·ГЁГ±Г«Г® Г®ГёГЁГЎГ®ГЄ ГЇГ°ГЁ ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ Г­ГЁГЁ delete. ГќГІГ® Г­Г Г¤Г® Г¤Г®ГЇГЁГ±Г ГІГј
 			*/
 			int tree_destruct()
 			{
 				int s = 0;
-				if (point_left != NULL)
+				if ((type == cnst)||(type == exprs))
 				{
 					s += tree_destruct_processing(point_left);
 					point_left = NULL;
 				}
-				if (point_right != NULL)
+				else if (type == funct)
 				{
-					s += tree_destruct_processing(point_right);
-					point_right = NULL;
+					if ((prop == undef) || (prop == defnd))
+					{
+						s += tree_destruct_processing(point_left);
+						point_left = NULL;
+						s += tree_destruct_processing(point_collar);
+						point_collar = NULL;
+					}
+					else if ((prop == arg_c) || (prop == arg_v))
+					{
+						//ГІГіГІ ГЇГ®ГЄГ  ГіГІГҐГ·ГЄГ  ГЇГ Г¬ГїГІГЁ Г®Г±ГІГ ВёГІГ±Гї
+						if (var>1)
+							delete[]point_right;
+						else
+							delete point_right;						
+					}
 				}
-				if (point_collar != NULL) {
-					delete point_collar;
-					point_collar = NULL;
-				}
+				else if (type == equat)
+				{
+					//Г¤Г®ГЇГЁГ±Г ГІГј
+				}			
 				return s;
 			}
 
@@ -704,35 +759,35 @@ namespace Project {
 					return find_varbl_processing(point_collar, pointer);
 			}
 
-			/*Метод возвращает указатель на последний элемент списка переменных.
-			Если список уже замкнут - на элемент предшествующий нулевому (подобный запрос никогда не должен возникать).*/
+			/*ГЊГҐГІГ®Г¤ ГўГ®Г§ГўГ°Г Г№Г ГҐГІ ГіГЄГ Г§Г ГІГҐГ«Гј Г­Г  ГЇГ®Г±Г«ГҐГ¤Г­ГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ Г±ГЇГЁГ±ГЄГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ.
+			Г…Г±Г«ГЁ Г±ГЇГЁГ±Г®ГЄ ГіГ¦ГҐ Г§Г Г¬ГЄГ­ГіГІ - Г­Г  ГЅГ«ГҐГ¬ГҐГ­ГІ ГЇГ°ГҐГ¤ГёГҐГ±ГІГўГіГѕГ№ГЁГ© Г­ГіГ«ГҐГўГ®Г¬Гі (ГЇГ®Г¤Г®ГЎГ­Г»Г© Г§Г ГЇГ°Г®Г± Г­ГЁГЄГ®ГЈГ¤Г  Г­ГҐ Г¤Г®Г«Г¦ГҐГ­ ГўГ®Г§Г­ГЁГЄГ ГІГј).*/
 			math_obj *var_list_back()
 			{
 				return var_list_back_processing(point_collar);
 			}
 
-			/*Метод сравнивает список аргументов (хотя бы один из которых переменная) функции pointer со списком переменных данной функции.
-			Метод возвращает:
-			0 - список переменных pointer полностью входит в список переменных данной функции.
-			любое другое положительное целое - число различий списков функций.
+			/*ГЊГҐГІГ®Г¤ Г±Г°Г ГўГ­ГЁГўГ ГҐГІ Г±ГЇГЁГ±Г®ГЄ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў (ГµГ®ГІГї ГЎГ» Г®Г¤ГЁГ­ ГЁГ§ ГЄГ®ГІГ®Г°Г»Гµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї) ГґГіГ­ГЄГ¶ГЁГЁ pointer Г±Г® Г±ГЇГЁГ±ГЄГ®Г¬ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ Г¤Г Г­Г­Г®Г© ГґГіГ­ГЄГ¶ГЁГЁ.
+			ГЊГҐГІГ®Г¤ ГўГ®Г§ГўГ°Г Г№Г ГҐГІ:
+			0 - Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ pointer ГЇГ®Г«Г­Г®Г±ГІГјГѕ ГўГµГ®Г¤ГЁГІ Гў Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ Г¤Г Г­Г­Г®Г© ГґГіГ­ГЄГ¶ГЁГЁ.
+			Г«ГѕГЎГ®ГҐ Г¤Г°ГіГЈГ®ГҐ ГЇГ®Г«Г®Г¦ГЁГІГҐГ«ГјГ­Г®ГҐ Г¶ГҐГ«Г®ГҐ - Г·ГЁГ±Г«Г® Г°Г Г§Г«ГЁГ·ГЁГ© Г±ГЇГЁГ±ГЄГ®Гў ГґГіГ­ГЄГ¶ГЁГ©.
 			*/
 			int var_list_compare(math_obj * pointer)
 			{
 				int count_var = 0;
 				int temp = 0;
-				//рассматриваются функции с аргументами (определённые и нет)
+				//Г°Г Г±Г±Г¬Г ГІГ°ГЁГўГ ГѕГІГ±Гї ГґГіГ­ГЄГ¶ГЁГЁ Г± Г Г°ГЈГіГ¬ГҐГ­ГІГ Г¬ГЁ (Г®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г»ГҐ ГЁ Г­ГҐГІ)
 				if (pointer->prop == arg_v) 
 				{
 					for (int count = 0; count < pointer->var; count++)
 					{
-						//если среди аргументов попалась переменная
+						//ГҐГ±Г«ГЁ Г±Г°ГҐГ¤ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў ГЇГ®ГЇГ Г«Г Г±Гј ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї
 						if (pointer->point_collar[count].type == varbl)
 						{
-							//если эта переменная не в списке данной функции
+							//ГҐГ±Г«ГЁ ГЅГІГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї Г­ГҐ Гў Г±ГЇГЁГ±ГЄГҐ Г¤Г Г­Г­Г®Г© ГґГіГ­ГЄГ¶ГЁГЁ
 							if (find_varbl_processing(point_collar, &pointer->point_collar[count]) == NULL)
 								count_var++;
 						}
-						//если функция
+						//ГҐГ±Г«ГЁ ГґГіГ­ГЄГ¶ГЁГї
 						else if (pointer->point_collar[count].type == funct)
 						{
 							temp = var_list_compare(&pointer->point_collar[count]);
@@ -741,11 +796,11 @@ namespace Project {
 						}
 						else
 						{
-							//если конст или выражение - ничего не делать
+							//ГҐГ±Г«ГЁ ГЄГ®Г­Г±ГІ ГЁГ«ГЁ ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ - Г­ГЁГ·ГҐГЈГ® Г­ГҐ Г¤ГҐГ«Г ГІГј
 						}
 					}
 				}
-				//рассматриваются функции без аргументов
+				//Г°Г Г±Г±Г¬Г ГІГ°ГЁГўГ ГѕГІГ±Гї ГґГіГ­ГЄГ¶ГЁГЁ ГЎГҐГ§ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў
 				else
 				{
 					math_obj * iter = pointer->point_collar;
@@ -759,19 +814,19 @@ namespace Project {
 				return count_var;
 			}
 
-			/*Метод присваивает point_right данной функции массив аргументов с пустым местом в конце и увеличивает число переменных функции.
-			Работает ТОЛЬКО для функций с незамкнутым списком переменных. Предыдущий массив удаляется
+			/*ГЊГҐГІГ®Г¤ ГЇГ°ГЁГ±ГўГ ГЁГўГ ГҐГІ point_right Г¤Г Г­Г­Г®Г© ГґГіГ­ГЄГ¶ГЁГЁ Г¬Г Г±Г±ГЁГў Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў Г± ГЇГіГ±ГІГ»Г¬ Г¬ГҐГ±ГІГ®Г¬ Гў ГЄГ®Г­Г¶ГҐ ГЁ ГіГўГҐГ«ГЁГ·ГЁГўГ ГҐГІ Г·ГЁГ±Г«Г® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ ГґГіГ­ГЄГ¶ГЁГЁ.
+			ГђГ ГЎГ®ГІГ ГҐГІ Г’ГЋГ‹ГњГЉГЋ Г¤Г«Гї ГґГіГ­ГЄГ¶ГЁГ© Г± Г­ГҐГ§Г Г¬ГЄГ­ГіГІГ»Г¬ Г±ГЇГЁГ±ГЄГ®Г¬ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ. ГЏГ°ГҐГ¤Г»Г¤ГіГ№ГЁГ© Г¬Г Г±Г±ГЁГў ГіГ¤Г Г«ГїГҐГІГ±Гї
 			*/
 			void arg_copy_plus_1()
 			{
 				math_obj * ar = new math_obj[var + 1];
 				if (point_right == NULL)
 				{
-					//если массива аргументов изначально нет (в записи функции встречались только переменные)
+					//ГҐГ±Г«ГЁ Г¬Г Г±Г±ГЁГўГ  Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў ГЁГ§Г­Г Г·Г Г«ГјГ­Г® Г­ГҐГІ (Гў Г§Г ГЇГЁГ±ГЁ ГґГіГ­ГЄГ¶ГЁГЁ ГўГ±ГІГ°ГҐГ·Г Г«ГЁГ±Гј ГІГ®Г«ГјГЄГ® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ)
 					math_obj *iter = point_collar;
 					for (int count = 0; count < var; count++)
 					{
-						ar[count].copy(iter);//тут вроде копирование происходит
+						ar[count].copy(iter);//ГІГіГІ ГўГ°Г®Г¤ГҐ ГЄГ®ГЇГЁГ°Г®ГўГ Г­ГЁГҐ ГЇГ°Г®ГЁГ±ГµГ®Г¤ГЁГІ
 						iter = iter->point_left;
 					}
 				}
@@ -790,7 +845,7 @@ namespace Project {
 
 			
 
-			/*Метод сортирует незамкнутый список переменных по алфавиту*/
+			/*ГЊГҐГІГ®Г¤ Г±Г®Г°ГІГЁГ°ГіГҐГІ Г­ГҐГ§Г Г¬ГЄГ­ГіГІГ»Г© Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ ГЇГ® Г Г«ГґГ ГўГЁГІГі*/
 			math_obj * sort_list(math_obj * var_list)
 			{
 				stack <math_obj*> sorting;
@@ -801,11 +856,11 @@ namespace Project {
 					sorting.top()->var = 0;
 					var_list = var_list->point_left;
 					sorting.top()->point_left = NULL;
-					if (sorting.size > 1)
+					if (sorting.size() > 1)
 					{
 						temp_var = sorting.top();
 						sorting.pop();
-						while ((sorting.size >= 1) && (temp_var->var == sorting.top()->var))
+						while ((sorting.size() >= 1) && (temp_var->var == sorting.top()->var))
 						{
 							temp_var = merge_lists(temp_var, sorting.top());
 							temp_var->var += 1;
@@ -814,11 +869,11 @@ namespace Project {
 						sorting.push(temp_var);
 					}
 				}
-				if (sorting.size > 1)
+				if (sorting.size() > 1)
 				{
 					temp_var = sorting.top();
 					sorting.pop();
-					while (sorting.size >= 1)
+					while (sorting.size() >= 1)
 					{
 						temp_var = merge_lists(temp_var, sorting.top());
 						temp_var->var += 1;
@@ -835,7 +890,7 @@ namespace Project {
 				
 			}
 
-			/*Медод определения функции. Создаёт список переменных, от которых зависит функция, основываясь на списке переменных и аргументов функции pointer.*/
+			/*ГЊГҐГ¤Г®Г¤ Г®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГї ГґГіГ­ГЄГ¶ГЁГЁ. Г‘Г®Г§Г¤Г ВёГІ Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ, Г®ГІ ГЄГ®ГІГ®Г°Г»Гµ Г§Г ГўГЁГ±ГЁГІ ГґГіГ­ГЄГ¶ГЁГї, Г®Г±Г­Г®ГўГ»ГўГ ГїГ±Гј Г­Г  Г±ГЇГЁГ±ГЄГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў ГґГіГ­ГЄГ¶ГЁГЁ pointer.*/
 			void define_funct(math_obj *pointer)
 			{
 				math_obj* temp_pointer;
@@ -852,7 +907,7 @@ namespace Project {
 				}
 				else if (pointer->prop == undef)
 				{
-					//простой случай: f=x+y*6..., где все буквенные выражения (x,y,...) - переменные и нет аргументов
+					//ГЇГ°Г®Г±ГІГ®Г© Г±Г«ГіГ·Г Г©: f=x+y*6..., ГЈГ¤ГҐ ГўГ±ГҐ ГЎГіГЄГўГҐГ­Г­Г»ГҐ ГўГ»Г°Г Г¦ГҐГ­ГЁГї (x,y,...) - ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ ГЁ Г­ГҐГІ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў
 					point_collar = sort_list(pointer->point_collar);
 					temp_pointer = var_list_back_processing(point_collar);
 					var = temp_pointer->var + 1;
@@ -887,11 +942,11 @@ namespace Project {
 			wstring prop;
 			wstring actn;
 			double var;
-			double arg; //может пригодится.
+			double arg; //Г¬Г®Г¦ГҐГІ ГЇГ°ГЁГЈГ®Г¤ГЁГІГ±Гї.
 			int exp;
-			math_obj *point_left;		//левый рукав
-			math_obj *point_right;		//правый рукав
-			math_obj *point_collar;	//воротник
+			math_obj *point_left;		//Г«ГҐГўГ»Г© Г°ГіГЄГ Гў
+			math_obj *point_right;		//ГЇГ°Г ГўГ»Г© Г°ГіГЄГ Гў
+			math_obj *point_collar;	//ГўГ®Г°Г®ГІГ­ГЁГЄ
 		};
 	}
 };

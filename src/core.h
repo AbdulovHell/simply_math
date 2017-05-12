@@ -9,10 +9,11 @@
 #include <vector>
 //#include <thread>
 //#include <mutex>
+#include "classes.h"
 #include "error.h"
 #include "IO.h"
 #include "filters.h"
-#include "classes.h"
+
 
 namespace Project {
 	namespace Core {
@@ -20,47 +21,17 @@ namespace Project {
 		using namespace std;
 		using namespace Project;
 		using namespace Project::IO;
-		/*
-		//ГІГЁГЇГ» Г®ГЎГљГҐГЄГІГ®Гў	(type)	
-		wstring cnst = L"const";
-		wstring funct = L"funct";
-		wstring varbl = L"varbl";
-		wstring equat = L"equat";
-		wstring exprs = L"exprs";
-		wstring numbr = L"numbr";
-		wstring addit = L"oper+";
-		wstring mltpl = L"oper*";
-		wstring divis = L"oper/";
-		wstring power = L"oper^";
-		//Г±ГўГ®Г©Г±ГІГўГ  Г®ГЎГљГҐГЄГІГ®Гў (prop)		
-		wstring defnd = L"defnd";//Г®ГЎГ№ГҐГҐ Г±ГўГ®Г©Г±ГІГўГ®
-		wstring undef = L"undef";//Г®ГЎГ№ГҐГҐ Г±ГўГ®Г©Г±ГІГўГ®
 
-		wstring arg_c = L"arg_c"; //ГґГіГ­ГЄГ¶ГЁГї Г± ГЄГ®Г­Г±ГІГ Г­ГІГ­Г»Г¬ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІГ Г¬ГЁ
-		wstring arg_v = L"arg_v"; //ГґГіГ­ГЄГ¶ГЁГї Г± ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Г¬ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІГ Г¬ГЁ 
-		wstring empty = L"empty"; //"ГЇГіГ±ГІГ Гї" ГґГіГ­ГЄГ¶ГЁГї. Г‘ГўГ®Г©Г±ГІГўГ® ГЁГ¬ГҐГ­Г­Г»Гµ Г­ГҐГЁГ­ГЁГ¶ГЁГ Г«ГЁГ§ГЁГ°Г®ГўГ Г­Г­Г»Гµ ГґГіГ­ГЄГ¶ГЁГ©
+		
+		
 
-		wstring fundm = L"fundm";//Г”ГіГ­Г¤Г Г¬ГҐГ­ГІГ Г«ГјГ­Г Гї ГЄГ®Г­Г±ГІГ Г­ГІГ 
-
-		wstring unslv = L"unslv";//Г±ГўГ®Г©Г±ГІГўГ® ГіГ°Г ГўГ­ГҐГ­ГЁГ© ГЁ ГґГіГ­ГЄГ¶ГЁГ© Г®ГІ ГЄГ®Г­Г±ГІ ГўГ»Г°Г Г¦ГҐГ­ГЁГ©
-		wstring solvd = L"solvd";//Г±ГўГ®Г©Г±ГІГўГ® ГіГ°Г ГўГ­ГҐГ­ГЁГ© ГЁ ГґГіГ­ГЄГ¶ГЁГ© Г®ГІ ГЄГ®Г­Г±ГІ ГўГ»Г°Г Г¦ГҐГ­ГЁГ©
-
-		wstring real = L"real_";//Г±ГўГ®Г©Г±ГІГўГ  Г·ГЁГ±ГҐГ«
-		wstring cmplx = L"cmplx";//Г±ГўГ®Г©Г±ГІГўГ  Г·ГЁГ±ГҐГ«
-
-		wstring servc = L"servc";//Г±ГўГ®Г©Г±ГІГўГ® Г±Г«ГіГ¦ГҐГЎГ­Г»Гµ Г®ГЎГєГҐГЄГІГ®Гў
-		//Г¤ГҐГ©Г±ГІГўГЁГї Г­Г Г¤ Г®ГЎГєГҐГЄГІГ Г¬ГЁ (actn)
-		wstring solve = L"solve";
-		wstring write = L"write";
-		wstring read = L"read_";		
-		*/
-		//Г±ГІГ°ГіГЄГІГіГ°Г  ГµГ°Г Г­ГҐГ­ГЁГї Г¤Г Г­Г­Г»Гµ
+		//структура хранения данных
 		vector<math_obj*>* general_var_const;
 
 		math_obj pi = math_obj(L"pi", cnst, fundm, L"0", 3.1415926535897932384626433832);
 		math_obj e = math_obj(L"e", cnst, fundm, L"0", 2.7182818284590452353602874713527);
 		math_obj i = math_obj(L"i", cnst, fundm, L"0", 0);
-		//Г±Г«ГіГ¦ГҐГЎГ­Г Гї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї Г¤Г«Гї Г§Г ГЇГ®Г«Г­ГҐГ­ГЁГї "ГЇГіГ±ГІГ»Гµ" ГґГіГ­ГЄГ¶ГЁГ©, ГЇГ°Г®Г±ГІГ® ГўГЁГ±ГЁГІ ГІГіГІ, ГЎГҐГ§ Г¤Г®ГЎГ ГўГ«ГҐГ­ГЁГї Гў Г¬Г Г±Г±ГЁГў
+		//служебная переменная для заполнения "пустых" функций, просто висит тут, без добавления в массив
 		math_obj temporary_variable = math_obj(L"temporary_variable", varbl, servc, L"0", 0);
 
 
@@ -68,7 +39,7 @@ namespace Project {
 
 
 
-		//Г€Г­ГЁГ¶ГЁГ Г«ГЁГ§Г Г¶ГЁГї Г¬Г Г±Г±ГЁГўГ  ГЄГ®Г­Г±ГІГ Г­ГІ, ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ, ГґГіГ­ГЄГ¶ГЁГ© ГЁ ГіГ°Г ГўГ­ГҐГ­ГЁГ©
+		//Инициализация массива констант, переменных, функций и уравнений
 		void Init() {
 			ProjectError::Init();
 			math_obj* temp;
@@ -76,7 +47,7 @@ namespace Project {
 			general_var_const->push_back(&pi);
 			general_var_const->push_back(&e);
 			general_var_const->push_back(&i);
-			//Г¬ГЁГ­ГіГ±
+			//минус
 			{
 				general_var_const->push_back(new math_obj(L"minus", funct, empty, L"", 1, new math_obj(&temporary_variable)));
 				temp = general_var_const->back();
@@ -84,13 +55,13 @@ namespace Project {
 				temp->point_left = new math_obj(L"", mltpl, L"", L"", 0, new math_obj(L"0", -1), temp->point_collar, temp);
 			}
 
-			//ГЄГ®Г°ГҐГ­Гј (ГЇГ®ГЄГ  ГЄГўГ Г¤Г°Г ГІГ­Г»Г©)
+			//корень (пока квадратный)
 			{
 				general_var_const->push_back(new math_obj(L"root", funct, empty, L"", 0, new math_obj(&temporary_variable)));
 				temp = general_var_const->back();
 				temp->point_collar->point_collar = temp;
 			}
-			//Г¬Г®Г¤ГіГ«Гј (ГЄГ®Г°ГҐГ­Гј ГЁГ§ ГЄГўГ Г¤Г°Г ГІГ  Г·ГЁГ±Г«Г )
+			//модуль (корень из квадрата числа)
 			{
 				general_var_const->push_back(new math_obj(L"abs", funct, empty, L"", 0, new math_obj(&temporary_variable)));
 				general_var_const->back()->point_collar->point_collar = general_var_const->back();
@@ -98,7 +69,7 @@ namespace Project {
 				general_var_const->back()->point_left->point_collar->point_collar = general_var_const->back()->point_left;
 				general_var_const->back()->point_left->point_right = new math_obj(L"", power, L"", L"", 0, general_var_const->back()->point_collar, new math_obj(L"0", 2), NULL);
 			}
-			//Г§Г­Г ГЄ
+			//знак
 			{
 				temp = general_var_const->back();
 				general_var_const->push_back(new math_obj(L"sgn", funct, empty, L"", 0, new math_obj(&temporary_variable)));
@@ -115,7 +86,7 @@ namespace Project {
 			MessageBoxA(0,"testfunc","tThread",0);
 		}*/
 
-		//ГґГіГ­ГЄГ¶ГЁГї ГЇГ°Г®ГµГ®Г¤ГЁГІ ГЇГ® ГўГҐГЄГІГ®Г°Гі general_var_const ГЁ ГЁГ№ГҐГІ Г®ГЎГєГҐГЄГІ Г± Г­ГіГ¦Г­Г»Г¬ ГЁГ¬ГҐГ­ГҐГ¬
+		//функция проходит по вектору general_var_const и ищет объект с нужным именем
 		math_obj* run_vector(wstring _pv)
 		{
 			size_t temp_size_of_vect = general_var_const->size();
@@ -124,13 +95,13 @@ namespace Project {
 			{
 				try {
 					int iPv = _pv.length();
-					wstring wstr = general_var_const->at(count)->name;	//ГІГіГІ ГўГ»Г«ГҐГІ
+					wstring wstr = general_var_const->at(count)->name;	//тут вылет
 					int iVect = wstr.length();
 					if (iPv == iVect)
 						if (_pv.compare(general_var_const->at(count)->name) == 0)
 							return general_var_const->at(count);
 				}
-				catch (exception e) {	//ГўГ»Г¤Г ГҐГІ string too long ГЄГ Г°Г®Г·
+				catch (exception e) {	//выдает string too long кароч
 
 				}
 			}
@@ -147,8 +118,8 @@ namespace Project {
 			wchar_t* pDest = strPtr;
 			wchar_t* endPtr = ePtr;
 			unsigned int count, comma, count_var;
-			math_obj *high_pointer = NULL; //ГЇГ®Г±Г«ГҐГ¤Г­ГїГї Г§Г ГЇГЁГ±Г Г­Г­Г Гї Г®ГЇГҐГ°Г Г¶ГЁГї
-			math_obj *low_pointer = NULL; //ГЇГ®Г±Г«ГҐГ¤Г­ГїГї Г§Г ГЇГЁГ±Г Г­Г­Г Гї ГЄГ®Г­Г±ГІГ Г­ГІГ /ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї/Гґ-Г¶ГЁГї/ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ
+			math_obj *high_pointer = NULL; //последняя записанная операция
+			math_obj *low_pointer = NULL; //последняя записанная константа/переменная/ф-ция/выражение
 			math_obj *temp_pointer = NULL;
 			math_obj *multiple_var = NULL;
 			wchar_t* temp;
@@ -161,16 +132,16 @@ namespace Project {
 
 				if (*pDest == '=')
 				{
-					//ГҐГ±Г«ГЁ Г°Г ГўГ­Г® Г±ГІГ®ГЁГІ Гў Г±Г Г¬Г®Г¬ Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ
+					//если равно стоит в самом начале строки
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::EQUALY_FIRST);
 						return NULL;
 					}
-					//Г°Г ГўГ­Г® Гў ГЄГ®Г­Г¶ГҐ Г±ГІГ°Г®ГЄГЁ, Г§Г ГЇГ°Г®Г± Г­Г  Г¤ГҐГ©Г±ГІГўГЁГҐ
+					//равно в конце строки, запрос на действие
 					else if (pDest == endPtr)
 					{
-						//ГЇГ°Г®Г±ГІГ® ГўГ»Г¤Г ВёГ¬ Г­Г ГўГҐГ°Гµ ГІГҐГЄГіГ№ГЁГ© Г§Г ГЇГ®Г«Г­ГҐГ­Г­Г»Г© ГЅГ«ГҐГ¬ГҐГ­ГІ Г± ГЇГ Г°Г Г¬ГҐГІГ°Г®Г¬ solve, Г  ГІГ Г¬ ГіГ¦ГҐ ГЇГ»ГІГ ГҐГ¬Г±Гї ГҐГЈГ® Г°Г Г±Г·ГЁГІГ ГІГј ГЁ ГўГ»ГўГҐГ±ГІГЁ Г°ГҐГ§ГіГ«ГјГІГ ГІ ГЁГ«ГЁ Г±Г®Г®ГЎГ№ГЁГІГј Г®ГёГЁГЎГЄГі
+						//просто выдаём наверх текущий заполненный элемент с параметром solve, а там уже пытаемся его расчитать и вывести результат или сообщить ошибку
 						if (current_element->actn != write)
 							current_element->actn = solve;
 						else
@@ -214,7 +185,7 @@ namespace Project {
 							}
 							else if (temp_pointer->type == exprs)
 							{
-								//ГІГіГІ Г«ГѕГЎГ®ГЇГ»ГІГ­Г® ГЇГ®Г«ГіГ·ГЁГ«Г®Г±Гј. Г…Г±Г«ГЁ Г§Г ГЇГЁГ±Гј ГўГЁГ¤Г  Г±=Г±+1, ГЈГ¤ГҐ Г± ГЎГ»Г«Г  Г§Г ГЇГЁГ±Г Г­Г  ГЄГ ГЄ ГЄГ®Г­Г±ГІГ Г­ГІГ , ГЇГ°Г®ГЈГ°Г Г¬Г¬Г  Г±Г­Г Г·Г Г«Г  ГЇГ®Г±Г·ГЁГІГ ГҐГІ Г±Г® Г±ГІГ Г°Г»Г¬ Г§Г­Г Г·ГҐГ­ГЁГҐГ¬ Г± ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ, Г  ГЇГ®ГІГ®Г¬ - Г§Г ГЇГЁГёГҐГІ ГўГ¬ГҐГ±ГІГ® c.
+								//тут любопытно получилось. Если запись вида с=с+1, где с была записана как константа, программа сначала посчитает со старым значением с выражение, а потом - запишет вместо c.
 								current_element->point_left = temp_pointer->point_left;
 								current_element->prop = defnd;
 								current_element->actn = write;
@@ -233,13 +204,13 @@ namespace Project {
 							temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
 							if (temp_pointer = NULL)
 								return temp_pointer;
-							//ГІГіГІ ГЇГ°Г®ГЁГ±ГµГ®Г¤ГЁГІ ГЇГҐГ°ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г»Гµ Гў ГЄГ Г·ГҐГ±ГІГўГҐ ГґГіГ­ГЄГ¶ГЁГ©. ГЊГ®ГЈГіГІ ГўГ®Г§Г­ГЁГЄГ­ГіГІГј ГЇГ°Г®ГЎГ«ГҐГ¬Г», ГІ.ГЄ. ГЇГ®ГїГўГїГІГ±Гї Г¤ГўГ  Г°Г Г§Г­Г»Гµ ГЇГ® ГІГЁГЇГі Г®ГЎГєГҐГЄГІГ  Г± Г®Г¤Г­ГЁГ¬ ГЁГ¬ГҐГ­ГҐГ¬.
+							//тут происходит переопределение переменых в качестве функций. Могут возникнуть проблемы, т.к. появятся два разных по типу объекта с одним именем.
 							if (temp_pointer->type == funct)
 							{
 								low_pointer = temp_pointer->find_varbl(current_element);
 								if (low_pointer == NULL)
 								{
-									//ГҐГ±Г«ГЁ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї Г±Г«ГҐГўГ  Г®ГІ Г°Г ГўГ­Г® Г­ГҐ ГЇГ®ГїГўГ«ГїГҐГІГ±Гї Г±ГЇГ°Г ГўГ  - ГЇГҐГ°ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Гў ГґГіГ­ГЄГ¶ГЁГѕ. Г­-Г° : y=2*x+1
+									//если переменная слева от равно не появляется справа - переопределение переменной в функцию. н-р : y=2*x+1
 									current_element->define_funct(temp_pointer);
 									current_element->type = funct;
 									current_element->prop = defnd;
@@ -249,7 +220,7 @@ namespace Project {
 								else
 								{
 									delete current_element;
-									//ГҐГ±Г«ГЁ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї Г±Г«ГҐГўГ  Г®ГІ Г°Г ГўГ­Г® ГЇГ®ГїГўГ«ГїГҐГІГ±Гї ГІГ ГЄ Г¦ГҐ Г±ГЇГ°Г ГўГ  - ГіГ°Г ГўГ­ГҐГ­ГЁГҐ. Г­-Г° : x=2*x+1
+									//если переменная слева от равно появляется так же справа - уравнение. н-р : x=2*x+1
 									current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, low_pointer, temp_pointer, temp_pointer->point_collar);
 								}
 							}
@@ -257,7 +228,7 @@ namespace Project {
 							{
 								if (temp_pointer->name == current_element->name)
 								{
-									//ГўГЁГ¤ ГўГ»Г Г°Г Г¦ГҐГ­ГЁГї Гµ=Гµ, ГЈГ¤ГҐ Гµ - ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї. ГЌГҐ Г§Г­Г Гѕ Г·ГІГ® ГЅГІГ® Г¬Г®Г¦ГҐГІ Г§Г­Г Г·ГЁГІГј ГЁ ГЄГІГ® ГЇГ®Г¤Г®ГЎГ­Г®ГҐ Г­Г ГЇГЁГёГҐГІ
+									//вид выаражения х=х, где х - переменная. Не знаю что это может значить и кто подобное напишет
 								}
 								else
 								{
@@ -280,8 +251,8 @@ namespace Project {
 							}
 							else if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
 							{
-								/*ГўГ®Г®ГЎГ№ГҐ ГЇГ®Г¤Г®ГЎГ­Г®ГҐ ГЇГҐГ°ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Гў ГЄГ®Г­Г±ГІГ Г­ГІГі ГўГ®Г§Г¬Г®Г¦Г­Г® ГІГ®Г«ГјГЄГ® ГҐГ±Г«ГЁ ГЅГІГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї Г­ГҐ ГЁГ±ГЇГ®Г«ГјГ§ГіГҐГІГ±Гї Г­ГЁ Гў Г®Г¤Г­Г®Г© ГґГіГ­ГЄГ¶ГЁГЁ/ГіГ°Г ГўГ­ГҐГ­ГЁГЁ.
-								ГЏГ®Г±ГЄГ®Г«ГјГЄГі Г­Г  Г¤Г Г­Г­Г®Г¬ ГЅГІГ ГЇГҐ Г®ГЎГєГїГўГ«ГҐГ­ГЁГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ ГЄГ ГЄ Г®ГІГ¤ГҐГ«ГјГ­Г»Гµ Г®ГЎГєГҐГЄГІГ®Гў (Г­ГҐ Гў Г±Г®Г±ГІГ ГўГҐ ГґГіГ­ГЄГ¶ГЁГ©) Г­ГҐГўГ®Г§Г¬Г®Г¦Г­Г® - Г¤Г Г­Г­Г Гї Г§Г ГЇГЁГ±Гј ГЎГіГ¤ГҐГІ Г±Г·ГЁГІГ ГІГјГ±Гї Г®ГёГЁГЎГЄГ®Г©.
+								/*вообще подобное переопределение переменной в константу возможно только если эта переменная не используется ни в одной функции/уравнении.
+								Поскольку на данном этапе объявление переменных как отдельных объектов (не в составе функций) невозможно - данная запись будет считаться ошибкой.
 								*/
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::VARBL_BLOCKED);
 								return NULL;
@@ -295,9 +266,9 @@ namespace Project {
 								temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
 								if (temp_pointer = NULL)
 									return temp_pointer;
-								//Г±Г«ГіГ·Г Г© Г§Г ГЇГЁГ±ГЁ f=... ГЈГ¤ГҐ f - Г§Г Г°Г Г­ГҐГҐ Г®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г Гї ГґГіГ­ГЄГ¶ГЁГї.
-								//ГЇГ®Г«Г ГЈГ ГҐГ¬, Г·ГІГ® ГҐГ±Г«ГЁ ГЇГ®Г±Г«ГҐ Г°Г ГўГ­Г® Г­Г ГµГ®Г¤ГЁГІГ±Гї ГґГіГ­ГЄГ¶ГЁГї (Г­ГҐГўГ Г¦Г­Г® Г®ГІ ГЄГ ГЄГЁГµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ) - ГЇГҐГ°ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ f Г­Г®ГўГ»Г¬ ГўГ»Г°Г Г¦ГҐГ­ГЁГҐГ¬ (Г± Г­Г®ГўГ»Г¬ГЁ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Г¬ГЁ)
-								//ГҐГ±Г«ГЁ ГЇГ®Г±Г«ГҐ Г°Г ГўГ­Г® ГЄГ®Г­Г±ГІГ Г­ГІГ  ГЁГ«ГЁ ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ - ГіГ°Г ГўГ­ГҐГ­ГЁГҐ ГўГЁГ¤Г  f(x) = const
+								//случай записи f=... где f - заранее определённая функция.
+								//полагаем, что если после равно находится функция (неважно от каких переменных) - переопределение f новым выражением (с новыми переменными)
+								//если после равно константа или выражение - уравнение вида f(x) = const
 								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
 								{
 									high_pointer = current_element;
@@ -335,46 +306,12 @@ namespace Project {
 							}
 							else if (current_element->prop == undef)
 							{
-								if (current_element->actn == write)
-								{
-									//ГЇГ°ГЁ ГўГ»Г§Г®ГўГҐ ГґГіГ­ГЄГ¶ГЁГЁ Г§Г ГЇГ®Г«Г­ГҐГ­ГЁГї Г§Г Г°Г Г­ГҐГҐ ГіГЄГ Г§Г»ГўГ ГҐГІГ±Гї Г­Г ГЎГ®Г° ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ Г§Г ГЇГ®Г«Г­ГїГҐГ¬Г®Г© ГґГіГ­ГЄГ¶ГЁГЁ ГЁ ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
-									temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", funct, undef, current_element->var, current_element->point_collar), brakets + brakets_counter);
-									if (temp_pointer = NULL)
-										return temp_pointer;
-									//ГҐГ±Г«ГЁ ГўГ»Г«ГҐГ§Г«Г® ГўГ±Вё Г·ГІГ® ГіГЈГ®Г¤Г­Г® ГЄГ°Г®Г¬ГҐ ГґГіГ­ГЄГ¶ГЁГЁ - Г®ГёГЁГЎГЄГ 
-									if (temp_pointer->type != funct)
-									{
-										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
-										return NULL;
-									}
-									else
-									{
-										//ГіГЄГ Г§Г ГІГҐГ«Гј Г­Г  Г¤ГҐГ°ГҐГўГ® Г®ГЇГҐГ°Г Г¶ГЁГ©
-										current_element->point_left = temp_pointer->point_left;
-										current_element->prop = defnd;
-									}
-								}
-								else
-								{
-									/*Г­ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г Гї ГґГіГ­ГЄГ¶ГЁГї Г·ГҐГ¬Гі-ГІГ® Г°Г ГўГ­Г . Г‚Г±ГҐГЈГ¤Г  ГіГ°Г ГўГ­ГҐГ­ГЁГҐ, Г®Г¤Г­Г ГЄГ® ГІГ°ГҐГЎГіГҐГІГ±Гї ГЇГ°Г®ГўГҐГ°ГЄГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ Гў ГЇГ°Г ГўГ®Г© ГЁ Г«ГҐГўГ®Г© Г·Г Г±ГІГїГµ ГіГ°Г ГўГ­ГҐГ­ГЁГї.
-									Г¬Г®Г¦Г­Г® Г®Г±ГІГ ГўГЁГІГј Г­Г  ГЇГ®ГІГ®Г¬, Г­Г  Г Г­Г Г«ГЁГ§ ГіГ°Г ГўГ­ГҐГ­ГЁГї
-									*/
-									temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
-									if (temp_pointer = NULL)
-										return temp_pointer;
-									high_pointer = current_element;
-									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
-								}
-							}
-							else if (current_element->prop == arg_c)
-							{
-								temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
-								if (temp_pointer = NULL)
-									return temp_pointer;
+								/*TODO:При определении уравнений необходимо будет прорабатывать списки переменных таким же образом, как при определении функций.
+								Возможен вариант оставлять уравнение в "сыром" виде, а делать всё при анализе.*/
 								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
 								{
-									ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
-									return NULL;
+									high_pointer = current_element;
+									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
 								}
 								else if (temp_pointer->type == varbl)
 								{
@@ -384,72 +321,92 @@ namespace Project {
 										general_var_const->push_back(temp_pointer);
 									}
 									high_pointer = current_element;
-									current_element = new math_obj(L"", equat, unslv, write, 1, high_pointer, temp_pointer, temp_pointer);
+									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
 								}
 								else if (temp_pointer->type == funct)
 								{
-									if (temp_pointer->prop == arg_c)
-									{
-										ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
-										return NULL;
-									}
-									else
-									{
-										high_pointer = current_element;
-										current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer->point_collar);
-									}
+									high_pointer = current_element;
+									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
 								}
 							}
-							//Г®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г Гї Г§Г Г°Г Г­ГҐГҐ ГґГіГ­ГЄГ¶ГЁГї, ГЄГ®ГІГ®Г°Г®Г© ГЇГҐГ°ГҐГ¤Г Г­Г» ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ Г Г°ГЈГіГ¬ГҐГ­ГІГ». ГўГ­ГҐ Г§Г ГўГЁГ±ГЁГ¬Г®Г±ГІГЁ Г®ГІ ГўГ»Г°Г Г¦ГҐГ­ГЁГї Г±ГЇГ°Г ГўГ  - ГіГ°Г ГўГ­ГҐГ­ГЁГҐ. 
-							//ГЋГЇГїГІГј Г¦ГҐ Г®Г±ГІГ ВёГІГ±Гї ГўГ®ГЇГ°Г®Г± ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ.
-							else if (current_element->prop == arg_v)
+							else if (current_element->prop == arg_c)
 							{
-								temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
-								if (temp_pointer = NULL)
-									return temp_pointer;
-								high_pointer = current_element;
-								current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer->point_collar);
-							}
-						}
-						else if (current_element->type == exprs)
-						{
-							temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
-							if (temp_pointer = NULL)
-								return temp_pointer;
-							//Г±Г«ГҐГўГ  - ГЄГ®Г­Г±ГІ ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ - Г±ГЇГ°Г ГўГ  ГґГіГ­ГЄГ¶ГЁГї => ГіГ°Г ГўГ­ГҐГ­ГЁГҐ
-							if (temp_pointer->type == funct)
-							{
-								if (temp_pointer->prop == arg_c)
+								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
 								{
 									ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
 									return NULL;
 								}
-								else
+								else if (temp_pointer->type == varbl)
 								{
-									high_pointer = current_element;
-									current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer->point_collar);
+
 								}
+								else if (temp_pointer->type == funct)
+								{
+
+								}
+							}
+							else if (current_element->prop == arg_v)
+							{
+								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
+								{
+
+								}
+								else if (temp_pointer->type == varbl)
+								{
+
+								}
+								else if (temp_pointer->type == funct)
+								{
+
+								}
+							}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+						}
+						else if (current_element->type == exprs)
+						{
+							//слева - конст выражение - справа функция => уравнение
+							if (temp_pointer->type == funct)
+							{
+								current_element->type = equat;
+								current_element->point_right = temp_pointer;
+								//копия переменной с указателем на функцию
+								current_element->point_collar = new math_obj(temp_pointer->point_collar);
+								current_element->point_collar->point_collar = current_element;
+								current_element->prop = unslv;
 							}
 							else if (temp_pointer->type == varbl)
 							{
-								if (temp_pointer->prop == undef)
-									{
-										temp_pointer->prop = defnd;
-										general_var_const->push_back(temp_pointer);
-									}
-								high_pointer = current_element;
-								current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer);
+								current_element->type = equat;
+								current_element->point_right = temp_pointer;
+								//тут уже должна вылезать копия переменной
+								current_element->point_collar = temp_pointer;
+								current_element->point_collar->point_collar = current_element;
+								current_element->prop = unslv;
 							}
 							else if ((temp_pointer->type == cnst) || (temp_pointer->type == exprs))
 							{
-								//Г§Г ГЇГЁГ±Гј ГўГЁГ¤Г  2+3=7. ГЏГ®ГЄГ  Г­ГҐ Г§Г­Г Гѕ ГЄГ ГЄ Г°ГҐГ ГЈГЁГ°Г®ГўГ ГІГј Г­Г  ГІГ ГЄГ®ГҐ
+								//запись вида 2+3=7. Пока не знаю как реагировать на такое
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
 								return NULL;
 							}
 						}
 
 					}
-					//ГІГіГІ Г§Г ГЄГ Г­Г·ГЁГўГ ГҐГІГ±Гї Г±ГІГ°Г®ГЄГ .
 					pDest = endPtr + 1;
 				}
 				else if (*pDest == '+')
@@ -460,34 +417,34 @@ namespace Project {
 						return NULL;
 
 					}
-					//ГҐГ±Г«ГЁ ГЅГІГ® ГЇГҐГ°ГўГ Гї Г®ГЇГҐГ°Г Г¶ГЁГї Гў ГўГ»Г°Г Г¦ГҐГ­ГЁГЁ
+					//если это первая операция в выражении
 					else if (high_pointer == low_pointer)
 					{
-						//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГҐ Г·ГЁГ±Г«Г®, ГўГ®Г°Г®ГІГ­ГЁГЄ - Г­Г  ГІГҐГЄГіГ№ГіГѕ ГЄГ®Г­Г±ГІГ Г­ГІГі
+						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
 						current_element->point_left = new math_obj(L"+", addit, brakets_counter + brakets, low_pointer, NULL, current_element);
-						//Г«ГҐГўГ»Г© Г°ГіГЄГ Гў ГІГҐГЄГіГ№ГҐГ© ГўГ»Г·ГЁГ±Г«ГїГҐГ¬Г®Г© ГЄГ®Г­Г±ГІГ Г­ГІГ» ГіГЄГ Г§Г»ГўГ ГҐГІ Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_element->point_left;
 					}
-					//ГҐГ±Г«ГЁ ГЎГ»Г«Г  ГЄГ ГЄГ Гї-Г«ГЁГЎГ® Г®ГЇГҐГ°Г Г¶ГЁГї Г¤Г® ГЅГІГ®ГЈГ®
+					//если была какая-либо операция до этого
 					else
 					{
-						//ГҐГ±Г«ГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г®ГЎГ°Г ГЎГ®ГІГ Г­Г­Г®Г© Г®ГЇГҐГ°Г Г¶ГЁГЁ !ГЊГ…ГЌГњГГ…! ГЁГ«ГЁ Г°Г ГўГҐГ­  ГЇГ°ГЁГ®Г°ГЁГІГҐГІГі ГІГҐГЄГіГ№ГҐГ©
+						//если приоритет предыдущей обработанной операции !МЕНЬШЕ! или равен  приоритету текущей
 						if (high_pointer->get_priority() <= (brakets_counter + brakets + 1))
 						{
-							//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГҐ Г·ГЁГ±Г«Г®, ГўГ®Г°Г®ГІГ­ГЁГЄ Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
 							high_pointer->point_right = new math_obj(L"+", addit, brakets_counter + brakets, low_pointer, NULL, high_pointer);
-							high_pointer = high_pointer->point_right;                 //ГўГҐГ°ГµГ­ГЁГ© ГіГЄГ Г§Г ГІГҐГ«Гј -> Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
-						//ГҐГ±Г«ГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г®ГЎГ°Г ГЎГ®ГІГ Г­Г­Г®Г© Г®ГЇГҐГ°Г Г¶ГЁГЁ !ГЃГЋГ‹ГњГГ…! Г·ГҐГ¬ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГІГҐГЄГіГ№ГҐГ©
+						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
 						else
 						{
 							if (current_element->point_left->get_priority() >= (brakets_counter + brakets + 1))
 							{
-								//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ ГЄГ ГЄ Г±Г Г¬ГіГѕ Г«ВёГЈГЄГіГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГіГѕ Г­Г ГЁГ«ГҐГЈГ·Г Г©ГёГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ, ГўГ®Г°Г®ГІГ­ГЁГЄ - Г­Г  ГІГҐГЄГіГ№ГіГѕ ГЄГ®Г­Г±ГІГ Г­ГІГі
+								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
 								high_pointer = new math_obj(L"+", addit, brakets_counter + brakets, current_element->point_left, NULL, current_element);
-								//ГўГ®Г°Г®ГІГ­ГЁГЄ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г«ГҐГЈГ·Г Г©ГёГҐГ© Г®ГЇГҐГ°Г Г¶ГЁГЁ -> Г­Г  Г­Г®ГўГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_element->point_left->point_collar = high_pointer;
-								//ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г«ГҐГўГ»Г¬ Г°ГіГЄГ ГўГ®Г¬ ГЄГ®Г­Г±ГІГ Г­ГІГ» Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+								//указываем левым рукавом константы на созданную операцию
 								current_element->point_left = high_pointer;
 							}
 							else
@@ -510,40 +467,40 @@ namespace Project {
 				}
 				else if (*pDest == '*')
 				{
-					//ГҐГ±Г«ГЁ ГЅГІГ® ГЇГҐГ°ГўГ Гї Г®ГЇГҐГ°Г Г¶ГЁГї Гў ГўГ»Г°Г Г¦ГҐГ­ГЁГЁ
+					//если это первая операция в выражении
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
 						return NULL;
 					}
-					//ГҐГ±Г«ГЁ ГЅГІГ® ГЇГҐГ°ГўГ Гї Г®ГЇГҐГ°Г Г¶ГЁГї Гў ГўГ»Г°Г Г¦ГҐГ­ГЁГЁ
+					//если это первая операция в выражении
 					else if (high_pointer == low_pointer)
 					{
-						//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГҐ Г·ГЁГ±Г«Г®, ГўГ®Г°Г®ГІГ­ГЁГЄ - Г­Г  ГІГҐГЄГіГ№ГіГѕ ГЄГ®Г­Г±ГІГ Г­ГІГі
+						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
 						current_element->point_left = new math_obj(L"*", mltpl, brakets_counter + brakets, low_pointer, NULL, current_element);
-						//Г«ГҐГўГ»Г© Г°ГіГЄГ Гў ГІГҐГЄГіГ№ГҐГ© ГўГ»Г·ГЁГ±Г«ГїГҐГ¬Г®Г© ГЄГ®Г­Г±ГІГ Г­ГІГ» ГіГЄГ Г§Г»ГўГ ГҐГІ Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_element->point_left;
 					}
-					//ГҐГ±Г«ГЁ ГЎГ»Г«Г  ГЄГ ГЄГ Гї-Г«ГЁГЎГ® Г®ГЇГҐГ°Г Г¶ГЁГї Г¤Г® ГЅГІГ®ГЈГ®
+					//если была какая-либо операция до этого
 					else
 					{
-						//ГҐГ±Г«ГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г®ГЎГ°Г ГЎГ®ГІГ Г­Г­Г®Г© Г®ГЇГҐГ°Г Г¶ГЁГЁ !ГЊГ…ГЌГњГГ…! ГЁГ«ГЁ Г°Г ГўГҐГ­  ГЇГ°ГЁГ®Г°ГЁГІГҐГІГі ГІГҐГЄГіГ№ГҐГ©
+						//если приоритет предыдущей обработанной операции !МЕНЬШЕ! или равен  приоритету текущей
 						if (high_pointer->get_priority() <= (brakets_counter + brakets + 2))
 						{
-							//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГҐ Г·ГЁГ±Г«Г®, ГўГ®Г°Г®ГІГ­ГЁГЄ Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
 							high_pointer->point_right = new math_obj(L"*", mltpl, brakets_counter + brakets, low_pointer, NULL, high_pointer);
-							high_pointer = high_pointer->point_right;                 //ГўГҐГ°ГµГ­ГЁГ© ГіГЄГ Г§Г ГІГҐГ«Гј -> Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
-						//ГҐГ±Г«ГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г®ГЎГ°Г ГЎГ®ГІГ Г­Г­Г®Г© Г®ГЇГҐГ°Г Г¶ГЁГЁ !ГЃГЋГ‹ГњГГ…! Г·ГҐГ¬ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГІГҐГЄГіГ№ГҐГ©
+						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
 						else
 						{
 							if (current_element->point_left->get_priority() >= (brakets_counter + brakets + 2))
 							{
-								//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ ГЄГ ГЄ Г±Г Г¬ГіГѕ Г«ВёГЈГЄГіГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГіГѕ Г­Г ГЁГ«ГҐГЈГ·Г Г©ГёГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ, ГўГ®Г°Г®ГІГ­ГЁГЄ - Г­Г  ГІГҐГЄГіГ№ГіГѕ ГЄГ®Г­Г±ГІГ Г­ГІГі
+								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
 								high_pointer = new math_obj(L"*", mltpl, brakets_counter + brakets, current_element->point_left, NULL, current_element);
-								//ГўГ®Г°Г®ГІГ­ГЁГЄ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г«ГҐГЈГ·Г Г©ГёГҐГ© Г®ГЇГҐГ°Г Г¶ГЁГЁ -> Г­Г  Г­Г®ГўГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_element->point_left->point_collar = high_pointer;
-								//ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г«ГҐГўГ»Г¬ Г°ГіГЄГ ГўГ®Г¬ ГЄГ®Г­Г±ГІГ Г­ГІГ» Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+								//указываем левым рукавом константы на созданную операцию
 								current_element->point_left = high_pointer;
 							}
 							else
@@ -571,34 +528,34 @@ namespace Project {
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
 						return NULL;
 					}
-					//ГҐГ±Г«ГЁ ГЅГІГ® ГЇГҐГ°ГўГ Гї Г®ГЇГҐГ°Г Г¶ГЁГї Гў ГўГ»Г°Г Г¦ГҐГ­ГЁГЁ
+					//если это первая операция в выражении
 					else if (high_pointer == low_pointer)
 					{
-						//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГҐ Г·ГЁГ±Г«Г®, ГўГ®Г°Г®ГІГ­ГЁГЄ - Г­Г  ГІГҐГЄГіГ№ГіГѕ ГЄГ®Г­Г±ГІГ Г­ГІГі
+						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
 						current_element->point_left = new math_obj(L"/", divis, brakets_counter + brakets, low_pointer, NULL, current_element);
-						//Г«ГҐГўГ»Г© Г°ГіГЄГ Гў ГІГҐГЄГіГ№ГҐГ© ГўГ»Г·ГЁГ±Г«ГїГҐГ¬Г®Г© ГЄГ®Г­Г±ГІГ Г­ГІГ» ГіГЄГ Г§Г»ГўГ ГҐГІ Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_element->point_left;
 					}
-					//ГҐГ±Г«ГЁ ГЎГ»Г«Г  ГЄГ ГЄГ Гї-Г«ГЁГЎГ® Г®ГЇГҐГ°Г Г¶ГЁГї Г¤Г® ГЅГІГ®ГЈГ®
+					//если была какая-либо операция до этого
 					else
 					{
-						//ГҐГ±Г«ГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г®ГЎГ°Г ГЎГ®ГІГ Г­Г­Г®Г© Г®ГЇГҐГ°Г Г¶ГЁГЁ !ГЊГ…ГЌГњГГ…! ГЁГ«ГЁ Г°Г ГўГҐГ­  ГЇГ°ГЁГ®Г°ГЁГІГҐГІГі ГІГҐГЄГіГ№ГҐГ©
+						//если приоритет предыдущей обработанной операции !МЕНЬШЕ! или равен  приоритету текущей
 						if (high_pointer->get_priority() <= (brakets_counter + brakets + 3))
 						{
-							//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГҐ Г·ГЁГ±Г«Г®, ГўГ®Г°Г®ГІГ­ГЁГЄ Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
 							high_pointer->point_right = new math_obj(L"/", divis, brakets_counter + brakets, low_pointer, NULL, high_pointer);
-							high_pointer = high_pointer->point_right;                 //ГўГҐГ°ГµГ­ГЁГ© ГіГЄГ Г§Г ГІГҐГ«Гј -> Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
-						//ГҐГ±Г«ГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г®ГЎГ°Г ГЎГ®ГІГ Г­Г­Г®Г© Г®ГЇГҐГ°Г Г¶ГЁГЁ !ГЃГЋГ‹ГњГГ…! Г·ГҐГ¬ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГІГҐГЄГіГ№ГҐГ©
+						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
 						else
 						{
 							if (current_element->point_left->get_priority() >= (brakets_counter + brakets + 3))
 							{
-								//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ ГЄГ ГЄ Г±Г Г¬ГіГѕ Г«ВёГЈГЄГіГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГіГѕ Г­Г ГЁГ«ГҐГЈГ·Г Г©ГёГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ, ГўГ®Г°Г®ГІГ­ГЁГЄ - Г­Г  ГІГҐГЄГіГ№ГіГѕ ГЄГ®Г­Г±ГІГ Г­ГІГі
+								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
 								high_pointer = new math_obj(L"/", divis, brakets_counter + brakets, current_element->point_left, NULL, current_element);
-								//ГўГ®Г°Г®ГІГ­ГЁГЄ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г«ГҐГЈГ·Г Г©ГёГҐГ© Г®ГЇГҐГ°Г Г¶ГЁГЁ -> Г­Г  Г­Г®ГўГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_element->point_left->point_collar = high_pointer;
-								//ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г«ГҐГўГ»Г¬ Г°ГіГЄГ ГўГ®Г¬ ГЄГ®Г­Г±ГІГ Г­ГІГ» Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+								//указываем левым рукавом константы на созданную операцию
 								current_element->point_left = high_pointer;
 							}
 							else
@@ -627,34 +584,34 @@ namespace Project {
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
 						return NULL;
 					}
-					//ГҐГ±Г«ГЁ ГЅГІГ® ГЇГҐГ°ГўГ Гї Г®ГЇГҐГ°Г Г¶ГЁГї Гў ГўГ»Г°Г Г¦ГҐГ­ГЁГЁ
+					//если это первая операция в выражении
 					else if (high_pointer == low_pointer)
 					{
-						//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГҐ Г·ГЁГ±Г«Г®, ГўГ®Г°Г®ГІГ­ГЁГЄ - Г­Г  ГІГҐГЄГіГ№ГіГѕ ГЄГ®Г­Г±ГІГ Г­ГІГі
+						//записываем операцию, левый рукав -> на предыдущее число, воротник - на текущую константу
 						current_element->point_left = new math_obj(L"^", power, brakets_counter + brakets, low_pointer, NULL, current_element);
-						//Г«ГҐГўГ»Г© Г°ГіГЄГ Гў ГІГҐГЄГіГ№ГҐГ© ГўГ»Г·ГЁГ±Г«ГїГҐГ¬Г®Г© ГЄГ®Г­Г±ГІГ Г­ГІГ» ГіГЄГ Г§Г»ГўГ ГҐГІ Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+						//левый рукав текущей вычисляемой константы указывает на созданную операцию
 						high_pointer = current_element->point_left;
 					}
-					//ГҐГ±Г«ГЁ ГЎГ»Г«Г  ГЄГ ГЄГ Гї-Г«ГЁГЎГ® Г®ГЇГҐГ°Г Г¶ГЁГї Г¤Г® ГЅГІГ®ГЈГ®
+					//если была какая-либо операция до этого
 					else
 					{
-						//ГҐГ±Г«ГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г®ГЎГ°Г ГЎГ®ГІГ Г­Г­Г®Г© Г®ГЇГҐГ°Г Г¶ГЁГЁ !ГЊГ…ГЌГњГГ…! ГЁГ«ГЁ Г°Г ГўГҐГ­  ГЇГ°ГЁГ®Г°ГЁГІГҐГІГі ГІГҐГЄГіГ№ГҐГ©
+						//если приоритет предыдущей обработанной операции !МЕНЬШЕ! или равен  приоритету текущей
 						if (high_pointer->get_priority() <= (brakets_counter + brakets + 4))
 						{
-							//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГҐ Г·ГЁГ±Г«Г®, ГўГ®Г°Г®ГІГ­ГЁГЄ Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+							//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
 							high_pointer->point_right = new math_obj(L"^", power, brakets_counter + brakets, low_pointer, NULL, high_pointer);
-							high_pointer = high_pointer->point_right;                 //ГўГҐГ°ГµГ­ГЁГ© ГіГЄГ Г§Г ГІГҐГ«Гј -> Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+							high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
 						}
-						//ГҐГ±Г«ГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г®ГЎГ°Г ГЎГ®ГІГ Г­Г­Г®Г© Г®ГЇГҐГ°Г Г¶ГЁГЁ !ГЃГЋГ‹ГњГГ…! Г·ГҐГ¬ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГІГҐГЄГіГ№ГҐГ©
+						//если приоритет предыдущей обработанной операции !БОЛЬШЕ! чем приоритет текущей
 						else
 						{
 							if (current_element->point_left->get_priority() >= (brakets_counter + brakets + 4))
 							{
-								//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ ГЄГ ГЄ Г±Г Г¬ГіГѕ Г«ВёГЈГЄГіГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГіГѕ Г­Г ГЁГ«ГҐГЈГ·Г Г©ГёГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ, ГўГ®Г°Г®ГІГ­ГЁГЄ - Г­Г  ГІГҐГЄГіГ№ГіГѕ ГЄГ®Г­Г±ГІГ Г­ГІГі
+								//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
 								high_pointer = new math_obj(L"^", power, brakets_counter + brakets, current_element->point_left, NULL, current_element);
-								//ГўГ®Г°Г®ГІГ­ГЁГЄ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г«ГҐГЈГ·Г Г©ГёГҐГ© Г®ГЇГҐГ°Г Г¶ГЁГЁ -> Г­Г  Г­Г®ГўГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+								//воротник предыдущей легчайшей операции -> на новую операцию
 								current_element->point_left->point_collar = high_pointer;
-								//ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г«ГҐГўГ»Г¬ Г°ГіГЄГ ГўГ®Г¬ ГЄГ®Г­Г±ГІГ Г­ГІГ» Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+								//указываем левым рукавом константы на созданную операцию
 								current_element->point_left = high_pointer;
 							}
 							else
@@ -677,25 +634,25 @@ namespace Project {
 				}
 				else if (*pDest == '-')
 				{
-					//Г®ГЇГҐГ°Г Г¶ГЁГї Г¬ГЁГ­ГіГ± ГЇГ®Г­ГЁГ¬Г ГҐГІГ±Гї ГЄГ ГЄ Г±Г«Г®Г¦ГҐГ­ГЁГҐ Г± Г®ГІГ°ГЁГ¶Г ГІГҐГ«ГјГ­Г»Г¬ Г·ГЁГ±Г«Г®Г¬					
-					//ГҐГ±Г«ГЁ ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ Г­Г Г·ГЁГ­Г ГҐГІГ±Гї Г± Г¬ГЁГ­ГіГ±Г  (Г±Г«ГіГ·Г Г© ГЄГ®ГЈГ¤Г  ГЇГ®Г±Г«ГҐ Г¬ГЁГ­ГіГ±Г  ГЁГ¤ВёГІ Г·ГЁГ±Г«Г®, Г¬ГЁГ­ГіГ± ГЇГҐГ°ГҐГ¤ Г±ГЄГ®ГЎГЄГ®Г© Г­ГҐ Г°ГҐГ Г«ГЁГ§Г®ГўГ Г­)
+					//операция минус понимается как сложение с отрицательным числом					
+					//если выражение начинается с минуса (случай когда после минуса идёт число, минус перед скобкой не реализован)
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
-						//Г±Г®Г§Г¤Г Г­ГЁГҐ ГЅГ«ГҐГ¬ГҐГ­ГІГ  ГЄГ«Г Г±Г±Г  ГЁ Г§Г ГЇГЁГ±Гј Г·ГЁГ±Г«Г , ГўГ®Г°Г®ГІГ­ГЁГЄ -> ГЄГ®Г­Г±ГІГ Г­ГІГі
-						current_element->point_left = new math_obj(general_var_const->at(3));
+						//создание элемента класса и запись числа, воротник -> константу
+						current_element->point_left = new math_obj(general_var_const->at(2));
 						current_element->point_left->type = defnd;
 
-						//Г®ГЎГ  ГіГЄГ Г§Г ГІГҐГ«Гї -> Г­Г  Г·ГЁГ±Г«Г®, ГІГҐГЎГіГҐГІГ±Гї Г¤Г«Гї ГЇГ°Г®ГўГҐГ°ГЄГЁ ГіГ±Г«Г®ГўГЁГї ГЇГ°ГЁ Г§Г ГЇГЁГ±ГЁ Г®ГЇГҐГ°Г Г¶ГЁГЁ
+						//оба указателя -> на число, тебуется для проверки условия при записи операции
 						low_pointer = current_element->point_left;
 						high_pointer = low_pointer;
 					}
-					//ГҐГ±Г«ГЁ ГЎГ»Г«ГЁ Г¤Г°ГіГЈГЁГҐ Г·ГЁГ±Г«Г /Г®ГЇГҐГ°Г Г¶ГЁГЁ ГЇГҐГ°ГҐГ¤ Г¬ГЁГ­ГіГ±Г®Г¬
+					//если были другие числа/операции перед минусом
 					else
 					{
-						//ГҐГ±Г«ГЁ ГЅГІГ® ГЇГҐГ°ГўГ Гї Г®ГЇГҐГ°Г Г¶ГЁГї Гў ГўГ»Г°Г Г¦ГҐГ­ГЁГЁ (Г±Г«Г®Г¦ГҐГ­ГЁГҐ)
+						//если это первая операция в выражении (сложение)
 						if (high_pointer == low_pointer)
 						{
-							//Г±Г­Г Г·Г Г«Г  Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГҐ Г·ГЁГ±Г«Г®, ГўГ®Г°Г®ГІГ­ГЁГЄ Г­Г  ГЄГ®Г­Г±ГІ
+							//сначала записываем операцию, левый рукав -> на предыдущее число, воротник на конст
 							current_element->point_left = new math_obj(L"+", addit, brakets_counter + brakets, low_pointer, NULL, current_element);
 							high_pointer = current_element->point_left;
 							high_pointer->point_right = new math_obj(general_var_const->at(3));
@@ -704,16 +661,16 @@ namespace Project {
 
 							low_pointer = high_pointer->point_right;
 						}
-						//ГҐГ±Г«ГЁ Г°Г Г­ГҐГҐ ГЎГ»Г«ГЁ Г¤Г°ГіГЈГЁГҐ Г®ГЇГҐГ°Г Г¶ГЁГЁ
+						//если ранее были другие операции
 						else
 						{
-							//ГҐГ±Г«ГЁ ГЇГ°ГЁГ®Г°ГЁГІГҐГІ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г®ГЎГ°Г ГЎГ®ГІГ Г­Г­Г®Г© Г®ГЇГҐГ°Г Г¶ГЁГЁ !ГЊГ…ГЌГњГГ…! ГЁГ«ГЁ Г°Г ГўГҐГ­  ГЇГ°ГЁГ®Г°ГЁГІГҐГІГі ГІГҐГЄГіГ№ГҐГ©
+							//если приоритет предыдущей обработанной операции !МЕНЬШЕ! или равен  приоритету текущей
 							if (high_pointer->get_priority() <= (brakets_counter + brakets + 1))
 							{
-								//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГҐ Г·ГЁГ±Г«Г®, ГўГ®Г°Г®ГІГ­ГЁГЄ Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+								//записываем операцию, левый рукав -> на предыдущее число, воротник на предыдущую операцию
 								high_pointer->point_right = new math_obj(L"+", addit, brakets_counter + brakets, low_pointer, NULL, high_pointer);
-								high_pointer = high_pointer->point_right;                 //ГўГҐГ°ГµГ­ГЁГ© ГіГЄГ Г§Г ГІГҐГ«Гј -> Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
-								high_pointer->point_right = new math_obj(general_var_const->at(3));
+								high_pointer = high_pointer->point_right;                 //верхний указатель -> на созданную операцию
+								high_pointer->point_right = new math_obj(general_var_const->at(2));
 								high_pointer->point_right->type = defnd;
 								low_pointer = high_pointer->point_right;
 							}
@@ -722,13 +679,13 @@ namespace Project {
 							{
 								if (current_element->point_left->get_priority() >= (brakets_counter + brakets + 1))
 								{
-									//Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ Г®ГЇГҐГ°Г Г¶ГЁГѕ ГЄГ ГЄ Г±Г Г¬ГіГѕ Г«ВёГЈГЄГіГѕ, Г«ГҐГўГ»Г© Г°ГіГЄГ Гў -> Г­Г  ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГіГѕ Г­Г ГЁГ«ГҐГЈГ·Г Г©ГёГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ, ГўГ®Г°Г®ГІГ­ГЁГЄ - Г­Г  ГІГҐГЄГіГ№ГіГѕ ГЄГ®Г­Г±ГІГ Г­ГІГі
+									//записываем операцию как самую лёгкую, левый рукав -> на предыдущую наилегчайшую операцию, воротник - на текущую константу
 									high_pointer = new math_obj(L"+", addit, brakets_counter + brakets, current_element->point_left, NULL, current_element);
-									//ГўГ®Г°Г®ГІГ­ГЁГЄ ГЇГ°ГҐГ¤Г»Г¤ГіГ№ГҐГ© Г«ГҐГЈГ·Г Г©ГёГҐГ© Г®ГЇГҐГ°Г Г¶ГЁГЁ -> Г­Г  Г­Г®ГўГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+									//воротник предыдущей легчайшей операции -> на новую операцию
 									current_element->point_left->point_collar = high_pointer;
-									//ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г«ГҐГўГ»Г¬ Г°ГіГЄГ ГўГ®Г¬ ГЄГ®Г­Г±ГІГ Г­ГІГ» Г­Г  Г±Г®Г§Г¤Г Г­Г­ГіГѕ Г®ГЇГҐГ°Г Г¶ГЁГѕ
+									//указываем левым рукавом константы на созданную операцию
 									current_element->point_left = high_pointer;
-									high_pointer->point_right = new math_obj(general_var_const->at(3));
+									high_pointer->point_right = new math_obj(general_var_const->at(2));
 									high_pointer->point_right->type = defnd;
 									low_pointer = high_pointer->point_right;
 								}
@@ -738,7 +695,7 @@ namespace Project {
 									high_pointer->point_right->point_collar = new math_obj(L"+", addit, brakets_counter + brakets, high_pointer->point_right, NULL, high_pointer);
 									high_pointer->point_right = high_pointer->point_right->point_collar;
 									high_pointer = high_pointer->point_right;
-									high_pointer->point_right = new math_obj(general_var_const->at(3));
+									high_pointer->point_right = new math_obj(general_var_const->at(2));
 									high_pointer->point_right->type = defnd;
 									low_pointer = high_pointer->point_right;
 								}
@@ -756,14 +713,14 @@ namespace Project {
 				}
 				else if (*pDest == '(')
 				{
-					//Г«ГҐГўГ Гї Г±ГЄГ®ГЎГЄГ  ГіГўГҐГ«ГЁГ·ГЁГўГ ГҐГІ Г±Г·ВёГІГ·ГЁГЄ Г±ГЄГ®ГЎГ®ГЄ Г­Г  Г·ГЁГ±Г«Г®, Г°Г ГўГ­Г®ГҐ Г±Г Г¬Г®Г¬Гі ГўГ»Г±Г®ГЄГ®Г¬Гі ГЇГ°ГЁГ®Г°ГЁГІГҐГІГі ГґГіГ­ГЄГ¶ГЁГЁ
+					//левая скобка увеличивает счётчик скобок на число, равное самому высокому приоритету функции
 					brakets_counter += 4;
 					temp = pDest;
 					count = 1;
 					while (count != 0)
 					{
 						temp++;
-						//ГҐГ±Г«ГЁ ГЇГ®ГЇГ Г«ГЁ Гў ГЄГ®Г­ГҐГ¶ Г±ГІГ°Г®Г·ГЄГЁ Г­ГҐ Г­Г Г©Г¤Гї Г§Г ГЄГ°Г»ГўГ ГѕГ№ГЁГµ Г±ГЄГ®ГЎГ®ГЄ
+						//если попали в конец строчки не найдя закрывающих скобок
 						if (temp == endPtr + 1)
 						{
 							ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
@@ -777,7 +734,7 @@ namespace Project {
 						{
 							count--;
 						}
-						else if (*temp == '=') //Г®ГІГЄГ°Г»ГІГ Гї Г±ГЄГ®ГЎГЄГ  ГЁ Г¤Г Г«ГјГёГҐ Г°Г ГўГ­Г®
+						else if (*temp == '=') //открытая скобка и дальше равно
 						{
 							ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
 							return NULL;
@@ -785,7 +742,7 @@ namespace Project {
 					}
 					if (pDest + 1 == temp)
 					{
-						//ГЇГіГ±ГІГ Гї Г±ГІГ°Г®ГЄГ  Гў Г±ГЄГ®ГЎГЄГ Гµ. ГўГ°Г®Г¤ГҐ Г­ГҐ Г®ГёГЁГЎГЄГ , Г­Г® Г¬Г®Г¦Г­Г® ГЁ Г§Г ГЇГ°ГҐГІГЁГІГј). Г‚Г®Г®ГЎГ№ГҐ Гў ГЄГ®Г­ГІГҐГЄГІГҐ ГЇГ®Г±ГІГ°Г®ГҐГ­ГЁГї Г¤ГҐГ°ГҐГўГ  ГЅГІГ® Г®Г§Г­Г Г·Г ГҐГІ Г§Г ГЇГЁГ±Гј Г­ГіГ«Гї. ГЏГ®ГЅГІГ®Г¬Гі ГЇГ®ГЄГ  Г§Г ГЇГ°ГҐГ№ГҐГ­Г®.
+						//пустая строка в скобках. вроде не ошибка, но можно и запретить). Вообще в контекте построения дерева это означает запись нуля. Поэтому пока запрещено.
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::EMTY_BRACKETS);
 						return NULL;
 					}
@@ -797,7 +754,7 @@ namespace Project {
 						{
 							return temp_pointer;
 						}
-						//Г±ГЄГ®ГЎГЄГ  Гў Г±Г Г¬Г®Г¬ Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ
+						//скобка в самом начале строки
 						if ((high_pointer == NULL) && (low_pointer == NULL))
 						{
 							if (temp_pointer->type == cnst)
@@ -808,7 +765,7 @@ namespace Project {
 							}
 							else if (temp_pointer->type == exprs)
 							{
-								//Г¬Г®Г¦ГҐГІ ГЎГ»ГІГј Г­ГҐ ГЎГіГ¤ГҐГІ Г°Г ГЎГ®ГІГ ГІГј ГЇГ°Г ГўГЁГ«ГјГ­Г®
+								//может быть не будет работать правильно
 								current_element->point_left = temp_pointer->point_left;
 								high_pointer = current_element->point_left;
 								low_pointer = current_element->point_left;
@@ -846,7 +803,7 @@ namespace Project {
 											current_element->point_left = multiple_var;
 										}
 									}
-									//ГІГ ГЄ ГЄГ ГЄ Г±ГЄГ®ГЎГЄГ  Г±ГІГ®ГЁГІ Гў Г±Г Г¬Г®Г¬ Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ, ГҐГ±Г«ГЁ ГІГҐГЄГіГ№ГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ - ГґГіГ­ГЄГ¶ГЁГї, ГҐВё Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ ГўГ±ГҐГЈГ¤Г  Г§Г Г¬ГЄГ­ГіГІ
+									//так как скобка стоит в самом начале строки, если текущий элемент - функция, её список переменных всегда замкнут
 									else
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
@@ -869,7 +826,7 @@ namespace Project {
 									current_element->var = 1;
 									current_element->point_collar = new math_obj(&temporary_variable);
 									current_element->point_right = temp_pointer;
-									current_element->point_collar->var = 0; //ГЇГ°Г®Г±ГІГ® Г¤Г«Гї Г¤Г®Г±ГІГ®ГўГҐГ°Г­Г®Г±ГІГЁ)
+									current_element->point_collar->var = 0; //просто для достоверности)
 									current_element->point_collar->point_collar = current_element;
 									current_element->point_left = current_element->point_collar;
 									high_pointer = current_element->point_left;
@@ -889,7 +846,7 @@ namespace Project {
 											current_element->point_left = temp_pointer;
 										}
 									}
-									//ГІГ ГЄ ГЄГ ГЄ Г±ГЄГ®ГЎГЄГ  Г±ГІГ®ГЁГІ Гў Г±Г Г¬Г®Г¬ Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ, ГҐГ±Г«ГЁ ГІГҐГЄГіГ№ГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ - ГґГіГ­ГЄГ¶ГЁГї, ГҐВё Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ ГўГ±ГҐГЈГ¤Г  Г§Г Г¬ГЄГ­ГіГІ
+									//так как скобка стоит в самом начале строки, если текущий элемент - функция, её список переменных всегда замкнут
 									else
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
@@ -899,10 +856,10 @@ namespace Project {
 							}
 						}
 
-						// ГўГ­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ Г±ГІГ®ГЁГІ Г¬ГЁГ­ГіГ±
+						// вначале строки стоит минус
 						else if (low_pointer == high_pointer)
 						{
-							//ГЇГҐГ°ГҐГ¤ Г±ГЄГ®ГЎГЄГ®Г© Г±ГІГ®ГЁГІ Г¬ГЁГ­ГіГ±
+							//перед скобкой стоит минус
 							if (high_pointer->name == L"minus")
 							{
 								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
@@ -938,7 +895,7 @@ namespace Project {
 												high_pointer->point_right = multiple_var;
 											}
 										}
-										//ГІГ ГЄ ГЄГ ГЄ Г±ГЄГ®ГЎГЄГ  Г±ГІГ®ГЁГІ Гў Г±Г Г¬Г®Г¬ Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ, ГҐГ±Г«ГЁ ГІГҐГЄГіГ№ГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ - ГґГіГ­ГЄГ¶ГЁГї, ГҐВё Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ ГўГ±ГҐГЈГ¤Г  Г§Г Г¬ГЄГ­ГіГІ
+										//так как скобка стоит в самом начале строки, если текущий элемент - функция, её список переменных всегда замкнут
 										else
 										{
 											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
@@ -959,7 +916,7 @@ namespace Project {
 										current_element->var = 1;
 										current_element->point_collar = new math_obj(&temporary_variable);
 										current_element->point_right = temp_pointer;
-										current_element->point_collar->var = 0; //ГЇГ°Г®Г±ГІГ® Г¤Г«Гї Г¤Г®Г±ГІГ®ГўГҐГ°Г­Г®Г±ГІГЁ)
+										current_element->point_collar->var = 0; //просто для достоверности)
 										current_element->point_collar->point_collar = current_element;
 										high_pointer->point_right = current_element->point_collar;
 									}
@@ -977,7 +934,7 @@ namespace Project {
 												high_pointer->point_right = temp_pointer;
 											}
 										}
-										//ГІГ ГЄ ГЄГ ГЄ Г±ГЄГ®ГЎГЄГ  Г±ГІГ®ГЁГІ Гў Г±Г Г¬Г®Г¬ Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ, ГҐГ±Г«ГЁ ГІГҐГЄГіГ№ГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ - ГґГіГ­ГЄГ¶ГЁГї, ГҐВё Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ ГўГ±ГҐГЈГ¤Г  Г§Г Г¬ГЄГ­ГіГІ
+										//так как скобка стоит в самом начале строки, если текущий элемент - функция, её список переменных всегда замкнут
 										else
 										{
 											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
@@ -986,7 +943,7 @@ namespace Project {
 									}
 								}
 							}
-							//ГЇГҐГ°ГҐГ¤ Г±ГЄГ®ГЎГЄГ®Г© Г·ГІГ®-ГІГ® ГЄГ°Г®Г¬ГҐ Г¬ГЁГ­ГіГ±Г . ГЏГҐГ°ГҐГ¤ Г±ГЄГ®ГЎГЄГ®Г© Г¬Г®Г¦ГҐГІ Г±ГІГ®ГїГІГј ГЄГ ГЄГ®ГҐ-Г«ГЁГЎГ® Г·ГЁГ±Г«Г®, Г­-Г° 5(...) = 5*(...). ГЏГ®ГЄГ  Г®ГёГЁГЎГЄГ . 
+							//перед скобкой что-то кроме минуса. Перед скобкой может стоять какое-либо число, н-р 5(...) = 5*(...). Пока ошибка. 
 							else
 							{
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
@@ -994,7 +951,7 @@ namespace Project {
 							}
 
 						}
-						//ГҐГ±Г«ГЁ Г±ГЄГ®ГЎГЄГ  Г±ГІГ®ГЁГІ Г­ГҐ Гў Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ - ГЇГ®Г¤Г°Г Г§ГіГ¬ГҐГўГ ГҐГІГ±Гї Г­Г Г«ГЁГ·ГЁГҐ ГЄГ ГЄГ®Г©-Г«ГЁГЎГ® Г®ГЇГҐГ°Г Г¶ГЁГЁ ГЇГҐГ°ГҐГ¤ Г­ГҐГ©
+						//если скобка стоит не в начале строки - подразумевается наличие какой-либо операции перед ней
 						else
 						{
 							if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
@@ -1013,7 +970,7 @@ namespace Project {
 							{
 								if (current_element->type == funct)
 								{
-									//Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ Г§Г Г¬ГЄГ­ГіГІ
+									//список переменных замкнут
 									multiple_var = current_element->find_varbl(temp_pointer);
 									if (current_element->point_collar->point_right != NULL)
 									{
@@ -1025,7 +982,7 @@ namespace Project {
 										}
 										else
 										{
-											//Г±ГІГ®ГЁГІ Г«ГЁ ГЇГҐГ°ГҐГ¤ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г¬ГЁГ­ГіГ±
+											//стоит ли перед переменной минус
 											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 											{
 												high_pointer->point_right->point_right = multiple_var;
@@ -1037,7 +994,7 @@ namespace Project {
 											low_pointer = high_pointer->point_right;
 										}
 									}
-									//Г­ГҐ Г§Г Г¬ГЄГ­ГіГІ
+									//не замкнут
 									else
 									{
 										if (multiple_var == NULL)
@@ -1053,8 +1010,8 @@ namespace Project {
 											multiple_var->point_left->point_collar = current_element;
 											multiple_var->point_left->var = current_element->var;
 											current_element->var += 1;
-											//ГЇГ®Г±ГЄГ®Г«ГјГЄГі Г±ГЁГ¬ГўГ®Г« Г­ГҐ Гў Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ - Г§Г­Г Г·ГЁГІ Г±ГІГ®ГЁГІ ГЇГ®Г±Г«ГҐ ГЄГ ГЄГ®Г©-Г«ГЁГЎГ® Г®ГЇГҐГ°Г Г¶ГЁГЁ. 
-											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//Г±ГІГ®ГЁГІ ГЇГ®Г±Г«ГҐ Г¬ГЁГ­ГіГ±Г 
+											//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
+											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
 											{
 												high_pointer->point_right->point_right = multiple_var->point_left;
 											}
@@ -1066,7 +1023,7 @@ namespace Project {
 										}
 										else
 										{
-											//Г±ГІГ®ГЁГІ Г«ГЁ ГЇГҐГ°ГҐГ¤ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г¬ГЁГ­ГіГ±
+											//стоит ли перед переменной минус
 											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 											{
 												high_pointer->point_right->point_right = multiple_var;
@@ -1089,7 +1046,7 @@ namespace Project {
 										general_var_const->push_back(new math_obj(temp_pointer));
 									}
 									current_element->point_collar = temp_pointer;
-									//ГіГ·ГЁГІГ»ГўГ ГҐГІГ±Гї Г¬ГЁГ­ГіГ± ГЇГҐГ°ГҐГ¤ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г©
+									//учитывается минус перед переменной
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
 										high_pointer->point_right->point_right = current_element->point_collar;
@@ -1122,7 +1079,7 @@ namespace Project {
 									current_element->var = 1;
 									current_element->point_collar = new math_obj(&temporary_variable);
 									current_element->point_right = temp_pointer;
-									current_element->point_collar->var = 0; //ГЇГ°Г®Г±ГІГ® Г¤Г«Гї Г¤Г®Г±ГІГ®ГўГҐГ°Г­Г®Г±ГІГЁ)
+									current_element->point_collar->var = 0; //просто для достоверности)
 									current_element->point_collar->point_collar = current_element;
 
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
@@ -1181,33 +1138,33 @@ namespace Project {
 							}
 						}
 					}
-					//Г±Г°Г Г§Гі ГЇГҐГ°ГҐГµГ®Г¤ГЁГ¬ ГЄ Г±Г«ГҐГ¤ГіГѕГ№ГҐГ© ГЇГ®Г§ГЁГ¶ГЁГЁ ГЇГ®Г±Г«ГҐ Г±ГЄГ®ГЎГЄГЁ
+					//сразу переходим к следующей позиции после скобки
 					brakets_counter -= 4;
 					pDest = temp + 1;
 					if (*pDest == '(,')
 					{
-						//ГЇГ® ГЁГ¤ГҐГҐ Г§Г ГЇГЁГ±Гј ГўГЁГ¤Г  )( Г¬Г®Г¦ГҐГІ Г®Г§Г­Г Г·Г ГІГј )*(. ГЏГ®ГІГ®Г¬ Г¤Г®ГЎГ ГўГІГј Г±ГѕГ¤Г  Г®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ Г¤Г«Гї ГЇГ®Г¤Г®ГЎГ­Г®ГЈГ® Г±Г«ГіГ·Г Гї
+						//по идее запись вида )( может означать )*(. Потом добавть сюда определение для подобного случая
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
 						return NULL;
 					}
 				}
 				else if (*pDest == '|')
 				{
-					//Г­Гі ГЄГ ГЄ ГЎГ» Г¬Г®Г¤ГіГ«Гј. Г¬Г Г«ГҐГ­ГјГЄГ Гї ГЇГ°Г®ГЎГ«ГҐГ¬Г  - Гў Г±Г«ГіГ·Г ГҐ Г±Г® Г±ГЄГ®ГЎГЄГ Г¬ГЁ Г®ГІГЄГ°Г»ГўГ ГѕГ№Г Гї ( ГЁ Г§Г ГЄГ°Г»ГўГ ГѕГ№Г Гї ) - Г°Г Г§Г­Г»ГҐ Г±ГЁГ¬ГўГ®Г«Г». 
-					//Г‚ Г±Г«ГіГ·Г ГҐ Г± Г¬Г®Г¤ГіГ«ГҐГ¬ | - ГЅГІГ  ГЇГ Г«Г®Г·ГЄГ  - Г®Г¤ГЁГ­ ГЁ ГІГ®ГІ Г¦ГҐ Г±ГЁГ¬ГўГ®Г«. ГЊГ®Г¤ГіГ«Гј Г¤Г®Г±ГІГіГЇГҐГ­ Г·ГҐГ°ГҐГ§ ГўГ»Г§Г®Гў abs().
+					//ну как бы модуль. маленькая проблема - в случае со скобками открывающая ( и закрывающая ) - разные символы. 
+					//В случае с модулем | - эта палочка - один и тот же символ. Модуль доступен через вызов abs().
 				}
 				else if ((*pDest == '1') || (*pDest == '2') || (*pDest == '3') || (*pDest == '4') || (*pDest == '5') || (*pDest == '6') || (*pDest == '7') || (*pDest == '8') || (*pDest == '9') || (*pDest == '0'))
 				{
-					// ГҐГ±Г«ГЁ Г¤Г Г­Г­Г®ГҐ Г·ГЁГ±Г«Г® ГЇГҐГ°ГўГ®ГҐ Гў Г§Г ГЇГЁГ±ГЁ ГўГ»Г°Г Г¦ГҐГ­ГЁГї
+					// если данное число первое в записи выражения
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
-						//Г±Г®Г§Г¤Г Г­ГЁГҐ ГЅГ«ГҐГ¬ГҐГ­ГІГ  ГЄГ«Г Г±Г±Г  ГЁ Г§Г ГЇГЁГ±Гј Г·ГЁГ±Г«Г , ГўГ®Г°Г®ГІГ­ГЁГЄ -> ГЄГ®Г­Г±ГІГ Г­ГІГі
+						//создание элемента класса и запись числа, воротник -> константу
 						current_element->point_left = new math_obj(L"", numbr, real, wcstod(pDest, &pDest), current_element);
-						//Г®ГЎГ  ГіГЄГ Г§Г ГІГҐГ«Гї -> Г­Г  Г·ГЁГ±Г«Г®, ГІГҐГЎГіГҐГІГ±Гї Г¤Г«Гї ГЇГ°Г®ГўГҐГ°ГЄГЁ ГіГ±Г«Г®ГўГЁГї ГЇГ°ГЁ Г§Г ГЇГЁГ±ГЁ Г®ГЇГҐГ°Г Г¶ГЁГЁ
+						//оба указателя -> на число, тебуется для проверки условия при записи операции
 						low_pointer = current_element->point_left;
 						high_pointer = low_pointer;
 					}
-					//ГЇГҐГ°ГҐГ¤ Г·ГЁГ±Г«Г®Г¬ Гў Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ Г±ГІГ®ГЁГІ Г¬ГЁГ­ГіГ±
+					//перед числом в начале строки стоит минус
 					else if (high_pointer == low_pointer)
 					{
 						if (high_pointer->name == L"minus")
@@ -1220,10 +1177,10 @@ namespace Project {
 							return NULL;
 						}
 					}
-					// ГҐГ±Г«ГЁ Г¤Г Г­Г­Г®ГҐ Г·ГЁГ±Г«Г® Г­ГҐ ГЇГҐГ°ГўГ®ГҐ Гў Г§Г ГЇГЁГ±ГЁ (ГЎГ»Г«Г  ГЄГ ГЄГ Гї-Г«ГЁГЎГ® Г®ГЇГҐГ°Г Г¶ГЁГї)
+					// если данное число не первое в записи (была какая-либо операция)
 					else
 					{
-						//Г±Г®Г§Г¤Г Г­ГЁГҐ ГЅГ«ГҐГ¬ГҐГ­ГІГ  ГЄГ«Г Г±Г±Г  ГЁ Г§Г ГЇГЁГ±Гј Г·ГЁГ±Г«Г , ГўГ®Г°Г®ГІГ­ГЁГЄ -> ГЇГ°ГҐГ¤ Г®ГЇГҐГ°Г Г¶ГЁГѕ 						
+						//создание элемента класса и запись числа, воротник -> пред операцию 						
 						if ((high_pointer->point_right != NULL) && (low_pointer->name == L"minus"))
 						{
 							low_pointer->point_right = new math_obj(L"", numbr, real, wcstod(pDest, &pDest), low_pointer);
@@ -1236,11 +1193,11 @@ namespace Project {
 					}
 				}
 
-				//Г±Г«ГіГ·Г Г© Г± Г±ГЁГ¬ГўГ®Г«Г Г¬ГЁ Гў Г±ГІГ°Г®ГЄГҐ
+				//случай с символами в строке
 				else
 				{
 					temp = wcspbrk(pDest, L"()+-*^/=");
-					//ГҐГ±Г«ГЁ Г±ГІГ°Г®Г·ГЄГ  Г­Г Г·ГЁГ­Г ГҐГІГ±Гї Г± cГЁГ¬ГўГ®Г«Г 
+					//если строчка начинается с cимвола
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						if ((temp == NULL) && (brakets == 0))
@@ -1259,10 +1216,10 @@ namespace Project {
 							pDest = temp;
 						}
 						high_pointer = run_vector(name);
-						//ГҐГ±Г«ГЁ Г­ГҐ Г­Г Г©Г¤ГҐГ­ Г­ГЁ Г®Г¤ГЁГ­ ГЅГ«ГҐГ¬ГҐГ­ГІ Г¬Г Г±Г±ГЁГўГ  Г± ГІГ ГЄГЁГ¬ ГЁГ¬ГҐГ­ГҐГ¬
+						//если не найден ни один элемент массива с таким именем
 						if (high_pointer == NULL)
 						{
-							//Г±Г·ГЁГІГ ГҐГ¬ Г­Г Г©Г¤ГҐГ­Г­Г»Г© ГЅГ«ГҐГ¬ГҐГ­ГІ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г©
+							//считаем найденный элемент переменной
 							if (temp == NULL)
 							{
 								current_element->type = varbl;
@@ -1271,7 +1228,7 @@ namespace Project {
 								high_pointer = current_element;
 								low_pointer = high_pointer;
 							}
-							//Г±Г·ГЁГІГ ГҐГ¬ Г­Г Г©Г¤ГҐГ­Г­Г»Г© ГЅГ«ГҐГ¬ГҐГ­ГІ ГЄГ®Г­Г±ГІ
+							//считаем найденный элемент конст
 							else if (*temp == '=')
 							{
 								current_element->type = cnst;
@@ -1281,7 +1238,7 @@ namespace Project {
 								high_pointer = current_element;
 								low_pointer = high_pointer;
 							}
-							//Г±Г·ГЁГІГ ГҐГ¬ Г­Г Г©Г¤ГҐГ­Г­Г»Г© ГЅГ«ГҐГ¬ГҐГ­ГІ ГґГіГ­ГЄГ¶ГЁГҐГ©
+							//считаем найденный элемент функцией
 							else if (*temp == '(')
 							{
 								brakets_counter += 4;
@@ -1290,7 +1247,7 @@ namespace Project {
 								while (count != 0)
 								{
 									temp++;
-									//ГҐГ±Г«ГЁ ГЇГ®ГЇГ Г«ГЁ Гў ГЄГ®Г­ГҐГ¶ Г±ГІГ°Г®Г·ГЄГЁ Г­ГҐ Г­Г Г©Г¤Гї Г§Г ГЄГ°Г»ГўГ ГѕГ№ГЁГµ Г±ГЄГ®ГЎГ®ГЄ
+									//если попали в конец строчки не найдя закрывающих скобок
 									if (temp == endPtr + 1)
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
@@ -1304,44 +1261,44 @@ namespace Project {
 									{
 										count--;
 									}
-									else if (*temp == '=') //Г®ГІГЄГ°Г»ГІГ Гї Г±ГЄГ®ГЎГЄГ  ГЁ Г¤Г Г«ГјГёГҐ Г°Г ГўГ­Г®
+									else if (*temp == '=') //открытая скобка и дальше равно
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
 										return NULL;
 									}
 									else if (*temp == ',')
 									{
-										//Г±Г·ГЁГІГ ГҐГ¬ Г§Г ГЇГїГІГ»ГҐ. ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® Г§Г ГЇГїГІГ»Гµ Гў Г±ГЄГ®ГЎГЄГ Гµ +1 = Г·ГЁГ±Г«Г® Г°Г Г§Г«ГЁГ·Г­Г»Гµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+										//считаем запятые. количество запятых в скобках +1 = число различных переменных
 										comma++;
 									}
 								}
 								if (*(temp + 1) != '=')
 								{
-									//ГҐГ±Г«ГЁ Гў Г±Г Г¬Г®Г¬ Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ Г±ГІГ®ГЁГІ Г­Г®ГўГ®ГҐ ГЎГіГЄГўГ®Г±Г®Г·ГҐГІГ Г­ГЁГҐ ГЁ Г¤Г Г«ГјГёГҐ Г±ГЄГ®ГЎГЄГ  - ГЅГІГ® ГўГ±ГҐГЈГ¤Г  Г®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ Г­Г®ГўГ®Г© ГґГіГ­ГЄГ¶ГЁГЁ
-									//ГҐГ±Г«ГЁ ГЇГ®Г±Г«ГҐ ГЅГІГ®ГЈГ® Г­ГҐГІ Г°Г ГўГ­Г® - Г®ГёГЁГЎГЄГ 
+									//если в самом начале строки стоит новое буквосочетание и дальше скобка - это всегда определение новой функции
+									//если после этого нет равно - ошибка
 									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
 									return NULL;
 								}
-								//Г¤Г Г«ГҐГҐ Г‚Г‘Г…ГѓГ„ГЂ Г°Г Г±Г±Г¬Г ГІГ°ГЁГўГ ГҐГ¬ Г±Г«ГіГ·Г Г© Г± Г°Г ГўГ­Г® ГЇГ®Г±Г«ГҐ Г±ГЄГ®ГЎГЄГЁ
+								//далее ВСЕГДА рассматриваем случай с равно после скобки
 								if (pDest + 1 == temp)
 								{
-									//ГЇГіГ±ГІГ Гї Г±ГІГ°Г®ГЄГ  Гў Г±ГЄГ®ГЎГЄГ Гµ.  Г±Г®Г§Г¤Г Г­ГЁГҐ ГґГіГ­ГЄГ¶ГЁГЁ Г®ГІ Г­ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г®ГЈГ® ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
-									//Г Г­Г Г«Г®ГЈГЁГ·Г­Г® Г§Г Г¤Г Г­ГЁГѕ ГґГіГ­ГЄГ¶ГЁГЁ ГўГ®Г®ГЎГ№ГҐ ГЎГҐГ§ ГіГЄГ Г§Г Г­ГЁГї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ. Г“ГЄГ Г§Г ГІГҐГ«Гј Г­Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ - ГЇГіГ±ГІГ®Г©
+									//пустая строка в скобках.  создание функции от неопределённого количества переменных
+									//аналогично заданию функции вообще без указания переменных. Указатель на переменные - пустой
 									current_element->type = funct;
 									current_element->name = name;
-									current_element->prop = undef; //Г±Г·ГЁГІГ ГҐГ¬ Г­Г®ГўГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ undef, Г­Г® ГЇГ°ГЁ ГЅГІГ®Г¬ Г¬Г» Г§Г­Г ГҐГ¬ Г·ГІГ® Гі Г­ГҐВё ГҐГ±ГІГј ГЁГ¬Гї
-									current_element->actn = write;  //Г­Г  Г§Г ГЇГ®Г«Г­ГҐГ­ГЁГҐ
+									current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
+									current_element->actn = write;  //на заполнение
 									high_pointer = current_element;
 									low_pointer = high_pointer;
 								}
 								else
 								{
-									//Г§Г ГЇГ®Г¬ГЁГ­Г ГҐГ¬ Г·ГЁГ±Г«Г® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+									//запоминаем число переменных
 									current_element->var = comma + 1;
 									current_element->type = funct;
 									current_element->name = name;
-									current_element->prop = undef; //Г±Г·ГЁГІГ ГҐГ¬ Г­Г®ГўГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ undef, Г­Г® ГЇГ°ГЁ ГЅГІГ®Г¬ Г¬Г» Г§Г­Г ГҐГ¬ Г·ГІГ® Гі Г­ГҐВё ГҐГ±ГІГј ГЁГ¬Гї
-									current_element->actn = write;  //Г­Г  Г§Г ГЇГ®Г«Г­ГҐГ­ГЁГҐ
+									current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
+									current_element->actn = write;  //на заполнение
 									for (count = 0; count < comma + 1; count++)
 									{
 										temp = wcspbrk(pDest + 1, L",)");
@@ -1357,29 +1314,29 @@ namespace Project {
 												general_var_const->push_back(new math_obj(temp_pointer));
 											}
 											temp_pointer->point_collar = current_element;
-											temp_pointer->var = count; //ГІГіГІ ГЇГ°Г®ГЁГ±ГµГ®Г¤ГЁГІ Г§Г ГЇГЁГ±Гј Г­Г®Г¬ГҐГ°Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Гў Г¬Г Г±Г±ГЁГўГҐ ГўГ­ГіГІГ°Гј Г±Г Г¬Г®Г© ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г©. ГЇГ®Г¤Г°Г Г§ГіГ¬ГҐГўГ ГҐГІГ±Гї Г·ГІГ® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ ГЌГ… ГЁГ¬ГҐГѕГІ ГіГ±ГІГ Г­Г®ГўГ«ГҐГ­Г­Г®ГЈГ® Г§Г­Г Г·ГҐГ­ГЁГї => Г¬Г®Г¦Г­Г® ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ ГІГј var ГЄГ ГЄ Г±Г·ВёГІГ·ГЁГЄ
+											temp_pointer->var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
 
 											if (count == 0)
-												//Г±Г°Г Г§Гі Г¦ГҐ ГЇГ®Г«ГіГ·Г ГҐГ¬ ГіГ Г§Г ГІГҐГ«Гј Г­Г  ГЇГҐГ°ГўГіГѕ ГЇГҐГ°ГҐГ¬ГҐГ­Г­ГіГѕ Гў Г±ГЇГЁГ±ГЄГҐ
+												//сразу же получаем уазатель на первую переменную в списке
 												current_element->point_collar = temp_pointer;
 											else
 											{
-												//Г±Г®Г§Г¤Г Г­ГЁГҐ Г¤ГўГіГ­Г ГЇГ°Г ГўГ«ГҐГ­Г­Г®ГЈГ® Г±ГЇГЁГ±ГЄГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ, ГЈГ¤ГҐ Г­Г  Г­ГіГ«ГҐГўГ®Г© ГЅГ«ГҐГ¬ГҐГ­ГІ ГіГЄГ Г§Г»ГўГ ГҐГІ ГўГ®Г°Г®ГІГ­ГЁГЄ ГґГіГ­ГЄГ¶ГЁГЁ.
+												//создание двунаправленного списка переменных, где на нулевой элемент указывает воротник функции.
 												temp_pointer->point_right = current_element->var_list_back();
 												temp_pointer->point_right->point_left = temp_pointer;
 											}
 											if (count == comma)
 											{
-												//Г±Г®Г§Г¤Г Г­ГЁГҐ Г§Г Г¬ГЄГ­ГіГІГ®ГЈГ® Гў ГЄГ®Г«ГјГ¶Г® Г¤ГўГіГ­Г ГЇГ°Г ГўГ«ГҐГ­Г­Г®ГЈГ® Г±ГЇГЁГ±ГЄГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ. ГЌГіГ«ГҐГўГ®Г© ГЅГ«ГҐГ¬ГҐГ­ГІ = ГЇГ®Г±Г«ГҐГ¤Г­ГҐГ¬Гі.
+												//создание замкнутого в кольцо двунаправленного списка переменных. Нулевой элемент = последнему.
 												temp_pointer->point_left = current_element->point_collar;
 												current_element->point_collar->point_right = temp_pointer;
 											}
-											//temp_pointer Гў Г¤Г Г­Г­Г®Г¬ Г±Г«ГіГ·Г ГҐ ГіГ¤Г Г«ГїГІГј Г­ГҐГ«ГјГ§Гї. ГЊГ®Г¦Г­Г® Г§Г Г­ГіГ«ГЁГІГј, Г­Г® ГіГ¤Г Г«ГїГІГј Г­ГҐГ«ГјГ§Гї
+											//temp_pointer в данном случае удалять нельзя. Можно занулить, но удалять нельзя
 										}
 										else
 										{
-											//ГЇГ®Г±ГЄГ®Г«ГјГЄГі ГґГіГ­ГЄГ¶ГЁГї ГҐГ№Вё Г­ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г Гї ГЇГҐГ°ГҐГ¤Г ГўГ ГІГј ГҐГ© Г«ГѕГЎГ»ГҐ Г Г°ГЈГіГ¬ГҐГ­ГІГ» ГЎГіГ¤ГҐГІ Г­ГҐГўГҐГ°Г­Г®
-											//TODO:Г·ГЁГ±ГІГЁГІГј Г¬ГіГ±Г®Г° ГЇГҐГ°ГҐГ¤ ГіГµГ®Г¤Г®Г¬
+											//поскольку функция ещё неопределённая передавать ей любые аргументы будет неверно
+											//TODO:чистить мусор перед уходом
 											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
 											return NULL;
 										}
@@ -1396,15 +1353,15 @@ namespace Project {
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
 								return NULL;
 							}
-							//Г±Г·ГЁГІГ ГҐГ¬ Г­Г Г©Г¤ГҐГ­Г­Г»Г© ГЅГ«ГҐГ¬ГҐГ­ГІ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г©, Г  ГІГҐГЄГіГ№ГҐГҐ ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ - ГґГіГ­ГЄГ¶ГЁГҐГ©
+							//считаем найденный элемент переменной, а текущее выражение - функцией
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
 							{
 								current_element->type = funct;
 								current_element->prop = undef;
-								//Г§Г ГЇГ®Г¬ГЁГ­Г ГҐГ¬ Г·ГЁГ±Г«Г® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+								//запоминаем число переменных
 								current_element->var = 1;
 								general_var_const->push_back(new math_obj(name, varbl, defnd, 0));
-								//ГЄГ®ГЇГЁГї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г± ГіГЄГ Г§Г ГІГҐГ«ГҐГ¬ Г­Г  ГґГіГ­ГЄГ¶ГЁГѕ
+								//копия переменной с указателем на функцию
 								current_element->point_collar = new math_obj(general_var_const->back());
 								current_element->point_left = current_element->point_collar;
 								current_element->point_left->point_collar = current_element;
@@ -1417,22 +1374,22 @@ namespace Project {
 								return NULL;
 							}
 						}
-						//Г­Г Г©Г¤ГҐГ­ ГЅГ«ГҐГ¬ГҐГ­ГІ Г¬Г Г±Г±ГЁГўГ  Г± Г±Г®ГўГЇГ Г¤Г ГѕГ№ГЁГ¬ ГЁГ¬ГҐГ­ГҐГ¬ - ГЄГ®Г­Г±ГІГ Г­ГІГ 
+						//найден элемент массива с совпадающим именем - константа
 						else if (high_pointer->type == cnst)
 						{
-							//ГЄГ®ГЇГЁГ°ГіГҐГ¬ ГЄГ®Г­Г±ГІГ Г­ГІГі
+							//копируем константу
 							if ((temp == NULL) || (*temp == '='))
 							{
 								current_element->copy(high_pointer);
 								high_pointer = current_element;
 								low_pointer = high_pointer;
 							}
-							//ГІГіГІ ГЁГ¤ГҐГї Гў ГІГ®Г¬, Г·ГІГ® ГҐГ±Г«ГЁ ГіГ¦ГҐ ГҐГ±ГІГј ГЄГ ГЄГ Гї-ГІГ® ГЄГ®Г­Г±ГІГ Г­ГІГ  - ГЄГ ГЄГЁГҐ ГЎГ» Г­ГЁ ГЎГ»Г«ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІГ» Г¤Г«Гї Г­ГҐВё - Г®ГІГўГҐГІГ®Г¬ ГЎГіГ¤ГҐГІ ГїГўГ«ГїГІГјГ±Гї ГЄГ®Г­Г±ГІГ Г­ГІГ .
-							//Г®Г¤Г­Г ГЄГ® Г¤Г Г­Г­Г Гї Г§Г ГЇГЁГ±Гј Г¬Г®Г¦ГҐГІ Г®Г§Г­Г Г·Г ГІГј ГЇГҐГ°ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ ГЄГ®Г­Г±ГІ Гў ГўГЁГ¤ГҐ ГґГіГ­ГЄГ¶ГЁГЁ
+							//тут идея в том, что если уже есть какая-то константа - какие бы ни были аргументы для неё - ответом будет являться константа.
+							//однако данная запись может означать переопределение конст в виде функции
 							else if (*temp == '(')
 							{
-								//ГІГ®ГЈГ¤Г  Г±Г°Г Г§Гі Г«ГіГ·ГёГҐ ГЇГ°Г®ГїГ±Г­ГЁГІГј Г·ГІГ® ГЁГ¬ГҐГ­Г­Г® ГІГіГІ ГЇГ°Г®ГЁГ±ГµГ®Г¤ГЁГІ,
-								//Г§Г ГЈГ«ГїГ¤Г»ГўГ ГҐГ¬ Гў Г±ГЄГ®ГЎГЄГЁ ГЁ Г±Г¬Г®ГІГ°ГЁГ¬ Г·ГІГ® ГІГ Г¬
+								//тогда сразу лучше прояснить что именно тут происходит,
+								//заглядываем в скобки и смотрим что там
 								//current_element->copy(high_pointer);
 								brakets_counter += 4;
 								count = 1;
@@ -1440,7 +1397,7 @@ namespace Project {
 								while (count != 0)
 								{
 									temp++;
-									//ГҐГ±Г«ГЁ ГЇГ®ГЇГ Г«ГЁ Гў ГЄГ®Г­ГҐГ¶ Г±ГІГ°Г®Г·ГЄГЁ Г­ГҐ Г­Г Г©Г¤Гї Г§Г ГЄГ°Г»ГўГ ГѕГ№ГЁГµ Г±ГЄГ®ГЎГ®ГЄ
+									//если попали в конец строчки не найдя закрывающих скобок
 									if (temp == endPtr + 1)
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
@@ -1454,22 +1411,22 @@ namespace Project {
 									{
 										count--;
 									}
-									else if (*temp == '=') //Г®ГІГЄГ°Г»ГІГ Гї Г±ГЄГ®ГЎГЄГ  ГЁ Г¤Г Г«ГјГёГҐ Г°Г ГўГ­Г®
+									else if (*temp == '=') //открытая скобка и дальше равно
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
 										return NULL;
 									}
 									else if (*temp == ',')
 									{
-										//Г±Г·ГЁГІГ ГҐГ¬ Г§Г ГЇГїГІГ»ГҐ. ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® Г§Г ГЇГїГІГ»Гµ Гў Г±ГЄГ®ГЎГЄГ Гµ +1 = Г·ГЁГ±Г«Г® Г°Г Г§Г«ГЁГ·Г­Г»Гµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+										//считаем запятые. количество запятых в скобках +1 = число различных переменных
 										comma++;
 									}
 								}
-								if (*(temp + 1) != '=') //Г¤ГўГ  ГўГ Г°ГЁГ Г­ГІГ  - Г±ГІГ®ГЁГІ Г°Г ГўГ­Г® ГЇГ®Г±Г«ГҐ Г±ГЄГ®ГЎГЄГЁ ГЁГ«ГЁ Г­ГҐГІ
+								if (*(temp + 1) != '=') //два варианта - стоит равно после скобки или нет
 								{
-									//ГҐГ±Г«ГЁ ГҐГЈГ® Г­ГҐГІ, ГІГ® Г¤Г Г­Г­Г Гї Г§Г ГЇГЁГ±Гј Гў Г«ГѕГЎГ®Г¬ Г±Г«ГіГ·Г ГҐ Г°Г ГўГ­Г®Г±ГЁГ«ГјГ­Г  ГЇГ°Г®Г±ГІГ® ГўГ»Г§Г®ГўГі ГЄГ®Г­Г±ГІГ Г­ГІГ», ГЄГ ГЄГЁГҐ ГЎГ» Г Г°ГЈГіГ¬ГҐГ­ГІГ» ГҐГ© Г­ГҐ ГЇГҐГ°ГҐГ¤Г ГўГ Г«ГЁГ±Гј
-									//ГЄГ®ГЇГЁГ°ГіГҐГ¬ ГЄГ®Г­Г±ГІГ Г­ГІГі
-									if (*(temp + 1) == NULL) // ГҐГ±Г«ГЁ Г¬Г» ГўГ»ГёГ«ГЁ Гў ГЄГ®Г­ГҐГ¶ Г±ГІГ°Г®ГЄГЁ - ГІГ® Г­Г®Г«Гј - ГІ.ГҐ. ГЇГ®Г±Г«ГҐ Г±ГЄГ®ГЎГЄГЁ Г®ГІГ±ГіГІГ±ГІГўГіГѕГІ Г±ГЁГ¬ГўГ®Г«Г»
+									//если его нет, то данная запись в любом случае равносильна просто вызову константы, какие бы аргументы ей не передавались
+									//копируем константу
+									if (*(temp + 1) == NULL) // если мы вышли в конец строки - то ноль - т.е. после скобки отсутствуют символы
 									{
 										current_element->copy(high_pointer);
 										high_pointer = current_element;
@@ -1484,7 +1441,7 @@ namespace Project {
 									}
 									/*else if ((*(temp + 1) == '('))
 									{
-										//ГЇГ®ГЄГ  Г®Г±ГІГ ГўГ«Гѕ Г§ГІГ® ГіГ±Г«Г®ГўГЁГҐ. Г‡Г ГЇГЁГ±Гј ГІГЁГЇГ  Г±(...)(...) - Г®ГЎГ»Г·Г­Г® ГЅГІГ® Г®Г§Г­Г Г·Г ГҐГІ ГЇГ°Г®ГЁГ§ГўГҐГ¤ГҐГ­ГЁГҐ Г±()*(...)
+										//пока оставлю зто условие. Запись типа с(...)(...) - обычно это означает произведение с()*(...)
 									}*/
 									else
 									{
@@ -1492,15 +1449,15 @@ namespace Project {
 										return NULL;
 									}
 								}
-								//Г¤Г Г«ГҐГҐ Г‚Г‘Г…ГѓГ„ГЂ Г°Г Г±Г±Г¬Г ГІГ°ГЁГўГ ГҐГ¬ Г±Г«ГіГ·Г Г© Г± Г°Г ГўГ­Г® ГЇГ®Г±Г«ГҐ Г±ГЄГ®ГЎГЄГЁ
+								//далее ВСЕГДА рассматриваем случай с равно после скобки
 								else if (pDest + 1 == temp)
 								{
-									// ГІГіГІ Г«ГЁГЎГ® ГўГ»ГўГ®Г¤ Г§Г­Г Г·ГҐГ­ГЁГї, Г«ГЁГЎГ® Г­Г®ГўГ®ГҐ Г®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ c()=
+									// тут либо вывод значения, либо новое определение c()=
 									current_element->copy(high_pointer);
 									high_pointer = current_element;
 									low_pointer = high_pointer;
 								}
-								//ГІГіГІ Г­Г Г¤Г® ГІГ®Г«ГјГЄГ® ГЇГ°Г®ГўГҐГ°ГЁГІГј, Г·ГІГ®ГЎГ» Г Г°ГЈГіГ¬ГҐГ­ГІГ» Гў Г±ГЄГ®ГЎГЄГ Гµ ГЎГ»Г«ГЁ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Г¬ГЁ
+								//тут надо только проверить, чтобы аргументы в скобках были переменными
 								else
 								{
 									current_element->copy(high_pointer);
@@ -1519,47 +1476,47 @@ namespace Project {
 												general_var_const->push_back(new math_obj(temp_pointer));
 											}
 											temp_pointer->point_collar = current_element;
-											temp_pointer->var = count; //ГІГіГІ ГЇГ°Г®ГЁГ±ГµГ®Г¤ГЁГІ Г§Г ГЇГЁГ±Гј Г­Г®Г¬ГҐГ°Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Гў Г¬Г Г±Г±ГЁГўГҐ ГўГ­ГіГІГ°Гј Г±Г Г¬Г®Г© ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г©. ГЇГ®Г¤Г°Г Г§ГіГ¬ГҐГўГ ГҐГІГ±Гї Г·ГІГ® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ ГЌГ… ГЁГ¬ГҐГѕГІ ГіГ±ГІГ Г­Г®ГўГ«ГҐГ­Г­Г®ГЈГ® Г§Г­Г Г·ГҐГ­ГЁГї => Г¬Г®Г¦Г­Г® ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ ГІГј var ГЄГ ГЄ Г±Г·ВёГІГ·ГЁГЄ
+											temp_pointer->var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
 
 											if (count == 0)
-												//Г±Г°Г Г§Гі Г¦ГҐ ГЇГ®Г«ГіГ·Г ГҐГ¬ ГіГ Г§Г ГІГҐГ«Гј Г­Г  ГЇГҐГ°ГўГіГѕ ГЇГҐГ°ГҐГ¬ГҐГ­Г­ГіГѕ Гў Г±ГЇГЁГ±ГЄГҐ
+												//сразу же получаем уазатель на первую переменную в списке
 												current_element->point_collar = temp_pointer;
 											else
 											{
-												//Г±Г®Г§Г¤Г Г­ГЁГҐ Г¤ГўГіГ­Г ГЇГ°Г ГўГ«ГҐГ­Г­Г®ГЈГ® Г±ГЇГЁГ±ГЄГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ, ГЈГ¤ГҐ Г­Г  Г­ГіГ«ГҐГўГ®Г© ГЅГ«ГҐГ¬ГҐГ­ГІ ГіГЄГ Г§Г»ГўГ ГҐГІ ГўГ®Г°Г®ГІГ­ГЁГЄ ГґГіГ­ГЄГ¶ГЁГЁ.
+												//создание двунаправленного списка переменных, где на нулевой элемент указывает воротник функции.
 												temp_pointer->point_right = current_element->var_list_back();
 												temp_pointer->point_right->point_left = temp_pointer;
 											}
 											if (count == comma)
 											{
-												//Г±Г®Г§Г¤Г Г­ГЁГҐ Г§Г Г¬ГЄГ­ГіГІГ®ГЈГ® Гў ГЄГ®Г«ГјГ¶Г® Г¤ГўГіГ­Г ГЇГ°Г ГўГ«ГҐГ­Г­Г®ГЈГ® Г±ГЇГЁГ±ГЄГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ. ГЌГіГ«ГҐГўГ®Г© ГЅГ«ГҐГ¬ГҐГ­ГІ = ГЇГ®Г±Г«ГҐГ¤Г­ГҐГ¬Гі.
+												//создание замкнутого в кольцо двунаправленного списка переменных. Нулевой элемент = последнему.
 												temp_pointer->point_left = current_element->point_collar;
 												current_element->point_collar->point_right = temp_pointer;
 											}
-											//temp_pointer Гў Г¤Г Г­Г­Г®Г¬ Г±Г«ГіГ·Г ГҐ ГіГ¤Г Г«ГїГІГј Г­ГҐГ«ГјГ§Гї. ГЊГ®Г¦Г­Г® Г§Г Г­ГіГ«ГЁГІГј, Г­Г® ГіГ¤Г Г«ГїГІГј Г­ГҐГ«ГјГ§Гї
+											//temp_pointer в данном случае удалять нельзя. Можно занулить, но удалять нельзя
 										}
 										else
 										{
-											//TODO:Гў Г±Г«ГіГ·Г ГҐ ГЅГІГ®Г© ГўГҐГІГЄГЁ Г·ГЁГ±ГІГЁГІГј Г±ГЇГЁГ±Г®ГЄ ГіГ¦ГҐ Г§Г ГЇГ®Г«Г­ГҐГ­Г­Г»Гµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+											//TODO:в случае этой ветки чистить список уже заполненных переменных
 											break;
 										}
 										pDest = temp;
 									}
 
-									if ((count == comma + 1) && (high_pointer->prop != fundm))//Г§Г  ГЁГ±ГЄГ« ГґГіГ­Г¤Г Г¬ГҐГ­ГІГ Г«ГјГ­Г»Гµ ГЄГ®Г­Г±ГІГ Г­ГІ
+									if ((count == comma + 1) && (high_pointer->prop != fundm))//за искл фундаментальных констант
 									{
-										//Г§Г ГЇГ®Г¬ГЁГ­Г ГҐГ¬ Г·ГЁГ±Г«Г® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+										//запоминаем число переменных
 										current_element->var = comma + 1;
 										current_element->type = funct;
-										current_element->prop = undef; //Г±Г·ГЁГІГ ГҐГ¬ Г­Г®ГўГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ undef, Г­Г® ГЇГ°ГЁ ГЅГІГ®Г¬ Г¬Г» Г§Г­Г ГҐГ¬ Г·ГІГ® Гі Г­ГҐВё ГҐГ±ГІГј ГЁГ¬Гї
-										current_element->actn = write; //Г­Г  Г§Г ГЇГЁГ±Гј										
+										current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
+										current_element->actn = write; //на запись										
 										low_pointer = high_pointer;
 									}
 									else
 									{
-										// ГІГіГІ Г«ГЁГЎГ® ГўГ»ГўГ®Г¤ Г§Г­Г Г·ГҐГ­ГЁГї, Г«ГЁГЎГ® Г­Г®ГўГ®ГҐ Г®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ, ГЁГЈГ­Г®Г°ГЁГ°ГіГї Г Г°ГЈГіГ¬ГҐГ­ГІГ»
-										//ГІГіГІ ГҐГ№Вё Г¬Г®Г¦ГҐГІ Г®Г§Г­Г Г·Г ГІГј ГіГ¬Г­Г®Г¦ГҐГ­ГЁГҐ Г±(...) = Г±*(...). ГЉ ГЇГ°ГЁГ¬ГҐГ°Гі Г§Г ГЇГ°Г®Г± Г­Г  Г°Г Г±Г·ВёГІ Г±*(...)= 
-										//Г®Г¤Г­Г ГЄГ® Гў Г¤Г Г­Г­Г®Г¬ Г±Г«ГіГ·Г ГҐ ГЅГІГ® ГіГ¬Г­Г®Г¦ГҐГ­ГЁГҐ Г­Г  ГўГҐГЄГІГ®Г° - Г·ГІГ® Г­ГҐ Г°ГҐГ Г«ГЁГ§Г®ГўГ Г­Г®, ГўГ®Г§Г¬Г®Г¦Г­Г® Г±ГІГ®ГЁГІ ГЄГ ГЄ-ГІГ® Г®ГІГ¤ГҐГ«ГјГ­Г® Г¤ГҐГ«Г ГІГј	
+										// тут либо вывод значения, либо новое определение, игнорируя аргументы
+										//тут ещё может означать умножение с(...) = с*(...). К примеру запрос на расчёт с*(...)= 
+										//однако в данном случае это умножение на вектор - что не реализовано, возможно стоит как-то отдельно делать	
 										high_pointer = current_element;
 										low_pointer = high_pointer;
 									}
@@ -1572,7 +1529,7 @@ namespace Project {
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
 								return NULL;
 							}
-							//ГІГҐГЄГіГ№ГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ Г®Г±ГІГ ВёГІГ±Гї ГўГ»Г°Г Г¦ГҐГ­ГЁГҐГ¬, Г­Г Г©Г¤ГҐГ­Г­Г Гї ГЄГ®Г­Г±ГІГ Г­ГІГ  (ГҐВё ГЄГ®ГЇГЁГї) - Г®Г¤ГЁГ­ ГЁГ§ Г®ГЇГҐГ°Г Г­Г¤Г®Гў
+							//текущий элемент остаётся выражением, найденная константа (её копия) - один из операндов
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
 							{
 								current_element->point_left = new math_obj(high_pointer);
@@ -1586,10 +1543,10 @@ namespace Project {
 								return NULL;
 							}
 						}
-						//Г­Г Г©Г¤ГҐГ­ ГЅГ«ГҐГ¬ГҐГ­ГІ Г¬Г Г±Г±ГЁГўГ  Г± Г±Г®ГўГЇГ Г¤Г ГѕГ№ГЁГ¬ ГЁГ¬ГҐГ­ГҐГ¬ - ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї
+						//найден элемент массива с совпадающим именем - переменная
 						else if (high_pointer->type == varbl)
 						{
-							//ГЄГ®ГЇГЁГ°ГіГҐГ¬ ГЇГҐГ°ГҐГ¬ГҐГ­Г­ГіГѕ
+							//копируем переменную
 							if ((temp == NULL) || (*temp == '='))
 							{
 								current_element->copy(high_pointer);
@@ -1603,7 +1560,7 @@ namespace Project {
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
 								return NULL;
 							}
-							//ГІГ ГЄГ Гї Г§Г ГЇГЁГ±Гј Г¬Г®Г¦ГҐГІ Г®Г§Г­Г Г·Г ГІГј Г’ГЋГ‹ГњГЉГЋ ГЇГҐГ°ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Гў ГЄГ Г·ГҐГ±ГІГўГҐ ГґГіГ­ГЄГ¶ГЁГЁ Г­Г®ГўГ®ГЈГ® Г Г°ГЈГіГ¬ГҐГ­ГІГ 
+							//такая запись может означать ТОЛЬКО переопределение переменной в качестве функции нового аргумента
 							else if (*temp == '(')
 							{
 								brakets_counter += 4;
@@ -1612,7 +1569,7 @@ namespace Project {
 								while (count != 0)
 								{
 									temp++;
-									//ГҐГ±Г«ГЁ ГЇГ®ГЇГ Г«ГЁ Гў ГЄГ®Г­ГҐГ¶ Г±ГІГ°Г®Г·ГЄГЁ Г­ГҐ Г­Г Г©Г¤Гї Г§Г ГЄГ°Г»ГўГ ГѕГ№ГЁГµ Г±ГЄГ®ГЎГ®ГЄ
+									//если попали в конец строчки не найдя закрывающих скобок
 									if (temp == endPtr + 1)
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
@@ -1626,35 +1583,35 @@ namespace Project {
 									{
 										count--;
 									}
-									else if (*temp == '=') //Г®ГІГЄГ°Г»ГІГ Гї Г±ГЄГ®ГЎГЄГ  ГЁ Г¤Г Г«ГјГёГҐ Г°Г ГўГ­Г®
+									else if (*temp == '=') //открытая скобка и дальше равно
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
 										return NULL;
 									}
 									else if (*temp == ',')
 									{
-										//Г±Г·ГЁГІГ ГҐГ¬ Г§Г ГЇГїГІГ»ГҐ. ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® Г§Г ГЇГїГІГ»Гµ Гў Г±ГЄГ®ГЎГЄГ Гµ +1 = Г·ГЁГ±Г«Г® Г°Г Г§Г«ГЁГ·Г­Г»Гµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+										//считаем запятые. количество запятых в скобках +1 = число различных переменных
 										comma++;
 									}
 								}
 								if (*(temp + 1) != '=')
 								{
-									//ГҐГ±Г«ГЁ Гў Г±Г Г¬Г®Г¬ Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ Г±ГІГ®ГЁГІ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї ГЁ Г¤Г Г«ГҐГҐ Г±ГЄГ®ГЎГЄГ  - Г±Г·ГЁГІГ ГҐГ¬ Г·ГІГ® ГЅГІГ® Г®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ Г­Г®ГўГ®Г© ГґГіГ­ГЄГ¶ГЁГЁ
-									//ГҐГ±Г«ГЁ ГЇГ®Г±Г«ГҐ ГЅГІГ®ГЈГ® Г­ГҐГІ Г°Г ГўГ­Г® - Г®ГёГЁГЎГЄГ 
-									//ГІГ ГЄ Г¦ГҐ - Г¬Г®Г¦ГҐГІ ГЎГ»ГІГј ГіГ¬Г­Г®Г¦ГҐГ­ГЁГҐ ГўГЁГ¤Г  x(...) Г·ГІГ® Г§Г­Г Г·ГЁГІ x*(...)
-									//Г®Г¤Г­Г ГЄГ® Г­ГҐ Г±ГІГ®ГЁГІ Г§Г ГЎГ»ГўГ ГІГј Г® Г­ГҐГїГўГ­Г®Г¬ Г®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГЁ ГґГіГ­ГЄГ¶ГЁГ©. ГЊГ®Г¦ГҐГІ Г®Г­Г  ГІГіГІ Г·ГҐГ°ГҐГ§ ГіГ°Г ГўГ­ГҐГ­ГЁГҐ Г§Г Г¤Г ВёГІГ±Гї
+									//если в самом начале строки стоит переменная и далее скобка - считаем что это определение новой функции
+									//если после этого нет равно - ошибка
+									//так же - может быть умножение вида x(...) что значит x*(...)
+									//однако не стоит забывать о неявном определении функций. Может она тут через уравнение задаётся
 									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
 									return NULL;
 								}
-								//Г¤Г Г«ГҐГҐ Г‚Г‘Г…ГѓГ„ГЂ Г°Г Г±Г±Г¬Г ГІГ°ГЁГўГ ГҐГ¬ Г±Г«ГіГ·Г Г© Г± Г°Г ГўГ­Г® ГЇГ®Г±Г«ГҐ Г±ГЄГ®ГЎГЄГЁ
+								//далее ВСЕГДА рассматриваем случай с равно после скобки
 								else if (pDest + 1 == temp)
 								{
-									//ГЇГіГ±ГІГ Гї Г±ГІГ°Г®ГЄГ  Гў Г±ГЄГ®ГЎГЄГ Гµ. ГЇГ®Г«ГіГ·Г ГҐГІГ±Гї, Г­Г ГўГҐГ°Г­Г®ГҐ Г±Г®Г§Г¤Г Г­ГЁГҐ ГґГіГ­ГЄГ¶ГЁГЁ Г®ГІ Г­ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г®ГЈГ® ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
-									//Г Г­Г Г«Г®ГЈГЁГ·Г­Г® Г§Г Г¤Г Г­ГЁГѕ ГґГіГ­ГЄГ¶ГЁГЁ ГўГ®Г®ГЎГ№ГҐ ГЎГҐГ§ ГіГЄГ Г§Г Г­ГЁГї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ. Г“ГЄГ Г§Г ГІГҐГ«Гј Г­Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ - ГЇГіГ±ГІГ®Г©
+									//пустая строка в скобках. получается, наверное создание функции от неопределённого количества переменных
+									//аналогично заданию функции вообще без указания переменных. Указатель на переменные - пустой
 									current_element->copy(high_pointer);
 									current_element->type = funct;
-									current_element->prop = undef; //Г±Г·ГЁГІГ ГҐГ¬ Г­Г®ГўГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ undef, Г­Г® ГЇГ°ГЁ ГЅГІГ®Г¬ Г¬Г» Г§Г­Г ГҐГ¬ Г·ГІГ® Гі Г­ГҐВё ГҐГ±ГІГј ГЁГ¬Гї		
-									current_element->actn = write; //Г­Г  Г§Г ГЇГЁГ±Гј
+									current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя		
+									current_element->actn = write; //на запись
 									high_pointer = current_element;
 									low_pointer = high_pointer;
 								}
@@ -1676,52 +1633,52 @@ namespace Project {
 												general_var_const->push_back(new math_obj(temp_pointer));
 											}
 											temp_pointer->point_collar = current_element;
-											temp_pointer->var = count; //ГІГіГІ ГЇГ°Г®ГЁГ±ГµГ®Г¤ГЁГІ Г§Г ГЇГЁГ±Гј Г­Г®Г¬ГҐГ°Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Гў Г¬Г Г±Г±ГЁГўГҐ ГўГ­ГіГІГ°Гј Г±Г Г¬Г®Г© ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г©. ГЇГ®Г¤Г°Г Г§ГіГ¬ГҐГўГ ГҐГІГ±Гї Г·ГІГ® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ ГЌГ… ГЁГ¬ГҐГѕГІ ГіГ±ГІГ Г­Г®ГўГ«ГҐГ­Г­Г®ГЈГ® Г§Г­Г Г·ГҐГ­ГЁГї => Г¬Г®Г¦Г­Г® ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ ГІГј var ГЄГ ГЄ Г±Г·ВёГІГ·ГЁГЄ
+											temp_pointer->var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
 
 											if (count == 0)
-												//Г±Г°Г Г§Гі Г¦ГҐ ГЇГ®Г«ГіГ·Г ГҐГ¬ ГіГ Г§Г ГІГҐГ«Гј Г­Г  ГЇГҐГ°ГўГіГѕ ГЇГҐГ°ГҐГ¬ГҐГ­Г­ГіГѕ Гў Г±ГЇГЁГ±ГЄГҐ
+												//сразу же получаем уазатель на первую переменную в списке
 												current_element->point_collar = temp_pointer;
 											else
 											{
-												//Г±Г®Г§Г¤Г Г­ГЁГҐ Г¤ГўГіГ­Г ГЇГ°Г ГўГ«ГҐГ­Г­Г®ГЈГ® Г±ГЇГЁГ±ГЄГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ, ГЈГ¤ГҐ Г­Г  Г­ГіГ«ГҐГўГ®Г© ГЅГ«ГҐГ¬ГҐГ­ГІ ГіГЄГ Г§Г»ГўГ ГҐГІ ГўГ®Г°Г®ГІГ­ГЁГЄ ГґГіГ­ГЄГ¶ГЁГЁ.
+												//создание двунаправленного списка переменных, где на нулевой элемент указывает воротник функции.
 												temp_pointer->point_right = current_element->var_list_back();
 												temp_pointer->point_right->point_left = temp_pointer;
 											}
 											if (count == comma)
 											{
-												//Г±Г®Г§Г¤Г Г­ГЁГҐ Г§Г Г¬ГЄГ­ГіГІГ®ГЈГ® Гў ГЄГ®Г«ГјГ¶Г® Г¤ГўГіГ­Г ГЇГ°Г ГўГ«ГҐГ­Г­Г®ГЈГ® Г±ГЇГЁГ±ГЄГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ. ГЌГіГ«ГҐГўГ®Г© ГЅГ«ГҐГ¬ГҐГ­ГІ = ГЇГ®Г±Г«ГҐГ¤Г­ГҐГ¬Гі.
+												//создание замкнутого в кольцо двунаправленного списка переменных. Нулевой элемент = последнему.
 												temp_pointer->point_left = current_element->point_collar;
 												current_element->point_collar->point_right = temp_pointer;
 											}
-											//temp_pointer Гў Г¤Г Г­Г­Г®Г¬ Г±Г«ГіГ·Г ГҐ ГіГ¤Г Г«ГїГІГј Г­ГҐГ«ГјГ§Гї. ГЊГ®Г¦Г­Г® Г§Г Г­ГіГ«ГЁГІГј, Г­Г® ГіГ¤Г Г«ГїГІГј Г­ГҐГ«ГјГ§Гї
+											//temp_pointer в данном случае удалять нельзя. Можно занулить, но удалять нельзя
 										}
 										else
 										{
-											//ГЇГ®Г±ГЄГ®Г«ГјГЄГі ГґГіГ­ГЄГ¶ГЁГї ГҐГ№Вё Г­ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г Гї ГЇГҐГ°ГҐГ¤Г ГўГ ГІГј ГҐГ© Г«ГѕГЎГ»ГҐ Г Г°ГЈГіГ¬ГҐГ­ГІГ» ГЎГіГ¤ГҐГІ Г­ГҐГўГҐГ°Г­Г®
+											//поскольку функция ещё неопределённая передавать ей любые аргументы будет неверно
 											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
 											return NULL;
 										}
 										pDest = temp;
 									}
-									//Г§Г ГЇГ®Г¬ГЁГ­Г ГҐГ¬ Г·ГЁГ±Г«Г® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+									//запоминаем число переменных
 									current_element->var = comma + 1;
 									current_element->type = funct;
-									current_element->prop = undef; //Г±Г·ГЁГІГ ГҐГ¬ Г­Г®ГўГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ undef, Г­Г® ГЇГ°ГЁ ГЅГІГ®Г¬ Г¬Г» Г§Г­Г ГҐГ¬ Г·ГІГ® Гі Г­ГҐВё ГҐГ±ГІГј ГЁГ¬Гї
-									current_element->actn = write; //Г­Г  Г§Г ГЇГЁГ±Гј	
+									current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
+									current_element->actn = write; //на запись	
 									high_pointer = current_element;
 									low_pointer = high_pointer;
 								}
 								brakets_counter -= 4;
 								pDest = temp + 1;
 							}
-							//ГІГҐГЄГіГ№ГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ => ГґГіГ­ГЄГ¶ГЁГї, Г Г°ГЈГіГ¬ГҐГ­ГІГ®Г¬ ГїГўГ«ГїГҐГІГ±Гї ГЄГ®ГЇГЁГї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г©
+							//текущий элемент => функция, аргументом является копия переменной
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
 							{
 								current_element->type = funct;
 								current_element->prop = undef;
-								//Г§Г ГЇГ®Г¬ГЁГ­Г ГҐГ¬ Г·ГЁГ±Г«Г® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+								//запоминаем число переменных
 								current_element->var = 1;
-								//ГЄГ®ГЇГЁГї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г± ГіГЄГ Г§Г ГІГҐГ«ГҐГ¬ Г­Г  ГґГіГ­ГЄГ¶ГЁГѕ
+								//копия переменной с указателем на функцию
 								current_element->point_collar = new math_obj(high_pointer);
 								current_element->point_left = current_element->point_collar;
 								current_element->point_left->point_collar = current_element;
@@ -1734,24 +1691,24 @@ namespace Project {
 								return NULL;
 							}
 						}
-						//Г­Г Г©Г¤ГҐГ­ ГЅГ«ГҐГ¬ГҐГ­ГІ Г¬Г Г±Г±ГЁГўГ  Г± Г±Г®ГўГЇГ Г¤Г ГѕГ№ГЁГ¬ ГЁГ¬ГҐГ­ГҐГ¬ - ГґГіГ­ГЄГ¶ГЁГї
+						//найден элемент массива с совпадающим именем - функция
 						else if (high_pointer->type == funct)
 						{
-							//ГЄГ®ГЇГЁГ°ГіГҐГ¬ ГґГіГ­ГЄГ¶ГЁГѕ
+							//копируем функцию
 							if ((temp == NULL) || (*temp == '='))
 							{
 								current_element->copy(high_pointer);
 								high_pointer = current_element;
 								low_pointer = high_pointer;
-								//Г¤Г Г­Г­Г Гї ГґГіГ­ГЄГ¶ГЁГї Г¬Г®Г¦ГҐГІ ГЎГ»ГІГј ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ Г­Г  Гў ГЄГ ГЄГ®Г¬-ГІГ® ГіГ°Г ГўГ­ГҐГ­ГЁГЁ/Г¤Г°ГіГЈГ®Г© ГґГіГ­ГЄГ¶ГЁГЁ Гў ГЄГ Г·ГҐГ±ГІГўГҐ Г®ГЇГҐГ°Г Г­Г¤Г . 
-								//Г¬Г®Г¦ГҐГІ ГІГ ГЄ Г¦ГҐ Г®Г§Г­Г Г·Г ГІГј ГҐВё ГЇГҐГ°ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ Г± Г­ГҐГЁГ§ГўГҐГ±ГІГ­Г»Г¬ ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ®Г¬ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+								//данная функция может быть использована в каком-то уравнении/другой функции в качестве операнда. 
+								//может так же означать её переопределение с неизвестным количеством переменных
 							}
-							//Гў Г¤Г Г­Г­Г®Г¬ Г±Г«ГіГ·Г ГҐ Г®ГІГЄГ°Г»ГІГ Гї Г±ГЄГ®ГЎГЄГ  ГЇГ®Г±Г«ГҐ Г­Г Г§ГўГ Г­ГЁГї ГіГ¦ГҐ Г®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г®Г© Гґ-Г¶ГЁГЁ (Г­-Г° f(x)) Г¬Г®Г¦ГҐГІ Г§Г­Г Г·ГЁГІГј:
-							//--Г­Г®ГўГ®ГҐ Г®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ, Гў ГІГ®Г¬ Г·ГЁГ±Г«ГҐ Г®ГІ Г­Г®ГўГ»Гµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
-							//--ГЇГҐГ°ГҐГ¤Г Г·Гі ГґГіГ­ГЄГ¶ГЁГЁ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў, ГЄГ ГЄ ГЄГ®Г­Г±ГІГ Г­ГІГ­Г»Гµ ГўГ»Г°Г Г¦ГҐГ­ГЁГ©, ГІГ ГЄ ГЁ Г­Г®ГўГ»Гµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ. Г‚ ГЅГІГ®Г¬ Г±Г«ГіГ·Г ГҐ Г±Г·ГЁГІГ ГҐГ¬, 
-							//Г·ГІГ® ГЇГ®Г¤Г°Г Г§ГіГ¬ГҐГўГ ГҐГІГ±Гї f(t)= - Г§Г ГЇГ°Г®Г± Г­Г  ГўГ»ГўГ®Г¤ ГўГ»Г°Г Г¦ГҐГ­ГЁГї Г®ГІ t, Г«ГЁГЎГ® ГіГ·Г Г±ГІГЁГҐ f Гў ГіГ°Г ГўГ­ГҐГ­ГЁГЁ Г± ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© t, Г§Г  ГЁГ±ГЄГ«. Г±Г«ГіГ·Г Гї Г± ГЇГҐГ°ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐГ¬.
-							//--ГЇГҐГ°ГҐГ¤Г Г·Гі ГґГіГ­ГЄГ¶ГЁГЁ Гў ГЄГ Г·ГҐГ±ГІГўГҐ Г Г°ГЈГіГ¬ГҐГ­ГІГ  Г­Г®ГўГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ g(s) - ГЇГ°ГЁ ГЅГІГ®Г¬ ГЇГ®Г«ГіГ·ГЁГўГёГ ГїГ±Гї ГґГіГ­ГЄГ¶ГЁГї f(g(s)) Г¤Г®Г«Г¦Г­Г  ГўГ±ГѕГ¤Гі Г§Г ГўГЁГ±ГҐГІГј Г®ГІ s, Г  Г­ГҐ Г®ГІ Гµ,
-							//Г®Г¤Г­Г ГЄГ® Г¤Г®Г«Г¦Г­Г  Г±Г®Г±ГІГ®ГїГІГј ГЁГ§ ГЄГ®ГЇГЁГ© Г®Г°ГЁГЈГЁГ­Г Г«ГјГ­Г»Гµ ГґГіГ­ГЄГ¶ГЁГ©, ГЁГ±ГЄГ«ГѕГ·ГҐГ­ГЁГҐ g(s) - Г­ГҐГїГўГ­Г® Г§Г Г¤Г Г­Г  - f(5*s+2)
+							//в данном случае открытая скобка после названия уже определённой ф-ции (н-р f(x)) может значить:
+							//--новое определение, в том числе от новых переменных
+							//--передачу функции аргументов, как константных выражений, так и новых переменных. В этом случае считаем, 
+							//что подразумевается f(t)= - запрос на вывод выражения от t, либо участие f в уравнении с переменной t, за искл. случая с переопределением.
+							//--передачу функции в качестве аргумента новую функцию g(s) - при этом получившаяся функция f(g(s)) должна всюду зависеть от s, а не от х,
+							//однако должна состоять из копий оригинальных функций, исключение g(s) - неявно задана - f(5*s+2)
 							else if (*temp == '(')
 							{
 								brakets_counter += 4;
@@ -1760,7 +1717,7 @@ namespace Project {
 								while (count != 0)
 								{
 									temp++;
-									//ГҐГ±Г«ГЁ ГЇГ®ГЇГ Г«ГЁ Гў ГЄГ®Г­ГҐГ¶ Г±ГІГ°Г®Г·ГЄГЁ Г­ГҐ Г­Г Г©Г¤Гї Г§Г ГЄГ°Г»ГўГ ГѕГ№ГЁГµ Г±ГЄГ®ГЎГ®ГЄ
+									//если попали в конец строчки не найдя закрывающих скобок
 									if (temp == endPtr + 1)
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
@@ -1774,37 +1731,37 @@ namespace Project {
 									{
 										count--;
 									}
-									else if (*temp == '=') //Г®ГІГЄГ°Г»ГІГ Гї Г±ГЄГ®ГЎГЄГ  ГЁ Г¤Г Г«ГјГёГҐ Г°Г ГўГ­Г®
+									else if (*temp == '=') //открытая скобка и дальше равно
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
 										return NULL;
 									}
 									else if (*temp == ',')
 									{
-										//Г±Г·ГЁГІГ ГҐГ¬ Г§Г ГЇГїГІГ»ГҐ. ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® Г§Г ГЇГїГІГ»Гµ Гў Г±ГЄГ®ГЎГЄГ Гµ +1 = Г·ГЁГ±Г«Г® Г°Г Г§Г«ГЁГ·Г­Г»Гµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+										//считаем запятые. количество запятых в скобках +1 = число различных переменных
 										comma++;
 									}
 								}
 								if (pDest + 1 == temp)
 								{
-									//ГЇГіГ±ГІГ Гї Г±ГІГ°Г®ГЄГ  Гў Г±ГЄГ®ГЎГЄГ Гµ. ГЇГ®Г«ГіГ·Г ГҐГІГ±Гї, Г«ГЁГЎГ® Г®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ ГґГіГ­ГЄГ¶ГЁГЁ Г®ГІ Г­ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г®ГЈГ® ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ ГЁГ«ГЁ ГЇГ°Г®Г±ГІГ® ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ Г­ГЁГҐ ГґГіГ­ГЄГ¶ГЁГЁ Гў ГўГ»Г°Г Г¦ГҐГ­ГЁГЁ
-									//Г Г­Г Г«Г®ГЈГЁГ·Г­Г® Г§Г Г¤Г Г­ГЁГѕ ГґГіГ­ГЄГ¶ГЁГЁ ГўГ®Г®ГЎГ№ГҐ ГЎГҐГ§ ГіГЄГ Г§Г Г­ГЁГї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ. Г“ГЄГ Г§Г ГІГҐГ«Гј Г­Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ - ГІГ®ГІ Г·ГІГ® ГЎГ»Г« Г°Г Г­ГјГёГҐ
+									//пустая строка в скобках. получается, либо определение функции от неопределённого количества переменных или просто использование функции в выражении
+									//аналогично заданию функции вообще без указания переменных. Указатель на переменные - тот что был раньше
 									if ((*(temp + 1) == NULL) || (*(temp + 1) == '='))
 									{
 										current_element->copy(high_pointer);
 										high_pointer = current_element;
 										low_pointer = high_pointer;
 									}
-									//Г±Г«ГіГ·Г Г©, Г Г­Г Г«Г®ГЈГЁГ·Г­Г»Г© ГЇГ®Г±Г«ГҐГ¤Г­ГҐГ¬Гі ГіГ±Г«Г®ГўГЁГѕ Гў Г¤Г Г­Г­Г®Г© ГўГҐГІГЄГҐ 
+									//случай, аналогичный последнему условию в данной ветке 
 									else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
 									{
 										current_element->type = funct;
 										current_element->prop = arg_v;
-										current_element->var = 1; // Г®Г¤Г­Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї
-										current_element->point_right = new math_obj(high_pointer); //Г­Г Г©Г¤ГҐГ­Г­Г Гї ГґГіГ­ГЄГ¶ГЁГї - Г Г°ГЈГіГ¬ГҐГ­ГІ ГІГҐГЄГіГ№ГҐГ©
-										//ГЄГ®ГЇГЁГї Г±Г«ГіГ¦ГҐГЎГ­Г®Г© ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г± ГіГЄГ Г§Г ГІГҐГ«ГҐГ¬ Г­Г  ГґГіГ­ГЄГ¶ГЁГѕ
+										current_element->var = 1; // одна переменная
+										current_element->point_right = new math_obj(high_pointer); //найденная функция - аргумент текущей
+										//копия служебной переменной с указателем на функцию
 										current_element->point_collar = new math_obj(&temporary_variable);
-										current_element->point_collar->var = 0; //ГЇГ°Г®Г±ГІГ® Г¤Г«Гї Г¤Г®Г±ГІГ®ГўГҐГ°Г­Г®Г±ГІГЁ)
+										current_element->point_collar->var = 0; //просто для достоверности)
 										current_element->point_collar->point_collar = current_element;
 										current_element->point_left = current_element->point_collar;
 
@@ -1812,10 +1769,10 @@ namespace Project {
 										low_pointer = high_pointer;
 									}
 								}
-								//Г·ГЁГ±Г«Г® Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў Гў Г±ГЄГ®ГЎГЄГ Гµ Г±Г®ГўГЇГ Г¤Г ГҐГІ Г± Г·ГЁГ±Г«Г®Г¬ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў Гі Г®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г®Г© Г§Г Г°Г Г­ГҐГҐ ГґГіГ­ГЄГ¶ГЁГЁ
+								//число аргументов в скобках совпадает с числом аргументов у определённой заранее функции
 								else if (high_pointer->var == comma + 1)
 								{
-									//Г­ГҐГІ Г§Г ГЇГїГІГ»Гµ 
+									//нет запятых 
 									if (comma == 0)
 									{
 										name.assign(pDest + 1, temp);
@@ -1828,7 +1785,7 @@ namespace Project {
 											{
 												current_element->copy(high_pointer);
 												current_element->point_right = temp_pointer;
-												current_element->prop = arg_c; //ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г·ГІГ® Гў ГґГіГ­ГЄГ¶ГЁГѕ ГЇГҐГ°ГҐГ¤Г Г«ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІ
+												current_element->prop = arg_c; //указываем что в функцию передали аргумент
 												high_pointer = current_element;
 												low_pointer = high_pointer;
 											}
@@ -1849,7 +1806,7 @@ namespace Project {
 												{
 													current_element->copy(high_pointer);
 													current_element->point_right = temp_pointer;
-													current_element->prop = arg_c; //ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г·ГІГ® Гў ГґГіГ­ГЄГ¶ГЁГѕ ГЇГҐГ°ГҐГ¤Г Г«ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІ
+													current_element->prop = arg_c; //указываем что в функцию передали аргумент
 													high_pointer = current_element;
 													low_pointer = high_pointer;
 												}
@@ -1868,7 +1825,7 @@ namespace Project {
 												{
 													current_element->copy(high_pointer);
 													current_element->point_right = temp_pointer;
-													current_element->prop = arg_v; //ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г·ГІГ® Гў ГґГіГ­ГЄГ¶ГЁГѕ ГЇГҐГ°ГҐГ¤Г Г«ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІ
+													current_element->prop = arg_v; //указываем что в функцию передали аргумент
 													high_pointer = current_element;
 													low_pointer = high_pointer;
 												}
@@ -1876,11 +1833,11 @@ namespace Project {
 												{
 													current_element->type = funct;
 													current_element->prop = arg_v;
-													current_element->var = 1; // Г®Г¤Г­Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї
-													current_element->point_right = new math_obj(high_pointer); //Г­Г Г©Г¤ГҐГ­Г­Г Гї ГґГіГ­ГЄГ¶ГЁГї - Г Г°ГЈГіГ¬ГҐГ­ГІ ГІГҐГЄГіГ№ГҐГ©
-																												//ГЄГ®ГЇГЁГї Г±Г«ГіГ¦ГҐГЎГ­Г®Г© ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г± ГіГЄГ Г§Г ГІГҐГ«ГҐГ¬ Г­Г  ГґГіГ­ГЄГ¶ГЁГѕ
+													current_element->var = 1; // одна переменная
+													current_element->point_right = new math_obj(high_pointer); //найденная функция - аргумент текущей
+																												//копия служебной переменной с указателем на функцию
 													current_element->point_collar = new math_obj(&temporary_variable);
-													current_element->point_collar->var = 0; //ГЇГ°Г®Г±ГІГ® Г¤Г«Гї Г¤Г®Г±ГІГ®ГўГҐГ°Г­Г®Г±ГІГЁ)
+													current_element->point_collar->var = 0; //просто для достоверности)
 													current_element->point_collar->point_collar = current_element;
 													current_element->point_left = current_element->point_collar;
 													current_element->point_right->point_right = temp_pointer;
@@ -1901,7 +1858,7 @@ namespace Project {
 											{
 												current_element->copy(high_pointer);
 												current_element->point_right = temp_pointer;
-												current_element->prop = arg_v; //ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г·ГІГ® Гў ГґГіГ­ГЄГ¶ГЁГѕ ГЇГҐГ°ГҐГ¤Г Г«ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІ
+												current_element->prop = arg_v; //указываем что в функцию передали аргумент
 												high_pointer = current_element;
 												low_pointer = high_pointer;
 											}
@@ -1909,11 +1866,11 @@ namespace Project {
 											{
 												current_element->type = funct;
 												current_element->prop = arg_v;
-												current_element->var = 1; // Г®Г¤Г­Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї
-												current_element->point_right = new math_obj(high_pointer); //Г­Г Г©Г¤ГҐГ­Г­Г Гї ГґГіГ­ГЄГ¶ГЁГї - Г Г°ГЈГіГ¬ГҐГ­ГІ ГІГҐГЄГіГ№ГҐГ©
-																											//ГЄГ®ГЇГЁГї Г±Г«ГіГ¦ГҐГЎГ­Г®Г© ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г± ГіГЄГ Г§Г ГІГҐГ«ГҐГ¬ Г­Г  ГґГіГ­ГЄГ¶ГЁГѕ
+												current_element->var = 1; // одна переменная
+												current_element->point_right = new math_obj(high_pointer); //найденная функция - аргумент текущей
+																											//копия служебной переменной с указателем на функцию
 												current_element->point_collar = new math_obj(&temporary_variable);
-												current_element->point_collar->var = 0; //ГЇГ°Г®Г±ГІГ® Г¤Г«Гї Г¤Г®Г±ГІГ®ГўГҐГ°Г­Г®Г±ГІГЁ)
+												current_element->point_collar->var = 0; //просто для достоверности)
 												current_element->point_collar->point_collar = current_element;
 												current_element->point_left = current_element->point_collar;
 												current_element->point_right->point_right = temp_pointer;
@@ -1923,7 +1880,7 @@ namespace Project {
 											}
 										}
 									}
-									//ГҐГ±Г«ГЁ Гў Г±ГЄГ®ГЎГЄГ Гµ Г±ГІГ®ГїГІ Г§Г ГЇГїГІГ»ГҐ - Г®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ ГґГіГ­ГЄГ¶ГЁГЁ Г­ГҐГ±ГЄГ®Г«ГјГЄГЁГµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+									//если в скобках стоят запятые - определение функции нескольких переменных
 									else
 									{
 										multiple_var = new math_obj[comma + 1];
@@ -1935,7 +1892,7 @@ namespace Project {
 											temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, L"", 0, current_element), brakets + brakets_counter);
 											if (temp_pointer == NULL)
 												return temp_pointer;
-											//Г§Г ГЇГ®Г«Г­ГїГҐГ¬ Г¬Г Г±Г±ГЁГў Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў
+											//заполняем массив аргументов
 											if (temp_pointer->type == varbl)
 											{
 												count_var++;
@@ -1955,13 +1912,13 @@ namespace Project {
 											multiple_var[count].copy(temp_pointer);
 											pDest = temp;
 										}
-										if (count_var != 0)//ГҐГ±Г«ГЁ Г±Г°ГҐГ¤ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў ГµГ®ГІГї ГЎГ» Г®Г¤Г­Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї
+										if (count_var != 0)//если среди аргументов хотя бы одна переменная
 										{
 											if ((*(temp + 1) == NULL) || (*(temp + 1) == '='))
 											{
 												current_element->copy(high_pointer);
 												current_element->point_right = multiple_var;
-												current_element->prop = arg_v; //ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г·ГІГ® Гў ГґГіГ­ГЄГ¶ГЁГѕ ГЇГҐГ°ГҐГ¤Г Г«ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІ
+												current_element->prop = arg_v; //указываем что в функцию передали аргумент
 												high_pointer = current_element;
 												low_pointer = high_pointer;
 											}
@@ -1969,11 +1926,11 @@ namespace Project {
 											{
 												current_element->type = funct;
 												current_element->prop = arg_v;
-												current_element->var = 1; // Г®Г¤Г­Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї
-												current_element->point_right = new math_obj(high_pointer); //Г­Г Г©Г¤ГҐГ­Г­Г Гї ГґГіГ­ГЄГ¶ГЁГї - Г Г°ГЈГіГ¬ГҐГ­ГІ ГІГҐГЄГіГ№ГҐГ©
-																											//ГЄГ®ГЇГЁГї Г±Г«ГіГ¦ГҐГЎГ­Г®Г© ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г± ГіГЄГ Г§Г ГІГҐГ«ГҐГ¬ Г­Г  ГґГіГ­ГЄГ¶ГЁГѕ
+												current_element->var = 1; // одна переменная
+												current_element->point_right = new math_obj(high_pointer); //найденная функция - аргумент текущей
+																											//копия служебной переменной с указателем на функцию
 												current_element->point_collar = new math_obj(&temporary_variable);
-												current_element->point_collar->var = 0; //ГЇГ°Г®Г±ГІГ® Г¤Г«Гї Г¤Г®Г±ГІГ®ГўГҐГ°Г­Г®Г±ГІГЁ)
+												current_element->point_collar->var = 0; //просто для достоверности)
 												current_element->point_collar->point_collar = current_element;
 												current_element->point_left = current_element->point_collar;
 												current_element->point_right->point_right = multiple_var;
@@ -1982,13 +1939,13 @@ namespace Project {
 												low_pointer = high_pointer;
 											}
 										}
-										else // ГўГ±ГҐ Г Г°ГЈГіГ¬ГҐГ­ГІГ» Г­ГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ
+										else // все аргументы не переменные
 										{
 											if ((*(temp + 1) == NULL) || (*(temp + 1) == '='))
 											{
 												current_element->copy(high_pointer);
-												current_element->point_right = multiple_var;//Гў ГЄГ Г·ГҐГ±ГІГўГҐ Г Г°ГЈГіГ¬ГҐГ­ГІГ  - Г¬Г Г±Г±ГЁГў Г®ГЎГєГҐГЄГІГ®Гў
-												current_element->prop = arg_c; //ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г·ГІГ® Гў ГґГіГ­ГЄГ¶ГЁГѕ ГЇГҐГ°ГҐГ¤Г Г«ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІ
+												current_element->point_right = multiple_var;//в качестве аргумента - массив объектов
+												current_element->prop = arg_c; //указываем что в функцию передали аргумент
 												high_pointer = current_element;
 												low_pointer = high_pointer;
 											}
@@ -2003,19 +1960,19 @@ namespace Project {
 										}
 									}
 								}
-								//Г·ГЁГ±Г«Г® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ - Г°Г Г§Г«ГЁГ·Г­Г®ГҐ 
+								//число переменных - различное 
 								else
 								{
 									if (*(temp + 1) != '=')
 									{
-										//ГІГіГІ Г®ГёГЁГЎГЄГ : Г°Г Г­ГҐГҐ ГЎГ»Г«Г  f(x,y), Г§Г ГЇГЁГ±Г Г«ГЁ f(k)+... - ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ Гў ГўГ»Г§Г»ГўГ ГҐГ¬Г®Г© ГґГіГ­ГЄГ¶ГЁГЁ Г­ГҐ Г±Г®ГўГЇГ Г¤Г ГҐГІ
-										//TODO:Г§Г¤ГҐГ±Гј Г­Г Г¤Г® ГЎГіГ¤ГҐГІ Г­Г ГЇГЁГ±Г ГІГј ГЁГ±ГЄГ«ГѕГ·ГҐГ­ГЁГї Г¤Г«Гї ГґГіГ­ГЄГ¶ГЁГ© Г­ГҐГ±ГЄГ®Г«ГјГЄГЁГµ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў, ГЄГ®ГІГ®Г°Г»ГҐ Г¬Г®ГЈГіГІ ГЇГ®Г­ГЁГ¬Г ГІГјГ±Гї ГЄГ ГЄ ГґГіГ­ГЄГ¶ГЁГї Г®Г¤Г­Г®ГЈГ® Г Г°ГЈГіГ¬ГҐГ­ГІГ 
-										//ГЇГ°ГЁГ¬ГҐГ° root(5) - ГЄГўГ Г¤Г°Г ГІГ­Г»Г© ГЄГ®Г°ГҐГ­Гј ГЁГ§ 5, root (5,2) - ГІГ®Г¦ГҐ Г±Г Г¬Г®ГҐ, root (5,3) - ГЄГіГЎГЁГ·ГҐГ±ГЄГЁГ© ГЄГ®Г°ГҐГ­Гј ГЁГ§ 5
+										//тут ошибка: ранее была f(x,y), записали f(k)+... - количество переменных в вызываемой функции не совпадает
+										//TODO:здесь надо будет написать исключения для функций нескольких аргументов, которые могут пониматься как функция одного аргумента
+										//пример root(5) - квадратный корень из 5, root (5,2) - тоже самое, root (5,3) - кубический корень из 5
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
 										return NULL;
 
 									}
-									//Г­Г® ГҐГ±Г«ГЁ Г¤Г Г«ГҐГҐ Г±ГІГ®ГЁГІ Г°Г ГўГ­Г® - ГўГ±Вё Г­Г®Г°Г¬Г Г«ГјГ­Г®,  ГЇГҐГ°ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ГҐГ­ГЁГҐ. 									
+									//но если далее стоит равно - всё нормально,  переопределение. 									
 
 									else
 									{
@@ -2035,37 +1992,37 @@ namespace Project {
 													general_var_const->push_back(new math_obj(temp_pointer));
 												}
 												temp_pointer->point_collar = current_element;
-												temp_pointer->var = count; //ГІГіГІ ГЇГ°Г®ГЁГ±ГµГ®Г¤ГЁГІ Г§Г ГЇГЁГ±Гј Г­Г®Г¬ГҐГ°Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Гў Г¬Г Г±Г±ГЁГўГҐ ГўГ­ГіГІГ°Гј Г±Г Г¬Г®Г© ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г©. ГЇГ®Г¤Г°Г Г§ГіГ¬ГҐГўГ ГҐГІГ±Гї Г·ГІГ® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ ГЌГ… ГЁГ¬ГҐГѕГІ ГіГ±ГІГ Г­Г®ГўГ«ГҐГ­Г­Г®ГЈГ® Г§Г­Г Г·ГҐГ­ГЁГї => Г¬Г®Г¦Г­Г® ГЁГ±ГЇГ®Г«ГјГ§Г®ГўГ ГІГј var ГЄГ ГЄ Г±Г·ВёГІГ·ГЁГЄ
+												temp_pointer->var = count; //тут происходит запись номера переменной в массиве внутрь самой переменной. подразумевается что переменные НЕ имеют установленного значения => можно использовать var как счётчик
 
 												if (count == 0)
-													//Г±Г°Г Г§Гі Г¦ГҐ ГЇГ®Г«ГіГ·Г ГҐГ¬ ГіГ Г§Г ГІГҐГ«Гј Г­Г  ГЇГҐГ°ГўГіГѕ ГЇГҐГ°ГҐГ¬ГҐГ­Г­ГіГѕ Гў Г±ГЇГЁГ±ГЄГҐ
+													//сразу же получаем уазатель на первую переменную в списке
 													current_element->point_collar = temp_pointer;
 												else
 												{
-													//Г±Г®Г§Г¤Г Г­ГЁГҐ Г¤ГўГіГ­Г ГЇГ°Г ГўГ«ГҐГ­Г­Г®ГЈГ® Г±ГЇГЁГ±ГЄГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ, ГЈГ¤ГҐ Г­Г  Г­ГіГ«ГҐГўГ®Г© ГЅГ«ГҐГ¬ГҐГ­ГІ ГіГЄГ Г§Г»ГўГ ГҐГІ ГўГ®Г°Г®ГІГ­ГЁГЄ ГґГіГ­ГЄГ¶ГЁГЁ.
+													//создание двунаправленного списка переменных, где на нулевой элемент указывает воротник функции.
 													temp_pointer->point_right = current_element->var_list_back();
 													temp_pointer->point_right->point_left = temp_pointer;
 												}
 												if (count == comma)
 												{
-													//Г±Г®Г§Г¤Г Г­ГЁГҐ Г§Г Г¬ГЄГ­ГіГІГ®ГЈГ® Гў ГЄГ®Г«ГјГ¶Г® Г¤ГўГіГ­Г ГЇГ°Г ГўГ«ГҐГ­Г­Г®ГЈГ® Г±ГЇГЁГ±ГЄГ  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ. ГЌГіГ«ГҐГўГ®Г© ГЅГ«ГҐГ¬ГҐГ­ГІ = ГЇГ®Г±Г«ГҐГ¤Г­ГҐГ¬Гі.
+													//создание замкнутого в кольцо двунаправленного списка переменных. Нулевой элемент = последнему.
 													temp_pointer->point_left = current_element->point_collar;
 													current_element->point_collar->point_right = temp_pointer;
 												}
-												//temp_pointer Гў Г¤Г Г­Г­Г®Г¬ Г±Г«ГіГ·Г ГҐ ГіГ¤Г Г«ГїГІГј Г­ГҐГ«ГјГ§Гї. ГЊГ®Г¦Г­Г® Г§Г Г­ГіГ«ГЁГІГј, Г­Г® ГіГ¤Г Г«ГїГІГј Г­ГҐГ«ГјГ§Гї
+												//temp_pointer в данном случае удалять нельзя. Можно занулить, но удалять нельзя
 											}
 											else
 											{
-												//ГЇГ®Г±ГЄГ®Г«ГјГЄГі ГґГіГ­ГЄГ¶ГЁГї ГҐГ№Вё Г­ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г Гї ГЇГҐГ°ГҐГ¤Г ГўГ ГІГј ГҐГ© Г«ГѕГЎГ»ГҐ Г Г°ГЈГіГ¬ГҐГ­ГІГ» ГЎГіГ¤ГҐГІ Г­ГҐГўГҐГ°Г­Г®, ГІ.ГЄ. ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў Г­ГҐ Г±Г®ГўГЇГ Г¤Г ГҐГІ
+												//поскольку функция ещё неопределённая передавать ей любые аргументы будет неверно, т.к. количество аргументов не совпадает
 												ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
 												return NULL;
 											}
 											pDest = temp;
 										}
-										//Г§Г ГЇГ®Г¬ГЁГ­Г ГҐГ¬ Г·ГЁГ±Г«Г® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+										//запоминаем число переменных
 										current_element->var = comma + 1;
-										current_element->prop = undef; //Г±Г·ГЁГІГ ГҐГ¬ Г­Г®ГўГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ undef, Г­Г® ГЇГ°ГЁ ГЅГІГ®Г¬ Г¬Г» Г§Г­Г ГҐГ¬ Г·ГІГ® Гі Г­ГҐВё ГҐГ±ГІГј ГЁГ¬Гї
-										current_element->actn = write;  //Г­Г  Г§Г ГЇГ®Г«Г­ГҐГ­ГЁГҐ		
+										current_element->prop = undef; //считаем новую функцию undef, но при этом мы знаем что у неё есть имя
+										current_element->actn = write;  //на заполнение		
 										high_pointer = current_element;
 										low_pointer = high_pointer;
 									}
@@ -2079,23 +2036,23 @@ namespace Project {
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
 								return NULL;
 							}
-							//ГІГҐГЄГіГ№ГҐГҐ ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ => ГґГіГ­ГЄГ¶ГЁГї, ГЄГ®ГЇГЁГї Г­Г Г©Г¤ГҐГ­Г­Г®Г© ГґГіГ­ГЄГ¶ГЁГЁ - Г Г°ГЈГіГ¬ГҐГ­ГІ ГўГ»Г°Г Г¦ГҐГ­ГЁГї.
+							//текущее выражение => функция, копия найденной функции - аргумент выражения.
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
 							{
 								current_element->type = funct;
 								current_element->prop = arg_v;
-								current_element->point_right = new math_obj(high_pointer); //ГЇГ®Г«Г ГЈГ ГҐГ¬ Г­Г®ГўГіГѕ Г­ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­ГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ, ГЄГ®ГІГ®Г°Г Гї Г§Г ГўГЁГ±ГЁГІ Г®ГІ ГЄГ ГЄГ®Г©-Г«ГЁГЎГ® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г©,
-																							//ГЁГ¬ГҐГѕГ№ГҐГ© Г Г°ГЈГіГ¬ГҐГ­ГІ Гў ГўГЁГ¤ГҐ Г¤Г°ГіГЈГ®Г© (Г®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г®Г©) ГґГіГ­ГЄГ¶ГЁГЁ. ГЏГ°ГЁ ГЅГІГ®Г¬ ГҐГ±Г«ГЁ Г®ГЄГ Г¦ГҐГІГ±Гї, Г·ГІГ®
-																							//Гў ГўГ»Г°Г Г¦ГҐГ­ГЁГЁ ГіГ·Г Г±ГІГўГіГѕГІ Г­ГҐГ±ГЄГ®Г«ГјГЄГ® ГґГіГ­ГЄГ¶ГЁГ© (f+g), ГІГ® ГґГіГ­ГЄГ¶ГЁГї, ГЄГ®ГІГ°Г Гї ГЁГµ Г®ГЎГєГҐГ¤ГЁГ­ГїГҐГІ
-																							//ГЎГіГ¤ГҐГІ Г±Г·ГЁГІГ ГІГјГ±Гї ГґГіГ­ГЄГ¶ГЁГҐГ© Г­ГҐГ±ГЄГ®Г«ГјГЄГЁГµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ, 
-																							//Г¤Г Г¦ГҐ ГҐГ±Г«ГЁ ГўГ±ГҐ ГґГіГ­ГЄГ¶ГЁГЁ Гў ГҐВё ГўГ»Г°Г Г¦ГҐГ­ГЁГЁ Г§Г ГўГЁГ±ГїГІ Г®ГІ Г®Г¤Г­Г®Г© ГЁ ГІГ®Г© Г¦ГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г©.
-								//ГЄГ®ГЇГЁГї Г±Г«ГіГ¦ГҐГЎГ­Г®Г© ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г± ГіГЄГ Г§Г ГІГҐГ«ГҐГ¬ Г­Г  ГґГіГ­ГЄГ¶ГЁГѕ, ГЄГ®ГІГ®Г°Г Гї ГЁГҐГ¬ГҐГҐГІ Г­Г®Г¬ГҐГ° Г­Г®Г«Гј
+								current_element->point_right = new math_obj(high_pointer); //полагаем новую неопределённую функцию, которая зависит от какой-либо переменной,
+																							//имеющей аргумент в виде другой (определённой) функции. При этом если окажется, что
+																							//в выражении участвуют несколько функций (f+g), то функция, котрая их объединяет
+																							//будет считаться функцией нескольких переменных, 
+																							//даже если все функции в её выражении зависят от одной и той же переменной.
+								//копия служебной переменной с указателем на функцию, которая иемеет номер ноль
 								current_element->point_collar = new math_obj(&temporary_variable);
-								current_element->point_collar->var = 0; //ГЇГ°Г®Г±ГІГ® Г¤Г«Гї Г¤Г®Г±ГІГ®ГўГҐГ°Г­Г®Г±ГІГЁ)
+								current_element->point_collar->var = 0; //просто для достоверности)
 								current_element->point_collar->point_collar = current_element;
-								current_element->point_left = current_element->point_collar;//ГІ.Г®. ГЄГ Г¦Г¤Г Гї ГґГіГ­ГЄГ¶ГЁГї ГЎГіГ¤ГҐГІ ГЁГ¬ГҐГІГј Г®Г¤Г­Гі ГЁ ГІГіГ¦ГҐ Г±ГІГ°ГіГЄГІГіГ°Гі ГЁ ГЇГ®Г­ГЁГ¬Г ГІГјГ±Гї ГўГ±ГҐГЈГ¤Г , 
-																							//ГЄГ ГЄ ГґГіГ­ГЄГ¶ГЁГї Г§Г ГўГЁГ±ГїГ№Г Гї Г®ГІ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ, ГЄГ®ГІГ®Г°Г®Г© Гў ГЄГ Г·ГҐГІГўГҐ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў Г·ГІГ®-ГІГ® ГЇГҐГ°ГҐГ¤Г ВёГІГ±Гї
-								current_element->var = 1; //ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ								
+								current_element->point_left = current_element->point_collar;//т.о. каждая функция будет иметь одну и туже структуру и пониматься всегда, 
+																							//как функция зависящая от переменных, которой в качетве аргументов что-то передаётся
+								current_element->var = 1; //количество переменных								
 								high_pointer = current_element->point_left;
 								low_pointer = high_pointer;
 							}
@@ -2106,7 +2063,7 @@ namespace Project {
 							}
 						}
 					}
-					//Г±ГЁГ¬ГўГ®Г« Г­Г ГµГ®Г¤ГЁГІГ±Гї Г­ГҐ Гў Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ
+					//символ находится не в начале строки
 					else
 					{
 						if (temp == NULL)
@@ -2121,28 +2078,28 @@ namespace Project {
 						}
 						low_pointer = run_vector(name);
 
-						//Г¤Г Г«ГҐГҐ ГўГ±ГҐГЈГ¤Г  Г¬Г®Г¦ГҐГІ ГЎГ»ГІГј ГІГ®Г«ГјГЄГ® Г¤ГўГ  ГўГ Г°ГЁГ Г­ГІГ  - ГІГҐГЄГ№ГіГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ Г«ГЁГЎГ® ГґГіГ­ГЄГ¶ГЁГї, Г«ГЁГЎГ® ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ, ГЇГ°ГЁГ·ВёГ¬ ГўГ±ГҐГЈГ¤Г  undef.
-						//ГҐГ±Г«ГЁ Г­ГҐ Г­Г Г©Г¤ГҐГ­ Г­ГЁ Г®Г¤ГЁГ­ ГЅГ«ГҐГ¬ГҐГ­ГІ Г¬Г Г±Г±ГЁГўГ  Г± ГІГ ГЄГЁГ¬ ГЁГ¬ГҐГ­ГҐГ¬
+						//далее всегда может быть только два варианта - текщуий элемент либо функция, либо выражение, причём всегда undef.
+						//если не найден ни один элемент массива с таким именем
 						if (low_pointer == NULL)
 						{
 							if (*temp == '(),')
 							{
-								//Г®ГёГЁГЎГЄГ  - ГЇГ®Г±Г«ГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г±ГІГ®ГЁГІ Г®ГІГЄГ°Г»ГўГ ГѕГ№Г ГїГ±Гї Г±ГЄГ®ГЎГЄГ . Г‚Г®Г®ГЎГ№ГҐ Г­ГҐ Г±Г®ГўГ±ГҐГ¬ ГЎГҐГ±Г±Г¬Г»Г±Г«ГҐГ­Г­Г Гї Г§Г ГЇГЁГ±Гј, ГўГ®Г§Г¬Г®Г¦Г­Г® Г­ГіГ¦ГҐГ­ Г¤Г°ГіГЈГ®Г© ГЄГ®Г¤ Г®ГёГЁГЎГЄГЁ ГЁГ«ГЁ ГЇГ°ГЁГ¤ГіГ¬Г ГІГј ГЄГ ГЄ ГІГ ГЄГ®ГҐ ГЁГ±ГЄГ«ГѕГ·ГҐГ­ГЁГҐ Г®ГЎГ°Г ГЎГ ГІГ»ГўГ ГІГј.
+								//ошибка - после переменной стоит открывающаяся скобка. Вообще не совсем бессмысленная запись, возможно нужен другой код ошибки или придумать как такое исключение обрабатывать.
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
 								return NULL;
 							}
-							//ГҐГ±Г«ГЁ ГІГҐГЄГіГ№ГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ - ГґГіГ­ГЄГ¶ГЁГї, ГІГ® Г®Г·ГҐГўГЁГ¤Г­Г® Г­Г Г©Г¤ГҐГ­Г  Г­Г®ГўГ Гї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї Гў Г§Г ГЇГЁГ±ГЁ ГўГ»Г°Г Г¦ГҐГ­ГЁГї. 
+							//если текущий элемент - функция, то очевидно найдена новая переменная в записи выражения. 
 
 
 							if (current_element->type == funct)
 							{
 								if (current_element->point_collar->point_right != NULL)
 								{
-									//Г§Г­Г Г·ГЁГІ Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ Г§Г Г¬ГЄГ­ГіГІ => Г­Г®ГўГ Гї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї - Г«ГЁГёГ­ГїГї
+									//значит список переменных замкнут => новая переменная - лишняя
 									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
 									return NULL;
 								}
-								//Г±ГЇГЁГ±Г®ГЄ Г­ГҐ Г§Г Г¬ГЄГ­ГіГІ - Г¬Г®Г¦Г­Г® Г¤Г®ГЎГ ГўГЁГІГј ГЎГ®Г«ГјГёГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+								//список не замкнут - можно добавить больше переменных
 								else
 								{
 									general_var_const->push_back(new math_obj(name, varbl, defnd, 0));
@@ -2152,8 +2109,8 @@ namespace Project {
 									temp_pointer->point_left->point_collar = current_element;
 									temp_pointer->point_left->var = current_element->var;
 									current_element->var += 1;
-									//ГЇГ®Г±ГЄГ®Г«ГјГЄГі Г±ГЁГ¬ГўГ®Г« Г­ГҐ Гў Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ - Г§Г­Г Г·ГЁГІ Г±ГІГ®ГЁГІ ГЇГ®Г±Г«ГҐ ГЄГ ГЄГ®Г©-Г«ГЁГЎГ® Г®ГЇГҐГ°Г Г¶ГЁГЁ. 
-									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//Г±ГІГ®ГЁГІ ГЇГ®Г±Г«ГҐ Г¬ГЁГ­ГіГ±Г 
+									//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
+									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
 									{
 										high_pointer->point_right->point_right = temp_pointer->point_left;
 									}
@@ -2165,18 +2122,18 @@ namespace Project {
 									temp_pointer = NULL;
 								}
 							}
-							//ГҐГ±Г«ГЁ ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ
+							//если выражение
 							else if (current_element->type == exprs)
 							{
-								// ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ Гў undef ГґГіГ­ГЄГ¶ГЁГѕ 
+								// выражение в undef функцию 
 								current_element->type = funct;
 								current_element->prop = undef;
 								general_var_const->push_back(new math_obj(name, varbl, defnd, 0));
-								//ГЄГ®ГЇГЁГї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г± ГіГЄГ Г§Г ГІГҐГ«ГҐГ¬ Г­Г  ГґГіГ­ГЄГ¶ГЁГѕ
+								//копия переменной с указателем на функцию
 								current_element->point_collar = new math_obj(general_var_const->back());
 								current_element->point_collar->point_collar = current_element;
-								current_element->var = 1;//Г®Г¤Г­Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї
-								//ГІГіГІ ГЇГ°Г®ГЎГ«ГҐГ¬Г  Г¬Г®Г¦ГҐГІ ГўГ®Г§Г­ГЁГЄГ­ГіГІГј - Гї Г­ГҐ ГЇГ®Г¬Г­Гѕ ГЄГ ГЄГ Гї))
+								current_element->var = 1;//одна переменная
+								//тут проблема может возникнуть - я не помню какая))
 								if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 								{
 									high_pointer->point_right->point_right = current_element->point_collar;
@@ -2188,12 +2145,12 @@ namespace Project {
 								low_pointer = high_pointer->point_right;
 							}
 						}
-						//Г­Г Г©Г¤ГҐГ­ ГЅГ«ГҐГ¬ГҐГ­ГІ Г¬Г Г±Г±ГЁГўГ  Г± Г±Г®ГўГЇГ Г¤Г ГѕГ№ГЁГ¬ ГЁГ¬ГҐГ­ГҐГ¬ - ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї
+						//найден элемент массива с совпадающим именем - переменная
 						else if (low_pointer->type == varbl)
 						{
 							if (*temp == '(),')
 							{
-								//Г®ГёГЁГЎГЄГ  - ГЇГ®Г±Г«ГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г±ГІГ®ГЁГІ Г®ГІГЄГ°Г»ГўГ ГѕГ№Г ГїГ±Гї Г±ГЄГ®ГЎГЄГ . Г‚Г®Г®ГЎГ№ГҐ Г­ГҐ Г±Г®ГўГ±ГҐГ¬ ГЎГҐГ±Г±Г¬Г»Г±Г«ГҐГ­Г­Г Гї Г§Г ГЇГЁГ±Гј, ГўГ®Г§Г¬Г®Г¦Г­Г® Г­ГіГ¦ГҐГ­ Г¤Г°ГіГЈГ®Г© ГЄГ®Г¤ Г®ГёГЁГЎГЄГЁ ГЁГ«ГЁ ГЇГ°ГЁГ¤ГіГ¬Г ГІГј ГЄГ ГЄ ГІГ ГЄГ®ГҐ ГЁГ±ГЄГ«ГѕГ·ГҐГ­ГЁГҐ Г®ГЎГ°Г ГЎГ ГІГ»ГўГ ГІГј.
+								//ошибка - после переменной стоит открывающаяся скобка. Вообще не совсем бессмысленная запись, возможно нужен другой код ошибки или придумать как такое исключение обрабатывать.
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
 								return NULL;
 							}
@@ -2204,7 +2161,7 @@ namespace Project {
 								{
 									if (temp_pointer == NULL)
 									{
-										//Г§Г­Г Г·ГЁГІ Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ Г§Г Г¬ГЄГ­ГіГІ => Г­Г®ГўГ Гї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї - Г«ГЁГёГ­ГїГї
+										//значит список переменных замкнут => новая переменная - лишняя
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
 										return NULL;
 									}
@@ -2212,7 +2169,7 @@ namespace Project {
 									{
 										if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 										{
-											high_pointer->point_right->point_right = temp_pointer;//ГіГЄГ Г§Г ГІГҐГ«Гј Г­Г  Г­ГіГ¦Г­Г®ГҐ Г¬ГҐГ±ГІГ® Гў Г±ГЇГЁГ±ГЄГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+											high_pointer->point_right->point_right = temp_pointer;//указатель на нужное место в списке переменных
 										}
 										else
 										{
@@ -2221,8 +2178,8 @@ namespace Project {
 										low_pointer = high_pointer->point_right;
 									}
 								}
-								//Г±ГЇГЁГ±Г®ГЄ Г­ГҐ Г§Г Г¬ГЄГ­ГіГІ - Г¬Г®Г¦Г­Г® Г¤Г®ГЎГ ГўГЁГІГј ГЎГ®Г«ГјГёГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
-								else if (temp_pointer == NULL) //ГҐГ±Г«ГЁ Г­ГҐГІ Г±Г®ГўГЇГ Г¤ГҐГ­ГЁГ© ГЁГ¬ВёГ­ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ - Г­Г Г©Г¤ГҐГ­Г  Г­Г®ГўГ Гї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї
+								//список не замкнут - можно добавить больше переменных
+								else if (temp_pointer == NULL) //если нет совпадений имён переменных - найдена новая переменная
 								{
 									temp_pointer = current_element->var_list_back();
 									temp_pointer->point_left = new math_obj(low_pointer);
@@ -2230,8 +2187,8 @@ namespace Project {
 									temp_pointer->point_left->point_collar = current_element;
 									temp_pointer->point_left->var = current_element->var;
 									current_element->var += 1;
-									//ГЇГ®Г±ГЄГ®Г«ГјГЄГі Г±ГЁГ¬ГўГ®Г« Г­ГҐ Гў Г­Г Г·Г Г«ГҐ Г±ГІГ°Г®ГЄГЁ - Г§Г­Г Г·ГЁГІ Г±ГІГ®ГЁГІ ГЇГ®Г±Г«ГҐ ГЄГ ГЄГ®Г©-Г«ГЁГЎГ® Г®ГЇГҐГ°Г Г¶ГЁГЁ. 
-									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//Г±ГІГ®ГЁГІ ГЇГ®Г±Г«ГҐ Г¬ГЁГ­ГіГ±Г 
+									//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
+									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
 									{
 										high_pointer->point_right->point_right = temp_pointer->point_left;
 									}
@@ -2241,11 +2198,11 @@ namespace Project {
 									}
 									low_pointer = high_pointer->point_right;
 								}
-								else //ГЇГ°ГЁ Г±Г®ГўГЇГ Г¤ГҐГ­ГЁГЁ ГЇГ°Г®Г±ГІГ® Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ ГЇГҐГ°ГҐГ¬ГҐГ­Г­ГіГѕ Гў ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ
+								else //при совпадении просто записываем переменную в выражение
 								{
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
-										high_pointer->point_right->point_right = temp_pointer;//ГіГЄГ Г§Г ГІГҐГ«Гј Г­Г  Г­ГіГ¦Г­Г®ГҐ Г¬ГҐГ±ГІГ® Гў Г±ГЇГЁГ±ГЄГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+										high_pointer->point_right->point_right = temp_pointer;//указатель на нужное место в списке переменных
 									}
 									else
 									{
@@ -2258,10 +2215,10 @@ namespace Project {
 							{
 								current_element->type = funct;
 								current_element->prop = undef;
-								//ГЄГ®ГЇГЁГї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г± ГіГЄГ Г§Г ГІГҐГ«ГҐГ¬ Г­Г  ГґГіГ­ГЄГ¶ГЁГѕ
+								//копия переменной с указателем на функцию
 								current_element->point_collar = new math_obj(low_pointer);
 								current_element->point_collar->point_collar = current_element;
-								current_element->var = 1;//Г®Г¤Г­Г  ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї
+								current_element->var = 1;//одна переменная
 								if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 								{
 									high_pointer->point_right->point_right = current_element->point_collar;
@@ -2273,7 +2230,7 @@ namespace Project {
 								low_pointer = high_pointer->point_right;
 							}
 						}
-						//Г­Г Г©Г¤ГҐГ­ ГЅГ«ГҐГ¬ГҐГ­ГІ Г¬Г Г±Г±ГЁГўГ  Г± Г±Г®ГўГЇГ Г¤Г ГѕГ№ГЁГ¬ ГЁГ¬ГҐГ­ГҐГ¬ - ГЄГ®Г­Г±ГІГ Г­ГІГ  - ГЇГ°Г®Г±ГІГ® Г§Г ГЇГЁГ±Г»ГўГ ГҐГ¬ ГҐВё Гў ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ
+						//найден элемент массива с совпадающим именем - константа - просто записываем её в выражение
 						else if (low_pointer->type == cnst)
 						{
 							if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
@@ -2286,7 +2243,7 @@ namespace Project {
 							}
 							low_pointer = high_pointer->point_right;
 						}
-						//Г­Г Г©Г¤ГҐГ­ ГЅГ«ГҐГ¬ГҐГ­ГІ Г¬Г Г±Г±ГЁГўГ  Г± Г±Г®ГўГЇГ Г¤Г ГѕГ№ГЁГ¬ ГЁГ¬ГҐГ­ГҐГ¬ - ГґГіГ­ГЄГ¶ГЁГї 
+						//найден элемент массива с совпадающим именем - функция 
 						else if (low_pointer->type == funct)
 						{
 							if (*temp = '(')
@@ -2297,7 +2254,7 @@ namespace Project {
 								while (count != 0)
 								{
 									temp++;
-									//ГҐГ±Г«ГЁ ГЇГ®ГЇГ Г«ГЁ Гў ГЄГ®Г­ГҐГ¶ Г±ГІГ°Г®Г·ГЄГЁ Г­ГҐ Г­Г Г©Г¤Гї Г§Г ГЄГ°Г»ГўГ ГѕГ№ГЁГµ Г±ГЄГ®ГЎГ®ГЄ
+									//если попали в конец строчки не найдя закрывающих скобок
 									if (temp == endPtr + 1)
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
@@ -2311,18 +2268,18 @@ namespace Project {
 									{
 										count--;
 									}
-									else if (*temp == '=') //Г®ГІГЄГ°Г»ГІГ Гї Г±ГЄГ®ГЎГЄГ  ГЁ Г¤Г Г«ГјГёГҐ Г°Г ГўГ­Г®
+									else if (*temp == '=') //открытая скобка и дальше равно
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::LBRACKET_NOT_CLOSED);
 										return NULL;
 									}
 									else if (*temp == ',')
 									{
-										//Г±Г·ГЁГІГ ГҐГ¬ Г§Г ГЇГїГІГ»ГҐ. ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® Г§Г ГЇГїГІГ»Гµ Гў Г±ГЄГ®ГЎГЄГ Гµ +1 = Г·ГЁГ±Г«Г® Г°Г Г§Г«ГЁГ·Г­Г»Гµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+										//считаем запятые. количество запятых в скобках +1 = число различных переменных
 										comma++;
 									}
 								}
-								//ГҐГ±Г«ГЁ ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў Г­ГҐ Г±Г®ГўГЇГ Г¤Г ГҐГІ Г± ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ®Г¬ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+								//если количество аргументов не совпадает с количеством переменных
 								if (comma + 1 != low_pointer->var)
 								{
 									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
@@ -2337,7 +2294,7 @@ namespace Project {
 									temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, 0, current_element), brakets + brakets_counter);
 									if (temp_pointer == NULL)
 										return temp_pointer;
-									//Г§Г ГЇГ®Г«Г­ГїГҐГ¬ Г¬Г Г±Г±ГЁГў Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў
+									//заполняем массив аргументов
 									if (temp_pointer->type == varbl)
 									{
 										count_var++;
@@ -2354,7 +2311,7 @@ namespace Project {
 									}
 									else if (temp_pointer->type == funct)
 									{
-										//ГІГіГІ Гў ГЄГ Г·ГҐГ±ГІГўГҐ Г Г°ГЈГіГ¬ГҐГ­ГІГ  ГЇГ®Г«ГіГ·Г ГҐГІГ±Гї ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г Гї ГґГіГ­ГЄГ¶ГЁГї, ГЄГ®ГІГ®Г°Г Гї Г«ГЁГЎГ® defnd, Г«ГЁГЎГ® undef
+										//тут в качестве аргумента получается переменная функция, которая либо defnd, либо undef
 										if (temp_pointer->prop != arg_c)
 										{
 											count_var++;
@@ -2363,10 +2320,10 @@ namespace Project {
 											else if (temp_pointer->prop == arg_v)
 											{
 												multiple_var[count].copy(temp_pointer);
-												temp_pointer->point_right = NULL;//Г§Г Г­ГіГ«ГїГҐГ¬ Г¬Г Г±Г±ГЁГў Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў. ГЃГҐГ§ Г®Г·ГЁГ±ГІГЄГЁ!
+												temp_pointer->point_right = NULL;//зануляем массив аргументов. Без очистки!
 											}
 										}
-										else //ГІГіГІ ГўГҐГЈГ¤Г  ГЇГ®Г¤Г°Г Г§ГіГ¬ГҐГўГ ГҐГІГ±Гї defnd ГґГіГ­ГЄГ¶ГЁГї Г± ГЄГ®Г­Г±ГІ Г Г°ГЈГіГ¬ГҐГ­ГІГ Г¬ГЁ										
+										else //тут вегда подразумевается defnd функция с конст аргументами										
 											multiple_var[count].copy(temp_pointer);
 									}
 									pDest = temp;
@@ -2383,13 +2340,13 @@ namespace Project {
 							}
 							if (current_element->type == funct)
 							{
-								//ГҐГ±Г«ГЁ ГўГ±ГҐ Г Г°ГЈГіГ¬ГҐГ­ГІГ» ГЇГ®Г«ГіГ·ГҐГ­Г­Г»ГҐ Г®ГІ ГґГіГ­ГЄГ¶ГЁГЁ Г«ГЁГЎГ® ГЄГ®Г­Г±ГІГ Г­ГІГ», Г«ГЁГЎГ® ГЄГ®Г­Г±ГІ. ГўГ»Г°Г Г¦ГҐГ­ГЁГї, Г«ГЁГЎГ® ГґГіГ­ГЄГ¶ГЁГЁ Г± ГЄГ®Г­Г±ГІ Г Г°ГЈГіГ¬ГҐГ­ГІГ Г¬ГЁ
+								//если все аргументы полученные от функции либо константы, либо конст. выражения, либо функции с конст аргументами
 								if (count_var == 0)
 								{
 									temp_pointer = new math_obj(low_pointer);
 									temp_pointer->point_right = multiple_var;
 									multiple_var = NULL;
-									temp_pointer->prop = arg_c;//ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г·ГІГ® Г Г°ГЈГіГ¬ГҐГ­ГІГ» - ГЄГ®Г­Г±ГІГ Г­ГІГ»
+									temp_pointer->prop = arg_c;//указываем что аргументы - константы
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
 										high_pointer->point_right->point_right = temp_pointer;
@@ -2400,7 +2357,7 @@ namespace Project {
 									}
 									low_pointer = high_pointer->point_right;
 								}
-								//Гў ГЄГ Г·ГҐГ±ГІГўГҐ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў ГҐГ±ГІГј ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ
+								//в качестве аргументов есть переменные
 								else
 								{
 									temp_pointer = new math_obj(low_pointer);
@@ -2408,9 +2365,9 @@ namespace Project {
 									{
 										temp_pointer->point_right = multiple_var;
 										multiple_var = NULL;
-										temp_pointer->prop = arg_v;//ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г·ГІГ® Г±Г°ГҐГ¤ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў ГҐГ±ГІГј ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ
+										temp_pointer->prop = arg_v;//указываем что среди аргументов есть переменные
 									}
-									//ГҐГ±Г«ГЁ Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ Г­ГҐ Г§Г Г¬ГЄГ­ГіГІ
+									//если список переменных не замкнут
 									if (current_element->point_collar->point_right == NULL)
 									{
 										current_element->arg_copy_plus_1();
@@ -2421,19 +2378,19 @@ namespace Project {
 										temp_pointer->point_left->point_right = temp_pointer;
 										temp_pointer->point_left->var = current_element->var - 1;
 									}
-									//Г§Г Г¬ГЄГ­ГіГІ
+									//замкнут
 									else
 									{
-										//ГҐГ±Г«ГЁ Г±Г°ГҐГ¤ГЁ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў Г­Г Г©Г¤ГҐГ­Г­Г®Г© ГґГіГ­ГЄГ¶ГЁГЁ ГҐГ±ГІГј ГµГ®ГІГј Г®Г¤ГЁГ­ Г­ГҐ ГўГµГ®Г¤ГїГ№ГЁГ© Гў Г§Г Г¬ГЄГ­ГіГІГ»Г© Г±ГЇГЁГ±Г®ГЄ
+										//если среди переменных аргументов найденной функции есть хоть один не входящий в замкнутый список
 										if (current_element->var_list_compare(temp_pointer) != 0)
 										{
 											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
 											return NULL;
 										}
-										//ГўГ±ГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ Г­Г Г©Г¤ГҐГ­Г­Г®Г© ГґГіГ­ГЄГ¶ГЁГЁ ГўГµГ®Г¤ГїГІ Гў Г±ГЇГЁГ±Г®ГЄ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ ГІГҐГЄГіГ№ГҐГЈГ® ГЅГ«ГҐГ¬ГҐГ­ГІГ 
+										//все переменные найденной функции входят в список переменных текущего элемента
 										else
 										{
-											//ГЄГ®ГЇГЁГї Г­Г Г©Г¤ГҐГ­Г­Г®Г© ГґГіГ­ГЄГ¶ГЁГЁ Г¤Г®ГЎГ ГўГ«ГїГҐГІГ±Гї Гў ГўГ»Г°Г Г¦ГҐГ­ГЁГҐ
+											//копия найденной функции добавляется в выражение
 											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 											{
 												high_pointer->point_right->point_right = temp_pointer;
@@ -2449,13 +2406,13 @@ namespace Project {
 							}
 							else if (current_element->type == exprs)
 							{
-								//ГІГҐГЄГіГ№ГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ Г®Г±ГІГ ВёГІГ±Гї ГўГ»Г°Г Г¦ГҐГ­ГЁГҐГ¬.
+								//текущий элемент остаётся выражением.
 								if (count_var == 0)
 								{
 									temp_pointer = new math_obj(low_pointer);
 									temp_pointer->point_right = multiple_var;
 									multiple_var = NULL;
-									temp_pointer->prop = arg_c;//ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г·ГІГ® Г Г°ГЈГіГ¬ГҐГ­ГІГ» - ГЄГ®Г­Г±ГІГ Г­ГІГ»
+									temp_pointer->prop = arg_c;//указываем что аргументы - константы
 
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
@@ -2467,27 +2424,27 @@ namespace Project {
 									}
 									low_pointer = high_pointer->point_right;
 								}
-								//ГІГҐГЄГіГ№ГЁГ© ГЅГ«ГҐГ¬ГҐГ­ГІ Г±ГІГ Г­Г®ГўГЁГІГ±Гї ГґГіГ­ГЄГ¶ГЁГҐГ©.
+								//текущий элемент становится функцией.
 								else
 								{
 									temp_pointer = new math_obj(low_pointer);
 									temp_pointer->point_right = multiple_var;
 									multiple_var = NULL;
-									temp_pointer->prop = arg_v;//ГіГЄГ Г§Г»ГўГ ГҐГ¬ Г·ГІГ® Г±Г°ГҐГ¤ГЁ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў ГҐГ±ГІГј ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»ГҐ
+									temp_pointer->prop = arg_v;//указываем что среди аргументов есть переменные
 									current_element->type = funct;
 									current_element->prop = arg_v;
-									current_element->point_right = temp_pointer; //ГЇГ®Г«Г ГЈГ ГҐГ¬ Г­Г®ГўГіГѕ Г­ГҐГ®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­ГіГѕ ГґГіГ­ГЄГ¶ГЁГѕ, ГЄГ®ГІГ®Г°Г Гї Г§Г ГўГЁГ±ГЁГІ Г®ГІ ГЄГ ГЄГ®Г©-Г«ГЁГЎГ® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г©,
-																								//ГЁГ¬ГҐГѕГ№ГҐГ© Г Г°ГЈГіГ¬ГҐГ­ГІ Гў ГўГЁГ¤ГҐ Г¤Г°ГіГЈГ®Г© (Г®ГЇГ°ГҐГ¤ГҐГ«ВёГ­Г­Г®Г©) ГґГіГ­ГЄГ¶ГЁГЁ. ГЏГ°ГЁ ГЅГІГ®Г¬ ГҐГ±Г«ГЁ Г®ГЄГ Г¦ГҐГІГ±Гї, Г·ГІГ®
-																								//Гў ГўГ»Г°Г Г¦ГҐГ­ГЁГЁ ГіГ·Г Г±ГІГўГіГѕГІ Г­ГҐГ±ГЄГ®Г«ГјГЄГ® ГґГіГ­ГЄГ¶ГЁГ© (f+g), ГІГ® ГґГіГ­ГЄГ¶ГЁГї, ГЄГ®ГІГ°Г Гї ГЁГµ Г®ГЎГєГҐГ¤ГЁГ­ГїГҐГІ
-																								//ГЎГіГ¤ГҐГІ Г±Г·ГЁГІГ ГІГјГ±Гї ГґГіГ­ГЄГ¶ГЁГҐГ© Г­ГҐГ±ГЄГ®Г«ГјГЄГЁГµ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ, 
-																								//Г¤Г Г¦ГҐ ГҐГ±Г«ГЁ ГўГ±ГҐ ГґГіГ­ГЄГ¶ГЁГЁ Гў ГҐВё ГўГ»Г°Г Г¦ГҐГ­ГЁГЁ Г§Г ГўГЁГ±ГїГІ Г®ГІ Г®Г¤Г­Г®Г© ГЁ ГІГ®Г© Г¦ГҐ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г©.
-																								//ГЄГ®ГЇГЁГї Г±Г«ГіГ¦ГҐГЎГ­Г®Г© ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г®Г© Г± ГіГЄГ Г§Г ГІГҐГ«ГҐГ¬ Г­Г  ГґГіГ­ГЄГ¶ГЁГѕ, ГЄГ®ГІГ®Г°Г Гї ГЁГҐГ¬ГҐГҐГІ Г­Г®Г¬ГҐГ° Г­Г®Г«Гј
+									current_element->point_right = temp_pointer; //полагаем новую неопределённую функцию, которая зависит от какой-либо переменной,
+																								//имеющей аргумент в виде другой (определённой) функции. При этом если окажется, что
+																								//в выражении участвуют несколько функций (f+g), то функция, котрая их объединяет
+																								//будет считаться функцией нескольких переменных, 
+																								//даже если все функции в её выражении зависят от одной и той же переменной.
+																								//копия служебной переменной с указателем на функцию, которая иемеет номер ноль
 									current_element->point_collar = new math_obj(&temporary_variable);
-									current_element->point_collar->var = 0; //ГЇГ°Г®Г±ГІГ® Г¤Г«Гї Г¤Г®Г±ГІГ®ГўГҐГ°Г­Г®Г±ГІГЁ)
+									current_element->point_collar->var = 0; //просто для достоверности)
 									current_element->point_collar->point_collar = current_element;
-									current_element->point_left = current_element->point_collar;//ГІ.Г®. ГЄГ Г¦Г¤Г Гї ГґГіГ­ГЄГ¶ГЁГї ГЎГіГ¤ГҐГІ ГЁГ¬ГҐГІГј Г®Г¤Г­Гі ГЁ ГІГіГ¦ГҐ Г±ГІГ°ГіГЄГІГіГ°Гі ГЁ ГЇГ®Г­ГЁГ¬Г ГІГјГ±Гї ГўГ±ГҐГЈГ¤Г , 
-																								//ГЄГ ГЄ ГґГіГ­ГЄГ¶ГЁГї Г§Г ГўГЁГ±ГїГ№Г Гї Г®ГІ ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ, ГЄГ®ГІГ®Г°Г®Г© Гў ГЄГ Г·ГҐГІГўГҐ Г Г°ГЈГіГ¬ГҐГ­ГІГ®Гў Г·ГІГ®-ГІГ® ГЇГҐГ°ГҐГ¤Г ВёГІГ±Гї
-									current_element->var = 1; //ГЄГ®Г«ГЁГ·ГҐГ±ГІГўГ® ГЇГҐГ°ГҐГ¬ГҐГ­Г­Г»Гµ
+									current_element->point_left = current_element->point_collar;//т.о. каждая функция будет иметь одну и туже структуру и пониматься всегда, 
+																								//как функция зависящая от переменных, которой в качетве аргументов что-то передаётся
+									current_element->var = 1; //количество переменных
 									low_pointer = high_pointer->point_right;
 								}
 							}
@@ -2499,12 +2456,11 @@ namespace Project {
 		}
 
 
-		/*Г”ГіГ­ГЄГ¶ГЁГї ГўГ»ГЇГ®Г«Г­ГїГҐГІ ГЇГ°Г®ГўГҐГ°ГЄГі/Г Г­Г Г«ГЁГ§ Г°ГҐГ§ГіГ«ГјГІГ ГІГ  Г§Г ГЇГ®Г«Г­ГҐГ­ГЁГї Г¤ГҐГ°ГҐГўГ  Г®ГЇГҐГ°Г Г¶ГЁГ© ГЁ Г§Г ГЇГ°Г®Г±Г®Гў ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гї.
-		Г‚Г®Г§ГўГ°Г Г№Г ГҐГІ Г±ГІГ°Г®ГЄГі Г± Г°ГҐГ§ГіГ«ГјГІГ ГІГ®Г¬ ГІГҐГЄГіГ№ГҐГ© ГЁГІГҐГ°Г Г¶ГЁГЁ ГўГ»Г·ГЁГ±Г«ГҐГ­ГЁГ©.*/
+		/*Функция выполняет проверку/анализ результата заполнения дерева операций и запросов пользователя.
+		Возвращает строку с результатом текущей итерации вычислений.*/
 		wstring analized_output(wchar_t* _pDest, wchar_t* _endPtr, math_obj* _current_element)
 		{
 			math_obj* CE = filling_vector(_pDest, _endPtr, _current_element, 0);
-			math_obj* temp;
 			wstring output;
 			size_t output_size;
 			if (CE == NULL)
@@ -2522,95 +2478,66 @@ namespace Project {
 			}
 			else if (CE->type == equat)
 			{
-				// Г­Гі Г¤ГҐГ«Г ГІГј ГІГіГІ ГЄГ ГЄ ГЎГ» Г­ГЁГ·ГҐГЈГ® Г­ГҐ Г­Г Г¤Г®. ГЏГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гј ГўГЎГЁГ« ГіГ°Г ГўГ­ГҐГ­ГЁГҐ ГЁ Г®Г­Г® ГЇГ°Г®Г±ГІГ® Г§Г ГЇГЁГ±Г Г«Г®Г±Гј. ГЉГ®ГЈГ¤Г  Г­Г ГіГ·ГЁГ¬Г±Гї Г¤ГҐГ«Г ГІГј ГЇГ Г°Г°Г Г«ГҐГ«ГјГ­Г»ГҐ ГЇГ®ГІГ®ГЄГЁ ГўГ»Г·ГЁГ±Г«ГҐГ­ГЁГ© Г¬Г®Г¦Г­Г® Г­Г  ГЅГІГ®Г¬
-				//Г¬Г®Г¬ГҐГ­ГІГҐ Г°ГҐГёГ ГІГј ГЅГІГ® ГіГ°Г ГўГ­ГҐГ­ГЁГҐ Г± Г­ГЁГ§ГЄГЁГ¬ ГЇГ°ГЁГ®Г°ГЁГІГҐГІГ®Г¬, Г·ГІГ®ГЎГ» ГЄГ®ГЈГ¤Г  ГЇГ®Г«ГјГ§Г®ГўГ ГІГҐГ«Гј Г§Г ГЇГ°Г®Г±ГЁГ« Г®ГІГўГҐГІ - ГўГ»Г·ГЁГ±Г«ГҐГ­ГЁГї Г§Г Г­ГЁГ¬Г Г«ГЁ Г¬ГҐГ­ГјГёГҐ ГўГ°ГҐГ¬ГҐГ­ГЁ - Г¤Г«Гї Г­ГҐГЈГ®.
+				// ну делать тут как бы ничего не надо. Пользователь вбил уравнение и оно просто записалось. Когда научимся делать парралельные потоки вычислений можно на этом
+				//моменте решать это уравнение с низким приоритетом, чтобы когда пользователь запросил ответ - вычисления занимали меньше времени - для него.
 				//mutex* mut=new mutex();
-				//thread tTest(testfunc);	//Г±Г°Г Г§Гі Г§Г ГЇГіГ±ГЄГ ГҐГІГ±Гї ГЁ ГЇГ ГёГҐГІ
-				//thread* ptTest;	//Г¤Г«Гї ГЈГ«Г®ГЎГ Г«ГјГ­Г®Г© ГўГЁГ¤ГЁГ¬Г®Г±ГІГЁ ГЇГ®ГІГ®ГЄГ , Г¬Г®Г¦Г­Г® ГЈГ«Г®ГЎГ Г«ГјГ­Г® ГµГ°Г Г­ГЁГІГј Г­Г  Г­ГҐГЈГ® ГіГЄГ Г§Г ГІГҐГ«Гј
-				//ptTest = new thread(testfunc);	//ГЁГ­ГЁГ¶ГЁГ Г«ГЁГ§ГЁГ°Г®ГўГ ГІГј, ГЁ Г®Г­ Г±Г°Г Г§Гі Г§Г ГЇГіГ±ГІГЁГІГјГ±Гї
+				//thread tTest(testfunc);	//сразу запускается и пашет
+				//thread* ptTest;	//для глобальной видимости потока, можно глобально хранить на него указатель
+				//ptTest = new thread(testfunc);	//инициализировать, и он сразу запуститься
 				//mut->unlock();
-				general_var_const->push_back(CE);
 			}
 			else if (CE->type == funct)
 			{
-				if (CE->actn == solve)//ГІГіГІ ГҐГ№Вё ГіГ±Г«Г®ГўГЁГҐ
+				if (CE->actn == solve)//тут ещё условие
 				{
-					if (CE->prop == arg_c)
-					{						
-						CE->arithmetic();
-						output = to_string(CE->var, var_type::FRACTIONAL, 2);
-						CE->tree_destruct();
-						delete CE;
-					}
-					else
+					if (CE->point_right == NULL)
 					{
 						output = CE->expresion(1);
 					}
-				}				
-				else if (CE->actn == write)
-				{
-					//Г®ГЇГїГІГј Г¦ГҐ, ГўГЁГ¤ГЁГ¬Г®Г© Г°ГҐГ ГЄГ¶ГЁГЁ Г®ГІ ГЇГ°Г®ГЈГ°Г Г¬Г¬Г» ГЎГ»ГІГј Г­ГҐ Г¤Г®Г«Г¦Г­Г®. Г‡Г ГЎГЁГ«ГЁ ГґГіГ­ГЄГ¶ГЁГѕ - Г§Г ГЇГЁГ±Г Г«ГЁ. Г‚Г®Г§Г¬Г®Г¦Г­Г® Гў Г®ГІГ¤ГҐГ«ГјГ­Г»Г© ГЇГ®ГІГ®ГЄ Г®ГІГ¤Г ГІГј Г°Г Г§Г«Г®Г¦ГҐГ­ГЁГҐ Г±Г«Г®Г¦Г­Г®Г© ГґГіГ­ГЄГ¶ГЁГЁ 
-					//Г­Г  ГЅГ«ГҐГ¬ГҐГ­ГІГ Г°Г­Г»ГҐ. ГЊГ®Г¦Г­Г® ГЁ Г­ГҐ Гў Г®ГІГ¤ГҐГ«ГјГ­Г»Г©, ГўГ°ГїГ¤Г«ГЁ ГІГ Г¬ ГЎГіГ¤ГҐГІ ГўГ»Г±Г®ГЄГ Гї Г±Г«Г®Г¦Г­Г®Г±ГІГј ГўГ»Г·ГЁГ±Г«ГҐГ­ГЁГ©
-					if (CE->name.size() != 0)
+					else
 					{
-						temp = run_vector(CE->name);
-						if (temp == NULL)
-						{
-							general_var_const->push_back(CE);
-						}
-						else
-						{
-							temp->tree_destruct();
-							for (int count = 0; count < general_var_const->size(); count++)
-							{
-								if (temp == general_var_const->at(count))
-								{
-									general_var_const->at(count) = CE;									
-									delete temp;
-									break;
-								}
-							}
-						}
+						CE->arithmetic();
 					}
 				}
-				else
+				else if (CE->prop == undef)
 				{
-					//ГўГ°Г®Г¤ГҐ ГЎГ» Г­ГҐ Г¬Г®Г¦ГҐГІ ГЎГ»ГІГј ГІГ ГЄГ®ГЈГ® ГўГ Г°ГЁГ Г­ГІГ , Г­Г® Г­Г  ГўГ±ГїГЄГЁГ© Г±Г«ГіГ·Г Г©
-					CE->tree_destruct();
-					delete CE;
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
+					ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+					ProjectError::GetProjectLastError(err);
+					return err->GetErrorWStr();
+				}
+				else if (CE->prop == defnd)
+				{
+					//опять же, видимой реакции от программы быть не должно. Забили функцию - записали. Возможно в отдельный поток отдать разложение сложной функции 
+					//на элементарные. Можно и не в отдельный, врядли там будет высокая сложность вычислений
 				}
 			}
 			else if (CE->type == cnst)
 			{
 				if (CE->actn == solve)
 				{
-					//Г®ГІГўГҐГІ 
+					//ответ 
 					output = to_string(CE->var, var_type::FRACTIONAL, 2);
 
 				}
-				else if (CE->actn == write)
+				else if (CE->prop == undef)
 				{
-					if (CE->prop == undef)
-					{
-						CE->tree_destruct();
-						delete CE;
-						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
-						ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
-						ProjectError::GetProjectLastError(err);
-						return err->GetErrorWStr();
-					}
-					else if (CE->prop == defnd)
-					{
-						//Г§Г ГЇГ®Г«Г­ГЁГ«ГЁ - ГЇГ®Г±Г·ГЁГІГ Г«ГЁ
-						CE->arithmetic();
-						CE->tree_destruct();
-					}
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
+					ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+					ProjectError::GetProjectLastError(err);
+					return err->GetErrorWStr();
+				}
+				else if (CE->prop == defnd)
+				{
+					//заполнили - посчитали
+					CE->arithmetic();
+					CE->tree_destruct();
 				}
 			}
 			else if (CE->type == varbl)
-			{		
-				delete CE;
-				//Г®Г¤ГЁГ­ ГЁГ§ ГўГ Г°ГЁГ Г­ГІГ®Гў Г§Г ГЇГ°Г®Г±Г  Г­Г  Г°ГҐГёГҐГ­ГЁГҐ ГіГ°Г ГўГ­ГҐГ­ГЁГї (Г±ГЄГ®Г°ГҐГҐ ГўГ±ГҐГЈГ® - ГЇГ®Г±Г«ГҐГ¤Г­ГҐГЈГ® Г§Г ГЇГЁГ±Г Г­Г­Г®ГЈГ®)
+			{
+				CE->type = defnd;
+				//один из вариантов запроса на решение уравнения (скорее всего - последнего записанного)
 				ProjectError::SetProjectLastError(ProjectError::ErrorCode::IS_EQUATION);
 				ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
 				ProjectError::GetProjectLastError(err);
@@ -2623,8 +2550,8 @@ namespace Project {
 			return output;
 		}
 
-		/*Г”ГіГ­ГЄГ¶ГЁГї ГїГўГ«ГїГҐГІГ±Гї ГІГ®Г·ГЄГ®Г© ГўГµГ®Г¤Г  Гў ГўГ»Г·ГЁГ±Г«ГЁГІГҐГ«ГјГ­Г®ГҐ ГїГ¤Г°Г®.
-		Г‚Г®Г§ГўГ°Г Г№Г ГҐГІ Г±ГІГ°Г®ГЄГі Г± Г°ГҐГ§ГіГ«ГјГІГ ГІГ®Г¬ ГІГҐГЄГіГ№ГҐГ© ГЁГІГҐГ°Г Г¶ГЁГЁ ГўГ»Г·ГЁГ±Г«ГҐГ­ГЁГ©.*/
+		/*Функция является точкой входа в вычислительное ядро.
+		Возвращает строку с результатом текущей итерации вычислений.*/
 		wstring input_to_analize(wchar_t* input)
 		{
 			if (!Project::IO::VerifyInput(input)) {
@@ -2640,7 +2567,7 @@ namespace Project {
 
 			wchar_t* point_start = input;	//start pointer
 			wchar_t* point_end = input + wcslen(input) - 1;	//end pointer	
-			return analized_output(point_start, point_end, new math_obj(L"", exprs, undef, 0));
+			return analized_output(point_start, point_end, new math_obj(L"", exprs, undef, write, 0));
 		}
 	}
 }

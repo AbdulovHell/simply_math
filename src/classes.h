@@ -133,6 +133,7 @@ namespace Project {
 				else if ((pointer->type == numbr) || (pointer->type == cnst))
 					return pointer->var;
 				else if (pointer->type == exprs)
+					//TODO: выражение вычислить, сразу же его удалить (вместе с деревом операций), а вместо него записать вычисленное число.
 					return arithmetic_processing(pointer->point_left, last_arg);				
 				else if (pointer->type == funct)
 				{
@@ -730,7 +731,7 @@ namespace Project {
 					else if ((prop == arg_c) || (prop == arg_v))
 					{
 						//могут оставаться утечки памяти
-						if (var>1)
+						if (point_collar->point_right->var != 0)
 							delete[]point_right;
 						else
 							delete point_right;

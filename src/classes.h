@@ -2,8 +2,8 @@
 #include <iostream>
 #include <string>
 #include <stack>
-#include "IO.h"
-#include "error.h"
+//#include "IO.h"
+//#include "error.h"
 
 
 namespace Project {
@@ -263,7 +263,7 @@ namespace Project {
 				math_obj* mass_arg = new math_obj[size]; 
 				for (int count = 0; count < size; count ++)
 				{
-					mass_arg[count].copy = var_list;
+					mass_arg[count].copy(var_list);
 					mass_arg[count].point_left = NULL;
 					mass_arg[count].point_right = NULL;
 					mass_arg[count].point_collar = NULL;
@@ -857,11 +857,11 @@ namespace Project {
 					sorting.top()->var = 0;
 					var_list = var_list->point_left;
 					sorting.top()->point_left = NULL;
-					if (sorting.size > 1)
+					if (sorting.size() > 1)
 					{
 						temp_var = sorting.top();
 						sorting.pop();
-						while ((sorting.size >= 1) && (temp_var->var == sorting.top()->var))
+						while ((sorting.size() >= 1) && (temp_var->var == sorting.top()->var))
 						{
 							temp_var = merge_lists(temp_var, sorting.top());
 							temp_var->var += 1;
@@ -870,11 +870,11 @@ namespace Project {
 						sorting.push(temp_var);
 					}
 				}
-				if (sorting.size > 1)
+				if (sorting.size() > 1)
 				{
 					temp_var = sorting.top();
 					sorting.pop();
-					while (sorting.size >= 1)
+					while (sorting.size() >= 1)
 					{
 						temp_var = merge_lists(temp_var, sorting.top());
 						temp_var->var += 1;

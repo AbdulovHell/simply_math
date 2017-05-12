@@ -9,10 +9,10 @@
 #include <vector>
 //#include <thread>
 //#include <mutex>
-#include "classes.h"
 #include "error.h"
 #include "IO.h"
 #include "filters.h"
+#include "classes.h"
 
 
 namespace Project {
@@ -2552,7 +2552,7 @@ namespace Project {
 				{
 					//опять же, видимой реакции от программы быть не должно. Забили функцию - записали. Возможно в отдельный поток отдать разложение сложной функции 
 					//на элементарные. Можно и не в отдельный, врядли там будет высокая сложность вычислений
-					if (CE->name.size != 0)
+					if (CE->name.size() != 0)
 					{
 						temp = run_vector(CE->name);
 						if (temp == NULL)
@@ -2561,7 +2561,7 @@ namespace Project {
 						}
 						else
 						{
-							temp->tree_destruct;
+							temp->tree_destruct();
 							for (int count = 0; count < general_var_const->size(); count++)
 							{
 								if (temp == general_var_const->at(count))

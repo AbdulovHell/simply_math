@@ -817,7 +817,7 @@ namespace Project {
 			*/
 			void arg_copy_plus_1()
 			{
-				math_obj * ar = new math_obj[var + 1];
+                                math_obj * ar = new math_obj[(int)var + 1];
 				if (point_right == NULL)
 				{
 					//если массива аргументов изначально нет (в записи функции встречались только переменные)

@@ -72,7 +72,7 @@ namespace Project {
 			return str;
 		}
 		//удаление пробелов
-		wchar_t* wXchar(_In_ wchar_t* str)
+        wchar_t* wXchar(wchar_t* str)
 		{
 			unsigned int i, j;
 			size_t z = wcslen(str);
@@ -92,7 +92,7 @@ namespace Project {
 			return str;
 		}
 		//проверка входящей строки на служебные символы, простые ошибки со скобками и знаки равно. удаляет пробелы.
-		bool VerifyInput(_In_ wchar_t* input) {
+        bool VerifyInput( wchar_t* input) {
 			int bracket = 0, ravno = 0;
 			static wchar_t buf[300];
 

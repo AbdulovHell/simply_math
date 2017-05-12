@@ -144,8 +144,8 @@
 				return _textPresent;
 			}
 			//Копирование
-			void copy(_In_ _ErrorPresent* orig) {
-				_code = orig->_code;
+            void copy(_ErrorPresent* orig) {
+                _code = orig->_code;
 				_textPresent = orig->_textPresent;
 			}
 		};
@@ -155,12 +155,12 @@
 		static int NewLastError;
 
 		//Передает в класс последнюю ошибку программы
-		static void GetProjectLastError(_Out_ Project::ProjectError::_ErrorPresent* errprsnt) {
+        static void GetProjectLastError(Project::ProjectError::_ErrorPresent* errprsnt) {
 			errprsnt->copy(last_err);
 			NewLastError = false;
 		}
 		//Задает код текущей ошибки как последнюю
-		static void SetProjectLastError(_In_ Project::ProjectError::ErrorCode code) {
+        static void SetProjectLastError(Project::ProjectError::ErrorCode code) {
 			if (last_err) delete last_err;
 			last_err = new Project::ProjectError::_ErrorPresent(code);
 			NewLastError = true;

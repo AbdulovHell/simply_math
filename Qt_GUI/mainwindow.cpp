@@ -1,3 +1,4 @@
+#include <string>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "../src/core.h"
@@ -23,9 +24,9 @@ void MainWindow::on_startButton_clicked(){
     wchar_t* input=new wchar_t[(size+1)*2];
     wcscpy(input,str.toStdWString().c_str());
 
-    wchar_t* output=Project::Core::input_to_analize(input);
+    std::wstring output=Project::Core::input_to_analize(input);
 
-    QString outstr=QString::fromWCharArray(output,wcslen(output));
+    QString outstr=QString::fromStdWString(output);
     ui->outputText->setText(outstr);
     delete [] input;
 }

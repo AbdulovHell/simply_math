@@ -17,6 +17,7 @@ public:
 
 private slots:
     void on_startButton_clicked();
+    void AddPI();
 
 private:
     Ui::MainWindow *ui;

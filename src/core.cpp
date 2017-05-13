@@ -2666,7 +2666,7 @@ namespace Project {
 			size_t size_of_vect = general_var_const->size();
 
 
-			//general_var_const->push_back(new var_const(L"",  exprs,  undef,  write, 0));
+            general_var_const->back();
 
 			wchar_t* point_start = input;	//start pointer
 			wchar_t* point_end = input + wcslen(input) - 1;	//end pointer	

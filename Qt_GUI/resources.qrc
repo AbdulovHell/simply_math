@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/images">
+        <file alias="calc">calc64.png</file>
+        <file alias="pi">pi.png</file>
+        <file alias="puzzle">puzzle.png</file>
+        <file alias="sqrt">sqrt.png</file>
+        <file alias="waste">waste.png</file>
+    </qresource>
+</RCC>

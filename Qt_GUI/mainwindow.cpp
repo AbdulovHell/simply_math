@@ -13,13 +13,14 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     Project::Core::Init();
     QImage img;
-    bool b = img.load("C:\\Users\\Admin\\Source\\Repos\\simply_math\\Qt_GUI\\calc64.png");
+
+    bool b = img.load(":/images/calc");
     ui->toolBar->addAction(QPixmap::fromImage(img.scaled(32,32 , Qt::KeepAspectRatio)),"Calc", this, SLOT(on_startButton_clicked()));
-    b = img.load("C:\\Users\\Admin\\Source\\Repos\\simply_math\\Qt_GUI\\waste.png");
-    ui->toolBar->addAction(QPixmap::fromImage(img.scaled(32,32 , Qt::KeepAspectRatio)),"Clean", this, SLOT(slotNoImpl()));
-    b = img.load("C:\\Users\\Admin\\Source\\Repos\\simply_math\\Qt_GUI\\sqrt.png");
-    ui->toolBar->addAction(QPixmap::fromImage(img.scaled(32,32 , Qt::KeepAspectRatio)),"√", this, SLOT(slotNoImpl()));
-    b = img.load("C:\\Users\\Admin\\Source\\Repos\\simply_math\\Qt_GUI\\pi.png");
+    b = img.load(":/images/waste");
+    ui->toolBar->addAction(QPixmap::fromImage(img.scaled(32,32 , Qt::KeepAspectRatio)),"Clear", this, SLOT(ClearArea()));
+    b = img.load(":/images/sqrt");
+    ui->toolBar->addAction(QPixmap::fromImage(img.scaled(32,32 , Qt::KeepAspectRatio)),"√", this, SLOT(AddSQRT()));
+    b = img.load(":/images/pi");
     ui->toolBar->addAction(QPixmap::fromImage(img.scaled(32,32 , Qt::KeepAspectRatio)),"π", this, SLOT(AddPI()));
 }
 
@@ -45,7 +46,18 @@ void MainWindow::on_startButton_clicked(){
 
 void MainWindow::AddPI(){
     ui->inputText->setText(ui->inputText->toPlainText()+"π");
+}
 
+void MainWindow::AddSQRT(){
+    QTextCursor a=ui->inputText->textCursor();
+    ui->inputText->setText(ui->inputText->toPlainText()+"root(,)");
+    a.atEnd();
+    a.setPosition(a.position()-2);
+    ui->inputText->setTextCursor(a);
+}
+
+void MainWindow::ClearArea(){
+    ui->inputText->clear();
 }
 
 /*

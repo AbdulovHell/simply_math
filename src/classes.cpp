@@ -757,7 +757,7 @@ namespace Project {
 					if (find_varbl_processing(point_collar, iter) == NULL)
 						count_var++;
 					iter = iter->point_left;
-				} while ((iter != NULL)&(iter->var != 0));
+                } while ((iter != NULL)&&(iter->var != 0));
 			}
 			return count_var;
 		}

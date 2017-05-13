@@ -18,6 +18,8 @@ public:
 private slots:
     void on_startButton_clicked();
     void AddPI();
+    void ClearArea();
+    void AddSQRT();
 
 private:
     Ui::MainWindow *ui;

@@ -18,7 +18,7 @@ namespace Project {
 		//проверка на "целое"
 		bool isInteger(double var) {
 			int a = (int)var;
-			if (abs(var - a) < 0.000000001)
+            if (fabs(var - a) < 0.000000001)
 				return true;
 			else
 				return false;

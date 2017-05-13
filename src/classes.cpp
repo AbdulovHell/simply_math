@@ -64,6 +64,23 @@ namespace Project {
 					return temp;
 				}
 			}
+			else if (pointer->type == varbl)
+			{
+				//удаление связного списка
+				if ((pointer->point_left == NULL)|| (pointer->point_left->var==0))
+				{
+					delete pointer;
+					pointer = NULL;
+					return temp;
+				}
+				else
+				{
+					temp += tree_destruct_processing(pointer->point_left);
+					delete pointer;
+					pointer = NULL;
+					return temp;
+				}
+			}
 		}
 
 		math_obj* math_obj::prioritize_processing(math_obj *pc, int current_priority)
@@ -658,10 +675,10 @@ namespace Project {
 			{
 				if ((prop == undef) || (prop == defnd))
 				{
-					s += tree_destruct_processing(point_left);
-					point_left = NULL;
 					s += tree_destruct_processing(point_collar);
 					point_collar = NULL;
+					s += tree_destruct_processing(point_left);
+					point_left = NULL;					
 				}
 				else if ((prop == arg_c) || (prop == arg_v))
 				{
@@ -853,7 +870,17 @@ namespace Project {
 				point_left = pointer;
 			}
 		}
-
-
+		/*Метод создаёт список переменных по массиву аргументов, массив аргументов должен содержать только переменные.*/
+		void  math_obj::define_var_list()
+		{
+			point_collar = arg_to_var_list(point_right, NULL,var);
+			if (var>1)
+				delete [] point_right;
+			else
+				delete point_right;
+			math_obj* temp_pointer = var_list_back_processing(point_collar);
+			temp_pointer->point_left = point_collar;
+			point_collar->point_right = temp_pointer;
+		}
 	}
 };

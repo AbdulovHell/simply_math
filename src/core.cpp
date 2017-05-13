@@ -118,13 +118,14 @@ namespace Project {
 							ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
 							return NULL;
 						}
+						pDest = endPtr + 1;
 					}
 					else
 					{
 						if (current_element->type == cnst)
 						{
 							temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
-							if (temp_pointer = NULL)
+							if (temp_pointer == NULL)
 								return temp_pointer;
 							if (temp_pointer->type == funct)
 							{
@@ -167,11 +168,12 @@ namespace Project {
 								current_element->actn = write;
 								delete temp_pointer;
 							}
+							pDest = endPtr + 1;
 						}
 						else if (current_element->type == varbl)
 						{
 							temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
-							if (temp_pointer = NULL)
+							if (temp_pointer == NULL)
 								return temp_pointer;
 							//тут происходит переопределение переменых в качестве функций. Могут возникнуть проблемы, т.к. появятся два разных по типу объекта с одним именем.
 							if (temp_pointer->type == funct)
@@ -226,7 +228,7 @@ namespace Project {
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::VARBL_BLOCKED);
 								return NULL;
 							}
-
+							pDest = endPtr + 1;
 						}
 						else if (current_element->type == funct)
 						{
@@ -272,6 +274,7 @@ namespace Project {
 										current_element->actn = write;
 									}
 								}
+								pDest = endPtr + 1;
 							}
 							else if (current_element->prop == undef)
 							{
@@ -305,6 +308,7 @@ namespace Project {
 									high_pointer = current_element;
 									current_element = new math_obj(L"", equat, unslv, write, high_pointer->var, high_pointer, temp_pointer, high_pointer->point_collar);
 								}
+								pDest = endPtr + 1;
 							}
 							else if (current_element->prop == arg_c)
 							{
@@ -339,16 +343,32 @@ namespace Project {
 										current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer->point_collar);
 									}
 								}
+								pDest = endPtr + 1;
 							}
 							else if (current_element->prop == arg_v)
 							{
-								//TODO:если аргументация состоит только из переменых и справа от равно находятся только эти переменные - переопределение функции
-								temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
-								if (temp_pointer == NULL)
-									return temp_pointer;
-								high_pointer = current_element;
-								current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer->point_collar);
-							}
+								count_var = 0;
+								for (count = 0; count < current_element->var; count++)
+								{
+									if (current_element->point_collar[count].type == varbl)
+										count_var++;
+								}
+								if ((current_element->name.size() != 0) && (count_var == current_element->var))
+								{
+									current_element->define_var_list();
+									current_element->prop = undef;
+									current_element->actn = write;									
+								}
+								else
+								{
+									temp_pointer = filling_vector(pDest + 1, endPtr, new math_obj(L"", exprs, undef, 0, low_pointer), brakets + brakets_counter);
+									if (temp_pointer == NULL)
+										return temp_pointer;
+									high_pointer = current_element;
+									current_element = new math_obj(L"", equat, unslv, write, temp_pointer->var, high_pointer, temp_pointer, temp_pointer->point_collar);
+									pDest = endPtr + 1;
+								}
+							}							
 						}
 						else if (current_element->type == exprs)
 						{
@@ -385,10 +405,9 @@ namespace Project {
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
 								return NULL;
 							}
+							pDest = endPtr + 1;
 						}
-
-					}
-					pDest = endPtr + 1;
+					}				
 				}
 				else if (*pDest == '+')
 				{
@@ -2078,92 +2097,124 @@ namespace Project {
 						//если не найден ни один элемент массива с таким именем
 						if (low_pointer == NULL)
 						{
-							if (*temp == '(),')
+							if ((temp == NULL) || (*temp == '+') || (*temp == '-') || (*temp == '*') || (*temp == '/') || (*temp == '^'))
 							{
-								//ошибка - после переменной стоит открывающаяся скобка. Вообще не совсем бессмысленная запись, возможно нужен другой код ошибки или придумать как такое исключение обрабатывать.
-								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
-								return NULL;
-							}
-							//если текущий элемент - функция, то очевидно найдена новая переменная в записи выражения. 
-
-
-							if (current_element->type == funct)
-							{
-								if (current_element->point_collar->point_right != NULL)
+								if (current_element->type == funct)
 								{
-									//значит список переменных замкнут => новая переменная - лишняя
-									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
-									return NULL;
-								}
-								//список не замкнут - можно добавить больше переменных
-								else
-								{
-									general_var_const->push_back(new math_obj(name, varbl, defnd, 0));
-									temp_pointer = current_element->var_list_back();
-									temp_pointer->point_left = new math_obj(general_var_const->back());
-									temp_pointer->point_left->point_right = temp_pointer;
-									temp_pointer->point_left->point_collar = current_element;
-									temp_pointer->point_left->var = current_element->var;
-									current_element->var += 1;
-									//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
-									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
-									{
-										high_pointer->point_right->point_right = temp_pointer->point_left;
-										high_pointer->point_right->prop = arg_v;
-									}
-									else
-									{
-										high_pointer->point_right = temp_pointer->point_left;
-									}
-									low_pointer = high_pointer->point_right;
-									temp_pointer = NULL;
-								}
-							}
-							//если выражение
-							else if (current_element->type == exprs)
-							{
-								// выражение в  undef функцию 
-								current_element->type = funct;
-								current_element->prop = undef;
-								general_var_const->push_back(new math_obj(name, varbl, defnd, 0));
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new math_obj(general_var_const->back());
-								current_element->point_collar->point_collar = current_element;
-								current_element->var = 1;//одна переменная
-								//тут проблема может возникнуть - я не помню какая))
-								if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
-								{
-									high_pointer->point_right->point_right = current_element->point_collar;
-									high_pointer->point_right->prop = arg_v;
-								}
-								else
-								{
-									high_pointer->point_right = current_element->point_collar;
-								}
-								low_pointer = high_pointer->point_right;
-							}
-						}
-						//найден элемент массива с совпадающим именем - переменная
-						else if (low_pointer->type == varbl)
-						{
-							if (*temp == '(),')
-							{
-								//ошибка - после переменной стоит открывающаяся скобка. Вообще не совсем бессмысленная запись, возможно нужен другой код ошибки или придумать как такое исключение обрабатывать.
-								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
-								return NULL;
-							}
-							if (current_element->type == funct)
-							{
-								temp_pointer = current_element->find_varbl(low_pointer);
-								if (current_element->point_collar->point_right != NULL)
-								{
-									if (temp_pointer == NULL)
+									//если текущий элемент - функция, то очевидно найдена новая переменная в записи выражения. 
+									if (current_element->point_collar->point_right != NULL)
 									{
 										//значит список переменных замкнут => новая переменная - лишняя
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
 										return NULL;
 									}
+									//список не замкнут - можно добавить больше переменных
 									else
+									{
+										general_var_const->push_back(new math_obj(name, varbl, defnd, 0));
+										temp_pointer = current_element->var_list_back();
+										temp_pointer->point_left = new math_obj(general_var_const->back());
+										temp_pointer->point_left->point_right = temp_pointer;
+										temp_pointer->point_left->point_collar = current_element;
+										temp_pointer->point_left->var = current_element->var;
+										current_element->var += 1;
+										//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
+										if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
+										{
+											high_pointer->point_right->point_right = temp_pointer->point_left;
+											high_pointer->point_right->prop = arg_v;
+										}
+										else
+										{
+											high_pointer->point_right = temp_pointer->point_left;
+										}
+										low_pointer = high_pointer->point_right;
+										temp_pointer = NULL;
+									}
+								}
+								//если выражение
+								else if (current_element->type == exprs)
+								{
+									// выражение в  undef функцию 
+									current_element->type = funct;
+									current_element->prop = undef;
+									general_var_const->push_back(new math_obj(name, varbl, defnd, 0));
+									//копия переменной с указателем на функцию
+									current_element->point_collar = new math_obj(general_var_const->back());
+									current_element->point_collar->point_collar = current_element;
+									current_element->var = 1;//одна переменная
+															 //тут проблема может возникнуть - я не помню какая))
+									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+									{
+										high_pointer->point_right->point_right = current_element->point_collar;
+										high_pointer->point_right->prop = arg_v;
+									}
+									else
+									{
+										high_pointer->point_right = current_element->point_collar;
+									}
+									low_pointer = high_pointer->point_right;
+								}
+							}
+							else if ((*temp == '(') || (*temp == ')') || (*temp == ','))
+							{
+								//ошибка - после переменной стоит открывающаяся скобка. Вообще не совсем бессмысленная запись, возможно нужен другой код ошибки или придумать как такое исключение обрабатывать.
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+								return NULL;
+							}		
+						}
+						//найден элемент массива с совпадающим именем - переменная
+						else if (low_pointer->type == varbl)
+						{
+							if ((temp == NULL) || (*temp == '+') || (*temp == '-') || (*temp == '*') || (*temp == '/') || (*temp == '^'))
+							{
+								if (current_element->type == funct)
+								{
+									temp_pointer = current_element->find_varbl(low_pointer);
+									if (current_element->point_collar->point_right != NULL)
+									{
+										if (temp_pointer == NULL)
+										{
+											//значит список переменных замкнут => новая переменная - лишняя
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
+										else
+										{
+											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
+											{
+												high_pointer->point_right->point_right = temp_pointer;//указатель на нужное место в списке переменных
+												high_pointer->point_right->prop = arg_v;
+											}
+											else
+											{
+												high_pointer->point_right = temp_pointer;
+											}
+											low_pointer = high_pointer->point_right;
+										}
+									}
+									//список не замкнут - можно добавить больше переменных
+									else if (temp_pointer == NULL) //если нет совпадений имён переменных - найдена новая переменная
+									{
+										temp_pointer = current_element->var_list_back();
+										temp_pointer->point_left = new math_obj(low_pointer);
+										temp_pointer->point_left->point_right = temp_pointer;
+										temp_pointer->point_left->point_collar = current_element;
+										temp_pointer->point_left->var = current_element->var;
+										current_element->var += 1;
+										//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
+										if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
+										{
+											high_pointer->point_right->point_right = temp_pointer->point_left;
+											high_pointer->point_right->prop = arg_v;
+										}
+										else
+										{
+											high_pointer->point_right = temp_pointer->point_left;
+										}
+										low_pointer = high_pointer->point_right;
+									}
+									else //при совпадении просто записываем переменную в выражение
 									{
 										if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 										{
@@ -2177,60 +2228,33 @@ namespace Project {
 										low_pointer = high_pointer->point_right;
 									}
 								}
-								//список не замкнут - можно добавить больше переменных
-								else if (temp_pointer == NULL) //если нет совпадений имён переменных - найдена новая переменная
+								else if (current_element->type == exprs)
 								{
-									temp_pointer = current_element->var_list_back();
-									temp_pointer->point_left = new math_obj(low_pointer);
-									temp_pointer->point_left->point_right = temp_pointer;
-									temp_pointer->point_left->point_collar = current_element;
-									temp_pointer->point_left->var = current_element->var;
-									current_element->var += 1;
-									//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
-									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
-									{
-										high_pointer->point_right->point_right = temp_pointer->point_left;
-										high_pointer->point_right->prop = arg_v;
-									}
-									else
-									{
-										high_pointer->point_right = temp_pointer->point_left;
-									}
-									low_pointer = high_pointer->point_right;
-								}
-								else //при совпадении просто записываем переменную в выражение
-								{
+									current_element->type = funct;
+									current_element->prop = undef;
+									//копия переменной с указателем на функцию
+									current_element->point_collar = new math_obj(low_pointer);
+									current_element->point_collar->point_collar = current_element;
+									current_element->var = 1;//одна переменная
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
-										high_pointer->point_right->point_right = temp_pointer;//указатель на нужное место в списке переменных
+										high_pointer->point_right->point_right = current_element->point_collar;
 										high_pointer->point_right->prop = arg_v;
 									}
 									else
 									{
-										high_pointer->point_right = temp_pointer;
+										high_pointer->point_right = current_element->point_collar;
 									}
 									low_pointer = high_pointer->point_right;
 								}
 							}
-							else if (current_element->type == exprs)
+							else if ((*temp == '(')|| (*temp == ')')|| (*temp == ','))
 							{
-								current_element->type = funct;
-								current_element->prop = undef;
-								//копия переменной с указателем на функцию
-								current_element->point_collar = new math_obj(low_pointer);
-								current_element->point_collar->point_collar = current_element;
-								current_element->var = 1;//одна переменная
-								if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
-								{
-									high_pointer->point_right->point_right = current_element->point_collar;
-									high_pointer->point_right->prop = arg_v;
-								}
-								else
-								{
-									high_pointer->point_right = current_element->point_collar;
-								}
-								low_pointer = high_pointer->point_right;
+								//ошибка - после переменной стоит открывающаяся скобка. Вообще не совсем бессмысленная запись, возможно нужен другой код ошибки или придумать как такое исключение обрабатывать.
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+								return NULL;
 							}
+							
 						}
 						//найден элемент массива с совпадающим именем - константа - просто записываем её в выражение
 						else if (low_pointer->type == cnst)
@@ -2248,7 +2272,11 @@ namespace Project {
 						//найден элемент массива с совпадающим именем - функция 
 						else if (low_pointer->type == funct)
 						{
-							if (*temp = '(')
+							if ((*temp == NULL) || (*temp == '+') || (*temp == '-') || (*temp == '*') || (*temp == '/') || (*temp == '^'))
+							{
+								count_var = -1;
+							}
+							else if (*temp = '(')
 							{
 								brakets_counter += 4;
 								count = 1;
@@ -2330,11 +2358,7 @@ namespace Project {
 									}
 									pDest = temp;
 								}
-							}
-							else if ((*temp == NULL) || (*temp == '+') || (*temp == '-') || (*temp == '*') || (*temp == '/') || (*temp == '^'))
-							{
-								count_var = -1;
-							}
+							}							
 							else
 							{
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
@@ -2591,6 +2615,25 @@ namespace Project {
 					{
 						CE->arithmetic();
 						CE->tree_destruct();
+						CE->actn = L"";
+						temp = run_vector(CE->name);
+						if (temp == NULL)
+						{
+							general_var_const->push_back(CE);
+						}
+						else
+						{
+							temp->tree_destruct();
+							for (int count = 0; count < general_var_const->size(); count++)
+							{
+								if (temp == general_var_const->at(count))
+								{
+									general_var_const->at(count) = CE;
+									delete temp;
+									break;
+								}
+							}
+						}
 					}
 				}
 			}

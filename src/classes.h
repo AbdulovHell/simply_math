@@ -152,6 +152,8 @@ namespace Project {
 			math_obj * sort_list(math_obj * var_list);
 			/*Медод определения функции. Создаёт список переменных, от которых зависит функция, основываясь на списке переменных и аргументов функции pointer.*/
 			void define_funct(math_obj *pointer);
+			/*Метод создаёт список переменных по массиву аргументов (массив аргументов должен содержать только переменные), после чего массив удаляется*/
+			void define_var_list();
 
 			enum class variable_type {
 				INTEGER,

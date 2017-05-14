@@ -81,6 +81,8 @@ namespace Project {
 					return temp;
 				}
 			}
+            else
+                return 0;
 		}
 
 		math_obj* math_obj::prioritize_processing(math_obj *pc, int current_priority)
@@ -126,6 +128,8 @@ namespace Project {
 			}
 			else if (pointer->type == varbl)
 				return arithmetic_processing(&last_arg[(int)pointer->var], last_arg);
+            else
+                return 0;
 		}
 		//надо исправить
 		wstring math_obj::expression_processing(math_obj *pointer, int* comma)

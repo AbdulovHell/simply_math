@@ -61,7 +61,7 @@ namespace Project {
 		math_obj* run_vector(wstring _pv)
 		{
 			size_t temp_size_of_vect = general_var_const->size();
-			int count;
+            size_t count;
 			for (count = 0; count < temp_size_of_vect; count++)
 			{
 				try {
@@ -86,7 +86,8 @@ namespace Project {
 		{
 			wchar_t* pDest = strPtr;
 			wchar_t* endPtr = ePtr;
-			unsigned int count, comma, count_var;
+            unsigned int count, comma;
+            int64_t count_var;
 			math_obj *high_pointer = NULL; //последняя записанная операция
 			math_obj *low_pointer = NULL; //последняя записанная константа/переменная/ф-ция/выражение
 			math_obj *temp_pointer = NULL;
@@ -94,7 +95,7 @@ namespace Project {
 			wchar_t* temp;
 			wstring name;
 			math_obj* current_element = c_e;
-			double num;
+            //double num;
 			int brakets_counter = 0;
 			while (pDest <= endPtr)
 			{
@@ -1140,7 +1141,7 @@ namespace Project {
 					//сразу переходим к следующей позиции после скобки
 					brakets_counter -= 4;
 					pDest = temp + 1;
-					if (*pDest == '(,')
+                    if ((*pDest == '(') || (*pDest == ','))       //*pDest == '(,'
 					{
 						//по идее запись вида )( может означать )*(. Потом добавть сюда определение для подобного случая
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
@@ -2276,7 +2277,7 @@ namespace Project {
 							{
 								count_var = -1;
 							}
-							else if (*temp = '(')
+                            else if (*temp == '(')
 							{
 								brakets_counter += 4;
 								count = 1;
@@ -2511,7 +2512,7 @@ namespace Project {
 			math_obj* CE = filling_vector(_pDest, _endPtr, _current_element, 0);
 			wstring output;
 			math_obj* temp;
-			size_t output_size;
+            //size_t output_size;
 			if (CE == NULL)
 			{
 				ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
@@ -2569,7 +2570,7 @@ namespace Project {
 						else
 						{
 							temp->tree_destruct();
-							for (int count = 0; count < general_var_const->size(); count++)
+                            for (size_t count = 0; count < general_var_const->size(); count++)
 							{
 								if (temp == general_var_const->at(count))
 								{
@@ -2624,7 +2625,7 @@ namespace Project {
 						else
 						{
 							temp->tree_destruct();
-							for (int count = 0; count < general_var_const->size(); count++)
+                            for (size_t count = 0; count < general_var_const->size(); count++)
 							{
 								if (temp == general_var_const->at(count))
 								{
@@ -2663,7 +2664,7 @@ namespace Project {
 				return err->GetErrorWStr();
 			}
 
-			size_t size_of_vect = general_var_const->size();
+            //size_t size_of_vect = general_var_const->size();
 
 
             general_var_const->back();

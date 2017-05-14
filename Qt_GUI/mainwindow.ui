@@ -63,12 +63,6 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuasdasd">
-    <property name="title">
-     <string>asdasd</string>
-    </property>
-   </widget>
-   <addaction name="menuasdasd"/>
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>

@@ -16,7 +16,7 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_startButton_clicked();
+    void Calc();
     void AddPI();
     void ClearArea();
     void AddSQRT();

@@ -66,7 +66,6 @@ namespace Project {
 		//проверка входящей строки на служебные символы, простые ошибки со скобками и знаки равно. удаляет пробелы.
 		bool VerifyInput(wchar_t* input) {
 			int bracket = 0, ravno = 0;
-			static wchar_t buf[300];
 
 			wXchar(input);
 
@@ -85,19 +84,16 @@ namespace Project {
 				}
 
 				if (bracket < 0) {
-					//swprintf(buf, BUF_SIZE, L"')' error.");
-					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+                    ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
 					return false;
 				}
 			}
 			if (bracket) {
-				//swprintf(buf, BUF_SIZE, L"( and ) error.");
-				ProjectError::SetProjectLastError(ProjectError::ErrorCode::BRACKET_COUNT);
+                ProjectError::SetProjectLastError(ProjectError::ErrorCode::BRACKET_COUNT);
 				return false;
 			}
 			if (ravno != 1) {
-				//swprintf(buf, BUF_SIZE, L"'='!=1 error.");
-				if (ravno == 0) ProjectError::SetProjectLastError(ProjectError::ErrorCode::EQUALY_MISSING);
+                if (ravno == 0) ProjectError::SetProjectLastError(ProjectError::ErrorCode::EQUALY_MISSING);
 				else ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_EQUALY);
 				return false;
 			}
@@ -111,7 +107,9 @@ namespace Project {
 			int temp;
 			double frac;
 			wchar_t outFormat[] = L"%.3f";
-			memset(buf, 0, 25 * 2);
+
+            for(int i=0;i<BUF_SIZE2;i++)
+                buf[i]=0;
 
 			switch (type) {
 			case var_type::FRACTIONAL:
@@ -143,7 +141,9 @@ namespace Project {
 				u = u + d*temp;
 				swprintf(buf, BUF_SIZE2, L"%d\n", u);
 				wchar_t tempbuf[20];
-				memset(tempbuf, 0, 20 * 2);
+                //memset(tempbuf, 0, 20 * 2);
+                for(int i=0;i<20;i++)
+                    tempbuf[i]=0;
 				swprintf(tempbuf, 20, L"---\n");
 				wcscat(buf, tempbuf);
 				swprintf(tempbuf, 20, L"%d\n", d);
@@ -159,7 +159,9 @@ namespace Project {
 			int temp;
 			wchar_t outFormat[] = L"%.3f";
 			double frac;
-			memset(buf, 0, 25 * 2);
+
+            for(int i=0;i<BUF_SIZE2;i++)
+                buf[i]=0;
 
 			switch (type) {
 			case var_type::FRACTIONAL:
@@ -188,7 +190,8 @@ namespace Project {
 				u = u + d*temp;
 				swprintf(buf, BUF_SIZE2, L"%d\n", u);
 				wchar_t tempbuf[20];
-				memset(tempbuf, 0, 20 * 2);
+                for(int i=0;i<20;i++)
+                    tempbuf[i]=0;
 				swprintf(tempbuf, 20, L"---\n");
 				wcscat(buf, tempbuf);
 				swprintf(tempbuf, 20, L"%d\n", d);

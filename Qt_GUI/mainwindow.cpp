@@ -12,15 +12,15 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     Project::Core::Init();
-    QImage img;
 
-    bool b = img.load(":/images/calc");
-    ui->toolBar->addAction(QPixmap::fromImage(img.scaled(32,32 , Qt::KeepAspectRatio)),"Calc", this, SLOT(on_startButton_clicked()));
-    b = img.load(":/images/waste");
+    QImage img;
+    img.load(":/images/calc");
+    ui->toolBar->addAction(QPixmap::fromImage(img.scaled(32,32 , Qt::KeepAspectRatio)),"Calc", this, SLOT(Calc()));
+    img.load(":/images/waste");
     ui->toolBar->addAction(QPixmap::fromImage(img.scaled(32,32 , Qt::KeepAspectRatio)),"Clear", this, SLOT(ClearArea()));
-    b = img.load(":/images/sqrt");
+    img.load(":/images/sqrt");
     ui->toolBar->addAction(QPixmap::fromImage(img.scaled(32,32 , Qt::KeepAspectRatio)),"√", this, SLOT(AddSQRT()));
-    b = img.load(":/images/pi");
+    img.load(":/images/pi");
     ui->toolBar->addAction(QPixmap::fromImage(img.scaled(32,32 , Qt::KeepAspectRatio)),"π", this, SLOT(AddPI()));
 }
 
@@ -29,7 +29,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_startButton_clicked(){
+void MainWindow::Calc(){
     //char *a=(char*)malloc(50);
     //strcpy(a,Project::IO::to_char_string(0.125,Project::IO::var_type::TOWER,0));
     QString str=ui->inputText->toPlainText();

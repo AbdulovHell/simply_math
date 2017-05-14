@@ -15,8 +15,8 @@ namespace Project {
 				return L"Переопределение переменной в качестве константы";
 			case ErrorCode::UNDEFINED_FUNC:
 				return L"Неопределенная функция";
-			case ErrorCode::IMPLICIT_FUNC:
-				return L"Неявное вложение функции";
+			case ErrorCode::VECTORS_LIMITED:
+				return L"Векторы не поддерживаются в полной мере.";
 			case ErrorCode::IS_EQUATION:
 				return L"Уравнения не реализованы";
 			case ErrorCode::MULTIPLE_VARIABLES:

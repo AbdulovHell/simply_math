@@ -74,27 +74,33 @@ namespace Project {
 			}
 			else if (pointer->type == funct)
 			{
-				if (pointer->prop == undef)
+				if ((pointer->name == L"minus")|| (pointer->name == L"root"))
 				{
-					temp += tree_destruct_processing(pointer->point_left);
-					temp += tree_destruct_processing(pointer->point_collar);
-					delete pointer;
-					pointer = NULL;
-					return temp;
+					temp += vector_destruct(pointer->point_right);
 				}
-				else if (pointer->prop == defnd)
+				else
 				{
-					delete pointer;
-					pointer = NULL;
-					return temp;
-				}
-				else if ((pointer->prop == arg_c) || (pointer->prop == arg_v))
-				{
-					//тут может происходить утечка памяти
-					temp += vector_destruct(pointer->point_collar);
-					delete pointer;
-					pointer = NULL;
-					return temp;
+					if (pointer->prop == undef)
+					{
+						temp += tree_destruct_processing(pointer->point_left);
+						temp += tree_destruct_processing(pointer->point_collar);
+						delete pointer;
+						pointer = NULL;
+						return temp;
+					}
+					else if (pointer->prop == defnd)
+					{
+						delete pointer;
+						pointer = NULL;
+						return temp;
+					}
+					else if ((pointer->prop == arg_c) || (pointer->prop == arg_v))
+					{						
+						temp += vector_destruct(pointer->point_collar);
+						delete pointer;
+						pointer = NULL;
+						return temp;
+					}
 				}
 			}
 			else if (pointer->type == varbl)
@@ -249,7 +255,9 @@ namespace Project {
 				return arithmetic_processing(pointer->point_left, last_arg, arg);
 			else if (pointer->type == funct)
 			{
-				if ((pointer->prop == arg_c)|| (pointer->prop == arg_v))
+				if (pointer->prop == arg_c)
+					return arithmetic_processing(pointer->point_left, pointer->point_right, pointer->point_right);
+				else if (pointer->prop == arg_v)
 					return arithmetic_processing(pointer->point_left, pointer->point_right, arg);
 				else
 				{
@@ -322,8 +330,7 @@ namespace Project {
 			int s = 0;
 			if (pointer->type == vectr)
 			{
-				s += vector_destruct(pointer->point_collar);
-				s += vector_destruct(pointer->point_right);
+				s += vector_destruct(pointer->point_collar);				
 				delete pointer;
 			}
 			else
@@ -500,7 +507,7 @@ namespace Project {
 					//пока ошибка. Ничего не делать
 					return -1;
 				}
-				else if ((pointer->type == varbl)|| (pointer->type == cnst)|| (pointer->type == exprs))
+				else if ((pointer->type == varbl)|| (pointer->type == cnst)|| (pointer->type == exprs)|| (pointer->type == numbr))
 				{
 					point_collar = pointer;
 					point_collar->point_right = NULL;
@@ -519,7 +526,7 @@ namespace Project {
 					//пока ошибка. Ничего не делать
 					return -1;
 				}
-				else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs))
+				else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs) || (pointer->type == numbr))
 				{
 					place->point_right = pointer;
 					place->point_right->point_right = NULL;
@@ -596,8 +603,8 @@ namespace Project {
 		/*Метод преобразует односвязный список в двусвязный*/
 		void math_obj::double_lincked_vector()
 		{
-			if (point_right != NULL)
-			reassing_left_pointers(point_right);						
+			if (point_collar != NULL)
+			reassing_left_pointers(point_collar);						
 		}
 		/*PRIVATE. Создание двусвязного списка.*/
 		void math_obj::reassing_left_pointers(math_obj* pointer)

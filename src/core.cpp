@@ -19,23 +19,39 @@ namespace Project {
 			ProjectError::Init();
 			math_obj* temp;
 			general_var_const = new vector<math_obj*>;
-			general_var_const->push_back(new math_obj(L"pi", cnst, fundm, L"0", 3.1415926535897932384626433832));
-			general_var_const->push_back(new math_obj(L"e", cnst, fundm, L"0", 2.7182818284590452353602874713527));
-			general_var_const->push_back(new math_obj(L"i", cnst, fundm, L"0", 0));
-			temporary_variable = new math_obj(L"temporary_variable", varbl, servc, L"0", 0);
+			general_var_const->push_back(new math_obj(L"pi", cnst, fundm, 3.1415926535897932384626433832));
+			general_var_const->push_back(new math_obj(L"e", cnst, fundm, 2.7182818284590452353602874713527));
+			general_var_const->push_back(new math_obj(L"i", cnst, fundm, 0));
+			temporary_variable = new math_obj(L"temporary_variable", varbl, servc, L"", 0);
 			//минус
 			{
+				temporary_variable->prop = L"minus";
 				general_var_const->push_back(new math_obj(L"minus", funct, servc, L"", 1, new math_obj(temporary_variable)));
 				temp = general_var_const->back();
 				temp->point_collar->point_collar = temp;
 				temp->point_left = new math_obj(L"", mltpl, L"", L"", 0, new math_obj(L"0", numbr, real, -1), temp->point_collar, temp);
+				temporary_variable->prop = servc;
 			}
 
-			//корень (пока квадратный)
+			//корень 
 			{
-				general_var_const->push_back(new math_obj(L"root", funct, servc, L"", 0, new math_obj(temporary_variable)));
+				temp = new math_obj((int)0);
+				temporary_variable->prop = L"root_";
+				temp->vector_push_back(new math_obj(temporary_variable));
+				temporary_variable->var += 1;
+				temp->vector_push_back(new math_obj(temporary_variable));
+				temporary_variable->var = 0;
+				temporary_variable->prop = servc;
+				temp->double_lincked_vector();
+				temp->vector_at(0)->point_left = temp->vector_at(1);
+				temp->vector_at(1)->point_right = temp->vector_at(0);
+				general_var_const->push_back(new math_obj(L"root", funct, servc, L"", 2, temp->point_collar));
+				delete temp;
 				temp = general_var_const->back();
 				temp->point_collar->point_collar = temp;
+				temp->point_collar->point_right->point_collar = temp;
+				temp->point_left = new math_obj(L"^", power, 0, temp->point_collar, new math_obj(L"/", divis, 0, new math_obj(L"0", numbr, real, 1), temp->point_collar->point_right, temp->point_left), temp);
+				temp->point_left->point_right->point_collar = temp->point_left;
 			}
 			//модуль (корень из квадрата числа)
 			{
@@ -86,13 +102,13 @@ namespace Project {
 		{
 			wchar_t* pDest = strPtr;
 			wchar_t* endPtr = ePtr;
-			unsigned int count, comma;
+			unsigned int count, comma, iter;
 			int64_t count_var;
 			math_obj *high_pointer = NULL; //последняя записанная операция
 			math_obj *low_pointer = NULL; //последняя записанная константа/переменная/ф-ция/выражение
 			math_obj *temp_pointer = NULL;
 			math_obj *multiple_var = NULL;
-			wchar_t* temp;
+			wchar_t* temp, *temp_2;
 			wstring name;
 			math_obj* current_element = c_e;
 			//double num;
@@ -130,11 +146,20 @@ namespace Project {
 								return temp_pointer;
 							if (temp_pointer->type == funct)
 							{
-								current_element->funct_define(temp_pointer);
-								current_element->type = funct;
-								current_element->prop = defnd;
-								current_element->actn = write;
-								delete temp_pointer;
+								if (temp_pointer->prop == arg_c)
+								{
+									current_element->point_left = temp_pointer;
+									current_element->prop = defnd;
+									current_element->actn = write;
+								}
+								else
+								{
+									current_element->funct_define(temp_pointer);
+									current_element->type = funct;
+									current_element->prop = defnd;
+									current_element->actn = write;
+									delete temp_pointer;
+								}
 							}
 							else if (temp_pointer->type == varbl)
 							{
@@ -751,7 +776,7 @@ namespace Project {
 							return NULL;
 						}
 						else if (*temp == ',')
-						{							
+						{
 							ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTORS_LIMITED);
 							return NULL;
 							comma++;
@@ -837,11 +862,11 @@ namespace Project {
 									low_pointer = high_pointer;
 								}
 								else if (current_element->type == exprs)
-								{	
+								{
 									current_element->funct_arg_push_back(temp_pointer);
 									current_element->point_collar = new math_obj(temporary_variable);
 									current_element->type = funct;
-									current_element->prop = undef;	
+									current_element->prop = undef;
 									current_element->var = 1;
 									current_element->point_collar->var = 0; //просто для достоверности)
 									current_element->point_collar->point_collar = current_element;
@@ -881,7 +906,10 @@ namespace Project {
 							{
 								if ((temp_pointer->type == exprs) || (temp_pointer->type == cnst))
 								{
-									high_pointer->point_right = temp_pointer;
+									high_pointer->point_right = new math_obj((int)0);
+									high_pointer->point_right->vector_push_back(temp_pointer);
+									high_pointer->prop = arg_c;
+									high_pointer->point_right->prop = arg_c;
 								}
 								else if (temp_pointer->type == varbl)
 								{
@@ -895,7 +923,13 @@ namespace Project {
 											general_var_const->push_back(new math_obj(temp_pointer));
 										}
 										current_element->point_collar = temp_pointer;
-										high_pointer->point_right = current_element->point_collar;
+										temp_pointer = new math_obj(current_element->point_collar);
+										temp_pointer->var = -1;
+										temp_pointer->point_collar = current_element->point_collar;
+										high_pointer->point_right = new math_obj((int)0);
+										high_pointer->point_right->vector_push_back(temp_pointer);
+										high_pointer->prop = arg_v;
+										high_pointer->point_right->prop = arg_v;
 									}
 									else if (current_element->type == funct)
 									{
@@ -909,7 +943,13 @@ namespace Project {
 											}
 											else
 											{
-												high_pointer->point_right = multiple_var;
+												temp_pointer = new math_obj(multiple_var);
+												temp_pointer->var = -1;
+												temp_pointer->point_collar = multiple_var;
+												high_pointer->point_right = new math_obj((int)0);
+												high_pointer->point_right->vector_push_back(temp_pointer);
+												high_pointer->prop = arg_v;
+												high_pointer->point_right->prop = arg_v;
 											}
 										}
 										//так как скобка стоит в самом начале строки, если текущий элемент - функция, её список переменных всегда замкнут
@@ -924,18 +964,29 @@ namespace Project {
 								{
 									if (temp_pointer->prop == arg_c)
 									{
-										high_pointer->point_right = temp_pointer;
+										high_pointer->point_right = new math_obj((int)0);
+										high_pointer->point_right->vector_push_back(temp_pointer);
+										high_pointer->prop = arg_c;
+										high_pointer->point_right->prop = arg_c;
 									}
 									else if (current_element->type == exprs)
-									{										
+									{
 										current_element->funct_arg_push_back(temp_pointer);
 										current_element->point_collar = new math_obj(temporary_variable);
 										current_element->type = funct;
 										current_element->prop = undef;
-										current_element->var = 1;										
+										current_element->var = 1;
 										current_element->point_collar->var = 0; //просто для достоверности)
 										current_element->point_collar->point_collar = current_element;
-										high_pointer->point_right = current_element->point_collar;
+
+										temp_pointer = new math_obj(current_element->point_collar);
+										temp_pointer->var = -1;
+										temp_pointer->point_collar = current_element->point_collar;
+										temp_pointer->prop = L"";
+										high_pointer->point_right = new math_obj((int)0);
+										high_pointer->point_right->vector_push_back(temp_pointer);
+										high_pointer->prop = arg_v;
+										high_pointer->point_right->prop = arg_v;
 									}
 									else if (current_element->type == funct)
 									{
@@ -948,7 +999,10 @@ namespace Project {
 											}
 											else
 											{
-												high_pointer->point_right = temp_pointer;
+												high_pointer->point_right = new math_obj((int)0);
+												high_pointer->point_right->vector_push_back(temp_pointer);
+												high_pointer->prop = arg_v;
+												high_pointer->point_right->prop = arg_v;
 											}
 										}
 										//так как скобка стоит в самом начале строки, если текущий элемент - функция, её список переменных всегда замкнут
@@ -975,7 +1029,10 @@ namespace Project {
 							{
 								if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 								{
-									high_pointer->point_right->point_right = temp_pointer;
+									high_pointer->point_right->point_right = new math_obj((int)0);
+									high_pointer->point_right->point_right->vector_push_back(temp_pointer);
+									high_pointer->point_right->prop = arg_c;
+									high_pointer->point_right->point_right->prop = arg_c;
 								}
 								else
 								{
@@ -1002,7 +1059,13 @@ namespace Project {
 											//стоит ли перед переменной минус
 											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 											{
-												high_pointer->point_right->point_right = multiple_var;
+												temp_pointer = new math_obj(multiple_var);
+												temp_pointer->var = -1;
+												temp_pointer->point_collar = multiple_var;
+												high_pointer->point_right->point_right = new math_obj((int)0);
+												high_pointer->point_right->point_right->vector_push_back(temp_pointer);
+												high_pointer->point_right->prop = arg_v;
+												high_pointer->point_right->point_right->prop = arg_v;
 											}
 											else
 											{
@@ -1030,7 +1093,12 @@ namespace Project {
 											//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
 											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
 											{
-												high_pointer->point_right->point_right = multiple_var->point_right;
+												multiple_var = new math_obj(temp_pointer);
+												multiple_var->point_collar = temp_pointer;
+												high_pointer->point_right->point_right = new math_obj((int)0);
+												high_pointer->point_right->point_right->vector_push_back(multiple_var);
+												high_pointer->point_right->prop = arg_v;
+												high_pointer->point_right->point_right->prop = arg_v;
 											}
 											else
 											{
@@ -1043,7 +1111,13 @@ namespace Project {
 											//стоит ли перед переменной минус
 											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 											{
-												high_pointer->point_right->point_right = multiple_var;
+												temp_pointer = new math_obj(multiple_var);
+												temp_pointer->var = -1;
+												temp_pointer->point_collar = multiple_var;
+												high_pointer->point_right->point_right = new math_obj((int)0);
+												high_pointer->point_right->point_right->vector_push_back(temp_pointer);
+												high_pointer->point_right->prop = arg_v;
+												high_pointer->point_right->point_right->prop = arg_v;
 											}
 											else
 											{
@@ -1066,7 +1140,13 @@ namespace Project {
 									//учитывается минус перед переменной
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
-										high_pointer->point_right->point_right = current_element->point_collar;
+										temp_pointer = new math_obj(current_element->point_collar);
+										temp_pointer->var = -1;
+										temp_pointer->point_collar = current_element->point_collar;
+										high_pointer->point_right->point_right = new math_obj((int)0);
+										high_pointer->point_right->point_right->vector_push_back(temp_pointer);
+										high_pointer->point_right->prop = arg_v;
+										high_pointer->point_right->point_right->prop = arg_v;
 									}
 									else
 									{
@@ -1081,7 +1161,10 @@ namespace Project {
 								{
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
-										high_pointer->point_right->point_right = temp_pointer;
+										high_pointer->point_right->point_right = new math_obj((int)0);
+										high_pointer->point_right->point_right->vector_push_back(temp_pointer);
+										high_pointer->point_right->prop = arg_c;
+										high_pointer->point_right->point_right->prop = arg_c;
 									}
 									else
 									{
@@ -1101,7 +1184,14 @@ namespace Project {
 
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
-										high_pointer->point_right->point_right = current_element->point_collar;
+										temp_pointer = new math_obj(current_element->point_collar);
+										temp_pointer->var = -1;
+										temp_pointer->prop = L"";
+										temp_pointer->point_collar = current_element->point_collar;
+										high_pointer->point_right->point_right = new math_obj((int)0);
+										high_pointer->point_right->point_right->vector_push_back(temp_pointer);
+										high_pointer->point_right->prop = arg_v;
+										high_pointer->point_right->point_right->prop = arg_v;
 									}
 									else
 									{
@@ -1122,7 +1212,10 @@ namespace Project {
 										{
 											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 											{
-												high_pointer->point_right->point_right = temp_pointer;
+												high_pointer->point_right->point_right = new math_obj((int)0);
+												high_pointer->point_right->point_right->vector_push_back(temp_pointer);
+												high_pointer->point_right->prop = arg_v;
+												high_pointer->point_right->point_right->prop = arg_v;
 											}
 											else
 											{
@@ -1133,7 +1226,7 @@ namespace Project {
 									}
 									else
 									{
-										current_element->funct_arg_push_back(temp_pointer);										
+										current_element->funct_arg_push_back(temp_pointer);
 										temp_pointer = NULL;
 										temp_pointer = current_element->var_list_back();
 										temp_pointer->point_right = new math_obj(temporary_variable);
@@ -1142,7 +1235,13 @@ namespace Project {
 										current_element->var += 1;
 										if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 										{
-											high_pointer->point_right->point_right = temp_pointer->point_right;
+											multiple_var = new math_obj(temp_pointer->point_right);
+											multiple_var->prop = L"";
+											multiple_var->point_collar = temp_pointer->point_right;
+											high_pointer->point_right->point_right = new math_obj((int)0);
+											high_pointer->point_right->point_right->vector_push_back(multiple_var);
+											high_pointer->point_right->prop = arg_v;
+											high_pointer->point_right->point_right->prop = arg_v;
 										}
 										else
 										{
@@ -1185,7 +1284,10 @@ namespace Project {
 					{
 						if (high_pointer->name == L"minus")
 						{
-							high_pointer->point_right = new math_obj(L"", numbr, real, wcstod(pDest, &pDest), low_pointer);
+							high_pointer->point_right = new math_obj((int)0);
+							high_pointer->point_right->vector_push_back(new math_obj(L"", numbr, real, wcstod(pDest, &pDest), low_pointer));
+							high_pointer->prop = arg_c;
+							high_pointer->point_right->prop = arg_c;
 						}
 						else
 						{
@@ -1199,7 +1301,10 @@ namespace Project {
 						//создание элемента класса и запись числа, воротник -> пред операцию 						
 						if ((high_pointer->point_right != NULL) && (low_pointer->name == L"minus"))
 						{
-							low_pointer->point_right = new math_obj(L"", numbr, real, wcstod(pDest, &pDest), low_pointer);
+							low_pointer->point_right = new math_obj((int)0);
+							low_pointer->point_right->vector_push_back(new math_obj(L"", numbr, real, wcstod(pDest, &pDest), low_pointer));
+							low_pointer->prop = arg_c;
+							low_pointer->point_right->prop = arg_c;
 						}
 						else
 						{
@@ -1208,7 +1313,6 @@ namespace Project {
 						}
 					}
 				}
-
 				//случай с символами в строке
 				else
 				{
@@ -1285,7 +1389,8 @@ namespace Project {
 									else if (*temp == ',')
 									{
 										//считаем запятые. количество запятых в скобках +1 = число различных переменных
-										comma++;
+										if (count == 1)
+											comma++;
 									}
 								}
 								if (*(temp + 1) != '=')
@@ -1318,6 +1423,17 @@ namespace Project {
 									for (count = 0; count < comma + 1; count++)
 									{
 										temp = wcspbrk(pDest + 1, L",)");
+										if (*temp == ',')
+										{
+											temp_2 = wcspbrk(pDest + 1, L"(");
+											if ((temp_2 != NULL) && (temp_2 < temp))
+											{
+												current_element->point_collar->tree_destruct();
+												current_element->point_collar = NULL;
+												ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
+												return NULL;
+											}
+										}
 										name.assign(pDest + 1, temp);
 										temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, 0, current_element), brakets + brakets_counter);
 										if (temp_pointer == NULL)
@@ -1437,7 +1553,8 @@ namespace Project {
 									else if (*temp == ',')
 									{
 										//считаем запятые. количество запятых в скобках +1 = число различных переменных
-										comma++;
+										if (count == 1)
+											comma++;
 									}
 								}
 								if (*(temp + 1) != '=') //два варианта - стоит равно после скобки или нет
@@ -1482,6 +1599,16 @@ namespace Project {
 									for (count = 0; count < comma + 1; count++)
 									{
 										temp = wcspbrk(pDest + 1, L",)");
+										if (*temp == ',')
+										{
+											temp_2 = wcspbrk(pDest + 1, L"(");
+											if ((temp_2 != NULL) && (temp_2 < temp))
+											{
+												current_element->point_collar->tree_destruct();
+												current_element->point_collar = NULL;
+												break;
+											}
+										}
 										name.assign(pDest + 1, temp);
 										temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, 0, current_element), brakets + brakets_counter);
 										if (temp_pointer == NULL)
@@ -1610,7 +1737,8 @@ namespace Project {
 									else if (*temp == ',')
 									{
 										//считаем запятые. количество запятых в скобках +1 = число различных переменных
-										comma++;
+										if (count == 1)
+											comma++;
 									}
 								}
 								if (*(temp + 1) != '=')
@@ -1640,6 +1768,18 @@ namespace Project {
 									for (count = 0; count < comma + 1; count++)
 									{
 										temp = wcspbrk(pDest + 1, L",)");
+										if (*temp == ',')
+										{
+											temp_2 = wcspbrk(pDest + 1, L"(");
+											if ((temp_2 != NULL) && (temp_2 < temp))
+											{
+												//поскольку функция ещё неопределённая передавать ей любые аргументы будет неверно
+												current_element->point_collar->tree_destruct();
+												current_element->point_collar = NULL;
+												ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
+												return NULL;
+											}
+										}
 										name.assign(pDest + 1, temp);
 										temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, L"", 0, current_element), brakets + brakets_counter);
 										if (temp_pointer == NULL)
@@ -1776,7 +1916,8 @@ namespace Project {
 									else if (*temp == ',')
 									{
 										//считаем запятые. количество запятых в скобках +1 = число различных переменных
-										comma++;
+										if (count == 1)
+											comma++;
 									}
 								}
 								if (pDest + 1 == temp)
@@ -1792,7 +1933,7 @@ namespace Project {
 									//случай, аналогичный последнему условию в данной ветке 
 									else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
 									{
-										
+
 										current_element->var = 1; // одна переменная
 										current_element->funct_arg_push_back(new math_obj(high_pointer)); //найденная функция - аргумент текущей
 										//копия служебной переменной с указателем на функцию
@@ -1816,13 +1957,34 @@ namespace Project {
 									for (count = 0; count < comma + 1; count++)
 									{
 										temp = wcspbrk(pDest + 1, L",)");
+										if (*temp == ',')
+										{
+											temp_2 = wcspbrk(pDest + 1, L"(");
+											if ((temp_2 != NULL) && (temp_2 < temp))
+											{
+												iter = 1;
+												while (iter != 0)
+												{
+													temp_2++;
+													if (*temp_2 == '(')
+													{
+														iter++;
+													}
+													else if (*temp_2 == ')')
+													{
+														iter--;
+													}
+												}
+												temp = wcspbrk(temp_2 + 1, L",)");
+											}
+										}
 										name.assign(pDest + 1, temp);
 										temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, L"", 0, current_element), brakets + brakets_counter);
 										if (temp_pointer == NULL)
 											return temp_pointer;
 										//заполняем массив аргументов
 										if (temp_pointer->type == varbl)
-										{											
+										{
 											if (temp_pointer->prop == undef)
 											{
 												temp_pointer->prop = defnd;
@@ -1853,7 +2015,7 @@ namespace Project {
 											low_pointer = high_pointer;
 										}
 										else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
-										{											
+										{
 											current_element->var = 1; // одна переменная
 											temp_pointer = new math_obj(high_pointer);
 											multiple_var->prop = arg_v;
@@ -1974,8 +2136,8 @@ namespace Project {
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
 							{
 								current_element->var = 1; // одна переменная
-								temp_pointer = new math_obj(high_pointer);								
-								temp_pointer->prop = arg_v;																
+								temp_pointer = new math_obj(high_pointer);
+								temp_pointer->prop = arg_v;
 								current_element->funct_arg_push_back(temp_pointer); //полагаем новую неопределённую функцию, которая зависит от какой-либо переменной,
 																							//имеющей аргумент в виде другой (определённой) функции. При этом если окажется, что
 																							//в выражении участвуют несколько функций (f+g), то функция, котрая их объединяет
@@ -2043,8 +2205,11 @@ namespace Project {
 										//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
 										if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
 										{
-											high_pointer->point_right->point_right = temp_pointer->point_right;
+											high_pointer->point_right->point_right = new math_obj((int)0);
+											high_pointer->point_right->point_right->vector_push_back(new math_obj(temp_pointer->point_right));
+											high_pointer->point_right->point_right->vector_back()->point_collar = temp_pointer->point_right;
 											high_pointer->point_right->prop = arg_v;
+											high_pointer->point_right->point_right->prop = arg_v;
 										}
 										else
 										{
@@ -2068,8 +2233,11 @@ namespace Project {
 															 //тут проблема может возникнуть - я не помню какая))
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
-										high_pointer->point_right->point_right = current_element->point_collar;
+										high_pointer->point_right->point_right = new math_obj((int)0);
+										high_pointer->point_right->point_right->vector_push_back(new math_obj(current_element->point_collar));
+										high_pointer->point_right->point_right->vector_back()->point_collar = current_element->point_collar;
 										high_pointer->point_right->prop = arg_v;
+										high_pointer->point_right->point_right->prop = arg_v;
 									}
 									else
 									{
@@ -2105,8 +2273,14 @@ namespace Project {
 										{
 											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 											{
-												high_pointer->point_right->point_right = temp_pointer;//указатель на нужное место в списке переменных
+												high_pointer->point_right->point_right = new math_obj((int)0);
+												multiple_var = new math_obj(temp_pointer);
+												multiple_var->var = -1; // на всякий случай
+												high_pointer->point_right->point_right->vector_push_back(multiple_var);
+												multiple_var = NULL;
+												high_pointer->point_right->point_right->vector_back()->point_collar = temp_pointer;
 												high_pointer->point_right->prop = arg_v;
+												high_pointer->point_right->point_right->prop = arg_v;
 											}
 											else
 											{
@@ -2127,8 +2301,11 @@ namespace Project {
 										//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
 										if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))//стоит после минуса
 										{
-											high_pointer->point_right->point_right = temp_pointer->point_right;
+											high_pointer->point_right->point_right = new math_obj((int)0);
+											high_pointer->point_right->point_right->vector_push_back(new math_obj(temp_pointer->point_right));
+											high_pointer->point_right->point_right->vector_back()->point_collar = temp_pointer->point_right;
 											high_pointer->point_right->prop = arg_v;
+											high_pointer->point_right->point_right->prop = arg_v;
 										}
 										else
 										{
@@ -2140,8 +2317,14 @@ namespace Project {
 									{
 										if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 										{
-											high_pointer->point_right->point_right = temp_pointer;//указатель на нужное место в списке переменных
+											high_pointer->point_right->point_right = new math_obj((int)0);
+											multiple_var = new math_obj(temp_pointer);
+											multiple_var->var = -1; // на всякий случай
+											high_pointer->point_right->point_right->vector_push_back(multiple_var);
+											multiple_var = NULL;
+											high_pointer->point_right->point_right->vector_back()->point_collar = temp_pointer;
 											high_pointer->point_right->prop = arg_v;
+											high_pointer->point_right->point_right->prop = arg_v;
 										}
 										else
 										{
@@ -2160,8 +2343,11 @@ namespace Project {
 									current_element->var = 1;//одна переменная
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
-										high_pointer->point_right->point_right = current_element->point_collar;
+										high_pointer->point_right->point_right = new math_obj((int)0);
+										high_pointer->point_right->point_right->vector_push_back(new math_obj(current_element->point_collar));
+										high_pointer->point_right->point_right->vector_back()->point_collar = current_element->point_collar;
 										high_pointer->point_right->prop = arg_v;
+										high_pointer->point_right->point_right->prop = arg_v;
 									}
 									else
 									{
@@ -2183,7 +2369,10 @@ namespace Project {
 						{
 							if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 							{
-								high_pointer->point_right->point_right = new math_obj(low_pointer);
+								high_pointer->point_right->point_right = new math_obj((int)0);
+								high_pointer->point_right->point_right->vector_push_back(new math_obj(low_pointer));
+								high_pointer->point_right->prop = arg_c;
+								high_pointer->point_right->point_right->prop = arg_c;
 							}
 							else
 							{
@@ -2228,7 +2417,8 @@ namespace Project {
 									else if (*temp == ',')
 									{
 										//считаем запятые. количество запятых в скобках +1 = число различных переменных
-										comma++;
+										if (count == 1)
+											comma++;
 									}
 								}
 								//если количество аргументов не совпадает с количеством переменных
@@ -2242,6 +2432,27 @@ namespace Project {
 								for (count = 0; count < comma + 1; count++)
 								{
 									temp = wcspbrk(pDest + 1, L",)");
+									if (*temp == ',')
+									{
+										temp_2 = wcspbrk(pDest + 1, L"(");
+										if ((temp_2 != NULL) && (temp_2 < temp))
+										{
+											iter = 1;
+											while (iter != 0)
+											{
+												temp_2++;												
+												if (*temp_2 == '(')
+												{
+													iter++;
+												}
+												else if (*temp_2 == ')')
+												{
+													iter--;
+												}																						
+											}
+											temp = wcspbrk(temp_2 + 1, L",)");
+										}
+									}
 									name.assign(pDest + 1, temp);
 									temp_pointer = filling_vector(&name[0], &name[name.length() - 1], new math_obj(L"", exprs, undef, 0, current_element), brakets + brakets_counter);
 									if (temp_pointer == NULL)
@@ -2257,16 +2468,17 @@ namespace Project {
 										}
 										temp_pointer->var = count_var;
 										count_var++;
-									}									
+									}
 									else if (temp_pointer->type == funct)
 									{
 										//тут в качестве аргумента получается переменная функция, которая либо  defnd, либо  undef
 										if (temp_pointer->prop != arg_c)
 										{
-											count_var++;											
+											count_var++;
 										}
 										else //тут вегда подразумевается  defnd функция с конст аргументами										
-										{ }
+										{
+										}
 									}
 									multiple_var->vector_push_back(temp_pointer);
 									pDest = temp;
@@ -2284,11 +2496,14 @@ namespace Project {
 								{
 									temp_pointer = new math_obj(low_pointer);
 									multiple_var->prop = arg_c;
-									temp_pointer->point_right = multiple_var;									
+									temp_pointer->point_right = multiple_var;
 									temp_pointer->prop = arg_c;//указываем что аргументы - константы
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
-										high_pointer->point_right->point_right = temp_pointer;
+										high_pointer->point_right->point_right = new math_obj((int)0);
+										high_pointer->point_right->point_right->vector_push_back(temp_pointer);
+										high_pointer->point_right->prop = arg_c;
+										high_pointer->point_right->point_right->prop = arg_c;
 									}
 									else
 									{
@@ -2310,9 +2525,9 @@ namespace Project {
 									//если список переменных не замкнут
 									if (current_element->point_collar->point_left == NULL)
 									{
-										
+
 										current_element->funct_arg_push_back(temp_pointer);
-										temp_pointer = NULL;										
+										temp_pointer = NULL;
 										temp_pointer = current_element->var_list_back();
 										temp_pointer->point_right = new math_obj(temporary_variable);
 										temp_pointer->point_right->point_left = temp_pointer;
@@ -2321,8 +2536,13 @@ namespace Project {
 
 										if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 										{
-											high_pointer->point_right->point_right = temp_pointer->point_right;
+											high_pointer->point_right->point_right = new math_obj((int)0);
+											multiple_var = new math_obj(temp_pointer->point_right);
+											multiple_var->point_collar = temp_pointer->point_right;
+											multiple_var->prop = L"";
+											high_pointer->point_right->point_right->vector_push_back(multiple_var);
 											high_pointer->point_right->prop = arg_v;
+											high_pointer->point_right->point_right->prop = arg_v;
 										}
 										else
 										{
@@ -2346,8 +2566,10 @@ namespace Project {
 											//копия найденной функции добавляется в выражение
 											if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 											{
-												high_pointer->point_right->point_right = temp_pointer;
+												high_pointer->point_right->point_right = new math_obj((int)0);
+												high_pointer->point_right->point_right->vector_push_back(temp_pointer);
 												high_pointer->point_right->prop = arg_v;
+												high_pointer->point_right->point_right->prop = arg_v;
 											}
 											else
 											{
@@ -2371,8 +2593,10 @@ namespace Project {
 
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
-										high_pointer->point_right->point_right = temp_pointer;
-
+										high_pointer->point_right->point_right = new math_obj((int)0);
+										high_pointer->point_right->point_right->vector_push_back(temp_pointer);
+										high_pointer->point_right->prop = arg_c;
+										high_pointer->point_right->point_right->prop = arg_c;
 									}
 									else
 									{
@@ -2402,8 +2626,13 @@ namespace Project {
 
 									if ((high_pointer->point_right != NULL) && (high_pointer->point_right->name == L"minus"))
 									{
-										high_pointer->point_right->point_right = current_element->point_collar;
+										high_pointer->point_right->point_right = new math_obj((int)0);
+										multiple_var = new math_obj(current_element->point_collar);
+										multiple_var->point_collar = current_element->point_collar;
+										multiple_var->prop = L"";
+										high_pointer->point_right->point_right->vector_push_back(multiple_var);
 										high_pointer->point_right->prop = arg_v;
+										high_pointer->point_right->point_right->prop = arg_v;
 									}
 									else
 									{
@@ -2514,7 +2743,7 @@ namespace Project {
 				if (CE->actn == solve)
 				{
 					//ответ 
-					output = to_string(CE->var, var_type::FRACTIONAL, 2);
+					output = to_string(CE->var, var_type::FRACTIONAL, 5);
 
 				}
 				else if (CE->actn == write)

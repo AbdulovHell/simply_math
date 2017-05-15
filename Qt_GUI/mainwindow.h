@@ -14,6 +14,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    bool isOutOrEmpty(wchar_t*,size_t);
 
 private slots:
     void Calc();

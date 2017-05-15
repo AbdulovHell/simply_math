@@ -127,7 +127,7 @@ namespace Project {
 			//Конструктор вектора
 			math_obj(int size_n);
 			//Конструктор вектора с именем
-			math_obj::math_obj(wstring _name, int size_n);
+            math_obj(wstring _name, int size_n);
 			//Конструктор матрицы
 			math_obj(int size_n, int size_m);
 			//Деструктор TODO: зачем он, если в нем пусто..., можно сюда запихнуть функционал tree_destrust, когда её отладим.
@@ -192,7 +192,7 @@ namespace Project {
 			-1 в случае ошибки*/
 			int funct_arg_push_back(math_obj*pointer);
 			/*Метод преобразует односвязный список в двусвязный*/
-			void math_obj::double_lincked_vector();
+            void double_lincked_vector();
 			
 
 			enum class variable_type {

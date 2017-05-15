@@ -1,4 +1,5 @@
 #include <string>
+#include <wchar.h>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "../src/error.h"
@@ -83,7 +84,7 @@ void MainWindow::Calc(){
             if(!isOutOrEmpty(input+index,wcslen(input+index))){ //и строка не является выводом
                 input[i]='\0';  //отделяем для копирки
                 inputStrs[k]=new wchar_t[i-index+1];    //выделяем место
-                wcscpy_s(inputStrs[k],i-index+1,input+index);   //копируем
+                wcscpy(inputStrs[k],input+index);   //копируем
                 inputStrs[k][i]=0;  //добавляем в конец строки \0
                 index=i+1;  //начало следующей строки
                 k++;    //количество строк
@@ -107,7 +108,7 @@ void MainWindow::Calc(){
     for (int i = 0,k=0;i < inputStrsCount;) {
         size_t len=wcslen(inputStrs[k])+1;
         Strs[i]=new wchar_t[len];    //выделяем место
-        wcscpy_s(Strs[i],len,inputStrs[k]);   //копируем
+        wcscpy(Strs[i],inputStrs[k]);   //копируем
         std::wstring outstr = Project::Core::input_to_analize(Strs[i]);
         i++;
         if (outstr==L"") {
@@ -116,7 +117,7 @@ void MainWindow::Calc(){
         else {
             outstr = L">>> " + outstr;
             Strs[i]=new wchar_t[outstr.length()+1];    //выделяем место
-            wcscpy_s(Strs[i],outstr.length()+1,outstr.c_str());   //копируем
+            wcscpy(Strs[i],outstr.c_str());   //копируем
             i++;
         }
         k++;

@@ -36,11 +36,10 @@ namespace Project {
 			else if (type == equat)
 			{
 				//доделать
-			}
-			else if (type == cnst)
+			}			
+			else if (type == vectr)
 			{
-				//может не сработать)
-				s += tree_destruct_processing(this);
+				s += vector_destruct(point_left);
 			}
 			return s;
 		}
@@ -96,7 +95,7 @@ namespace Project {
 					}
 					else if ((pointer->prop == arg_c) || (pointer->prop == arg_v))
 					{						
-						temp += vector_destruct(pointer->point_collar);
+						temp += vector_destruct(pointer->point_right);
 						delete pointer;
 						pointer = NULL;
 						return temp;
@@ -308,9 +307,9 @@ namespace Project {
 			prop = L"";
 			actn = L"";
 			var = size_n;
-			point_left = NULL;
+			point_left = vector_create(size_n);
 			point_right = NULL;
-			point_collar = vector_create(size_n);
+			point_collar = NULL;
 		}
 		//Конструктор вектора с именем
 		math_obj::math_obj(wstring _name, int size_n)
@@ -320,17 +319,19 @@ namespace Project {
 			prop = L"";
 			actn = L"";
 			var = 0;
-			point_left = NULL;
+			point_left = vector_create(size_n);
 			point_right = NULL;
-			point_collar = vector_create(size_n);
+			point_collar = NULL;
 		}
+			
+
 		/*PRIVATE. Деструктор вектора*/
 		int math_obj::vector_destruct(math_obj* pointer)
 		{
 			int s = 0;
 			if (pointer->type == vectr)
 			{
-				s += vector_destruct(pointer->point_collar);				
+				s += vector_destruct(pointer->point_left);				
 				delete pointer;
 			}
 			else
@@ -340,7 +341,7 @@ namespace Project {
 					s += vector_destruct(pointer->point_right);
 					if ((pointer->prop == servc)&&(pointer->type == varbl))
 					{
-						s += tree_destruct_processing(pointer->point_collar);
+						s += tree_destruct_processing(pointer->point_left);
 						delete pointer;
 					}
 				}
@@ -376,22 +377,17 @@ namespace Project {
 				math_obj*place;
 				if (index == 0)
 				{
-					place = point_collar;
+					place = point_left;
 					if (pointer->type == funct)
 					{
-						point_collar = new math_obj(L"temporary_variable", varbl, servc, 0, NULL, place->point_right, pointer);
-					}
-					else if (pointer->type == vectr)
+						point_left = new math_obj(L"temporary_variable", varbl, servc, -1, pointer, place->point_right,NULL);
+					}					
+					else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs)|| (pointer->type == vectr))
 					{
-						//пока ошибка. Ничего не делать
-						return -1;
-					}
-					else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs))
-					{
-						point_collar = pointer;
-						point_collar->point_right = NULL;
-						point_collar->point_collar = NULL;
-						point_collar->point_right = place->point_right;
+						point_left = pointer;
+						point_left->point_right = NULL;
+						point_left->point_collar = NULL;
+						point_left->point_right = place->point_right;
 					}
 				}
 				else
@@ -400,14 +396,9 @@ namespace Project {
 					place = place_minus_1->point_right;
 					if (pointer->type == funct)
 					{
-						place_minus_1->point_right = new math_obj(L"temporary_variable", varbl, servc, 0,NULL, place->point_right, pointer);						
-					}
-					else if (pointer->type == vectr)
-					{
-						//пока ошибка. Ничего не делать
-						return -1;
-					}
-					else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs))
+						place_minus_1->point_right = new math_obj(L"temporary_variable", varbl, servc, -1, pointer, place->point_right,NULL);
+					}					
+					else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs)|| (pointer->type == vectr))
 					{
 						place_minus_1->point_right = pointer;
 						place_minus_1->point_right->point_right = NULL;
@@ -417,8 +408,8 @@ namespace Project {
 				}
 				if ((place->prop == servc) && (place->type == varbl))
 				{
-					place->point_collar->tree_destruct();
-					delete place->point_collar;
+					place->point_left->tree_destruct();
+					delete place->point_left;
 				}
 				delete place;
 				return 0;
@@ -427,17 +418,17 @@ namespace Project {
 		/*Метод возвращает указатель на элемент списка с номером index.*/
 		math_obj* math_obj::vector_at(int index)
 		{
-			if ((type != vectr) || (point_collar == NULL) || (index >= vector_size()))
+			if ((type != vectr) || (point_left == NULL) || (index >= vector_size()))
 			{
 				//выход за пределы вектора можно сделать отдельной ошибкой
 				return NULL;
 			}
 			else
 			{
-				math_obj*place = vector_at_processing(point_collar, &index, 0);
+				math_obj*place = vector_at_processing(point_left, &index, 0);
 				if ((place->prop == servc)&& (place->type == varbl))
 				{
-					return place->point_collar;
+					return place->point_left;
 				}
 				else
 				{
@@ -463,13 +454,13 @@ namespace Project {
 			{
 				return -1;
 			}
-			else if (point_collar == NULL)
+			else if (point_left == NULL)
 			{
 				return 0;
 			}
 			else
 			{
-				return vector_size_processing(point_collar);
+				return vector_size_processing(point_left);
 			}
 		}
 		/*PRIVATE. Рекурсия для vector_size*/
@@ -496,37 +487,27 @@ namespace Project {
 				//ошибка. Ничего не делать
 				return -1;
 			}
-			else if (point_collar == NULL)
+			else if (point_left == NULL)
 			{
 				if (pointer->type == funct)
 				{
-					point_collar = new math_obj(L"temporary_variable", varbl, servc, 0, pointer);
-				}
-				else if (pointer->type == vectr)
+					point_left = new math_obj(L"temporary_variable", varbl, servc, -1, pointer, NULL, NULL);
+				}				
+				else if ((pointer->type == varbl)|| (pointer->type == cnst)|| (pointer->type == exprs)|| (pointer->type == numbr)|| (pointer->type == vectr))
 				{
-					//пока ошибка. Ничего не делать
-					return -1;
-				}
-				else if ((pointer->type == varbl)|| (pointer->type == cnst)|| (pointer->type == exprs)|| (pointer->type == numbr))
-				{
-					point_collar = pointer;
-					point_collar->point_right = NULL;
-					point_collar->point_collar = NULL;
+					point_left = pointer;
+					point_left->point_right = NULL;
+					point_left->point_collar = NULL;
 				}				
 			}
 			else
 			{
-				math_obj* place = vector_back_processing(point_collar);
+				math_obj* place = vector_back_processing(point_left);
 				if (pointer->type == funct)
 				{
-					place->point_right = new math_obj(L"temporary_variable", varbl, servc, 0, pointer);
-				}
-				else if (pointer->type == vectr)
-				{
-					//пока ошибка. Ничего не делать
-					return -1;
-				}
-				else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs) || (pointer->type == numbr))
+					place->point_right = new math_obj(L"temporary_variable", varbl, servc, -1, pointer, NULL, NULL);
+				}				
+				else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs) || (pointer->type == numbr)||(pointer->type == vectr))
 				{
 					place->point_right = pointer;
 					place->point_right->point_right = NULL;
@@ -544,11 +525,11 @@ namespace Project {
 				//ошибка. Ничего не делать 	
 				return -1;
 			}
-			else if (point_collar == NULL)
+			else if (point_left == NULL)
 			{
 				if (pointer->type == funct)
 				{
-					point_collar = new math_obj(L"temporary_variable", varbl, servc, 0, pointer);
+					point_left = new math_obj(L"temporary_variable", varbl, servc, -1, pointer,NULL,NULL);
 				}
 				else if (pointer->type == vectr)
 				{
@@ -557,29 +538,24 @@ namespace Project {
 				}
 				else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs))
 				{
-					point_collar = pointer;
-					point_collar->point_right = NULL;
-					point_collar->point_collar = NULL;
+					point_left = pointer;
+					point_left->point_right = NULL;
+					point_left->point_collar = NULL;
 				}				
 			}
 			else
 			{
-				math_obj* place = point_collar;
+				math_obj* place = point_left;
 				if (pointer->type == funct)
 				{
-					point_collar = new math_obj(L"temporary_variable", varbl, servc, 0, pointer);
-					point_collar->point_right = place;
-				}
-				else if (pointer->type == vectr)
+					point_left = new math_obj(L"temporary_variable", varbl, servc, -1, pointer, NULL, NULL);
+					point_left->point_right = place;
+				}				
+				else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs)|| (pointer->type == vectr))
 				{
-					//пока ошибка. Ничего не делать
-					return -1;
-				}
-				else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs))
-				{
-					point_collar = pointer;
-					point_collar->point_right = place;
-					point_collar->point_collar = NULL;
+					point_left = pointer;
+					point_left->point_right = place;
+					point_left->point_collar = NULL;
 				}				
 			}
 			return 0;
@@ -587,10 +563,10 @@ namespace Project {
 		/*Метод возвращает указатель на последний элемент вектора*/
 		math_obj* math_obj::vector_back()
 		{
-			if (point_collar == NULL)
+			if ((point_left == NULL)||(type != vectr))
 				return NULL;
 			else
-				return vector_back_processing(point_collar);
+				return vector_back_processing(point_left);
 		}
 		/*PRIVATE. Рекурсия для var_list_back и vector_back*/
 		math_obj* math_obj::vector_back_processing(math_obj *pointer)
@@ -600,15 +576,16 @@ namespace Project {
 			else
 				return vector_back_processing(pointer->point_right);
 		}
-		/*Метод преобразует односвязный список в двусвязный*/
+		/*Метод преобразует односвязный список в двусвязный.
+		Двусвязный список может создаваться только для переменных с именем. Проверять отсутствие других элементов, а так же служебных переменных.*/
 		void math_obj::double_lincked_vector()
-		{
-			if (point_collar != NULL)
-			reassing_left_pointers(point_collar);						
+		{			
+			if ((point_left != NULL)&&(type == vectr))
+			reassing_left_pointers(point_left);						
 		}
 		/*PRIVATE. Создание двусвязного списка.*/
 		void math_obj::reassing_left_pointers(math_obj* pointer)
-		{
+		{			
 			if (pointer->point_right != NULL)
 			{				
 				pointer->point_right->point_left = pointer;
@@ -631,8 +608,8 @@ namespace Project {
 				var_list_copy_to_vector(pointer->point_collar, pointer->point_right);
 				temp_pointer = new math_obj((int)0);
 				temp_pointer->prop = servc;
-				var_list_copy_to_vector(pointer->point_right->point_collar, temp_pointer);				
-				point_collar = temp_pointer->point_collar;
+				var_list_copy_to_vector(pointer->point_right->point_left, temp_pointer);				
+				point_collar = temp_pointer->point_left;
 				reassing_left_pointers(point_collar);
 				//var_list_number(temp_var); - может понадобится
 				delete temp_pointer;
@@ -659,7 +636,7 @@ namespace Project {
 			else if (pointer->prop == arg_v)
 			{
 				temp_pointer = create_var_list(pointer, NULL);
-				point_collar = sort_list(temp_pointer->point_collar);
+				point_collar = sort_list(temp_pointer->point_left);
 				var_list_collar(point_collar, this);
 				delete temp_pointer;
 				temp_pointer = vector_back_processing(point_collar);
@@ -710,7 +687,7 @@ namespace Project {
 						var_list_copy_to_vector(iter->point_collar, place);
 						iter->prop = arg_v;
 						iter->point_right = place;
-						var_list_copy_to_vector(place->point_collar, var_list);
+						var_list_copy_to_vector(place->point_left, var_list);
 					}
 				}
 			}			
@@ -862,6 +839,21 @@ namespace Project {
 		{
 			return vector_back_processing(point_collar);
 		}
+		//Метод вызывает рекурсивную функцию установки указателей point_collar для НЕЗАМКНУТОГО списка переменных на текущий экземпляр класса
+		void math_obj::link_varbls_to_funct()
+		{
+			if((point_collar != NULL)&& (type == funct))
+				var_list_collar(point_collar, this);
+		}
+		//Метод замыкает список переменных в кольцо.
+		void math_obj::close_list()
+		{		
+			if ((point_collar != NULL) && (type == funct))
+			{
+				point_collar->point_left = vector_back_processing(point_collar);
+				point_collar->point_left->point_right = point_collar;
+			}
+		}
 		/*PRIVATE. Установка указателей point_collar для НЕЗАМКНУТОГО списка переменных на функцию*/
 		void math_obj::var_list_collar(math_obj* pointer, math_obj*original)
 		{
@@ -883,7 +875,7 @@ namespace Project {
 				return NULL;
 			if (original->name.compare(pointer->name) == 0)
 				return pointer;
-			else if ((pointer->point_right != NULL) && (pointer->point_right->var != 0))
+			else if ((pointer->point_right != NULL) && ((pointer->point_right->var != 0)||(pointer->point_right->type != varbl)))
 				return find_by_name_processing(pointer->point_right, original);
 			else
 				return NULL;
@@ -908,9 +900,13 @@ namespace Project {
 					point_right->vector_push_back(pointer);
 				}
 			}
-			else
+			else if (point_right->type == vectr)
 			{
 				point_right->vector_push_back(pointer);
+			}
+			else
+			{
+				return -1;
 			}
 			return 0;
 		}
@@ -920,7 +916,7 @@ namespace Project {
 		{
 			if (vect->prop == servc)
 			{
-				math_obj* temp = find_by_name_processing(vect->point_collar, pointer);
+				math_obj* temp = find_by_name_processing(vect->point_left, pointer);
 				if (temp == NULL)
 				{
 					vect->vector_push_back(new math_obj(pointer));
@@ -954,70 +950,13 @@ namespace Project {
 
 		}
 
+		
 
 
 
 
 
-
-
-
-
-
-
-		/*math_obj* math_obj::var_list_to_arg(math_obj*var_list, int size)
-		{
-			math_obj* mass_arg = new math_obj[size];
-			for (int count = 0; count < size; count++)
-			{
-				mass_arg[count].copy(var_list);
-				mass_arg[count].point_left = NULL;
-				mass_arg[count].point_right = NULL;
-				mass_arg[count].point_collar = NULL;
-				mass_arg[count].var = 0;
-				var_list = var_list->point_left;
-			}
-			return mass_arg;
-		}
-
-		math_obj* math_obj::arg_to_var_list(math_obj*mass_arg, math_obj*var_list, int size)
-		{
-			math_obj*iter, *place;
-			if (var_list == NULL)
-			{
-				var_list = new math_obj(&mass_arg[0]);
-				mass_arg[0].point_collar = var_list;
-				iter = var_list;
-				var_list->var = 0;
-				for (int count = 1; count < size; count++)
-				{
-					iter->point_left = new math_obj(&mass_arg[count]);
-					iter->point_left->point_right = iter;
-					iter->point_left->var = count;
-					iter = iter->point_left;
-					mass_arg[count].point_collar = iter;
-				}
-			}
-			else
-			{
-				iter = vector_back_processing(var_list);//указатель на последний элемент списка
-				for (int count = 0; count < size; count++)
-				{
-					place = find_by_name_processing(var_list, &mass_arg[count]);
-					if (place == NULL)
-					{
-						iter->point_left = new math_obj(&mass_arg[count]);
-						iter = iter->point_left;
-						mass_arg[count].point_collar = iter;
-					}
-					else
-					{
-						mass_arg[count].point_collar = place;
-					}
-				}
-			}
-			return var_list;
-		}*/
+		
 
 
 		//Нулевой конструктор

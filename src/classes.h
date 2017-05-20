@@ -23,14 +23,19 @@ namespace Project {
 #define mltpl  L"oper*"
 #define divis  L"oper/"
 #define power  L"oper^"
-#define vectr L"vectr"
+#define vectr L"vectr" //так же является свойством (prop) опредлённых defnd векторных функций и констант, а так же константных векторных выражений
+#define matrx L"matrx"
 		//свойства обЪектов (prop)		
 #define defnd  L"defnd"  //общее свойство
 #define undef  L"undef"  //общее свойство
 
-#define arg_c  L"arg_c" //функция с константными аргументами
-#define arg_v  L"arg_v"  //функция с переменными аргументами 
-//#define empty  L"empty"  //"пустая" функция. Свойство именных неинициализированных функций
+#define arg_c  L"arg_c" //функция/вектор с константными аргументами
+#define arg_v  L"arg_v" //функция/вектор с переменными аргументами 
+
+#define vectr_arg_c L"v_a_c" //свойство векторной функции с константными аргументами
+#define vectr_arg_v L"v_a_v"//свойство векторной функции с переменными аргументами
+
+#define only_arg_v  L"arg_vo" //свойство вектора, содержащего только переменные
 
 #define fundm  L"fundm"	//Фундаментальная константа
 
@@ -127,7 +132,9 @@ namespace Project {
 			//Конструктор вектора
 			math_obj(int size_n);
 			//Конструктор вектора с именем
-			math_obj::math_obj(wstring _name, int size_n);
+			math_obj(wstring _name, int size_n);
+			//Конструктор вектора по строке данных. Вектором полагается любая запись вида (..,..) (хотя бы одна запятая). begin и end должны указывать на открывающую и закрывающую скобку.
+			/*math_obj(int size_n, wchar_t* begin, wchar_t * end);*/
 			//Конструктор матрицы
 			math_obj(int size_n, int size_m);
 			//Деструктор TODO: зачем он, если в нем пусто..., можно сюда запихнуть функционал tree_destrust, когда её отладим.
@@ -193,7 +200,10 @@ namespace Project {
 			int funct_arg_push_back(math_obj*pointer);
 			/*Метод преобразует односвязный список в двусвязный*/
 			void math_obj::double_lincked_vector();
-			
+			//Метод вызывает рекурсивную функцию установки указателей point_collar для НЕЗАМКНУТОГО списка переменных на текущий экземпляр класса
+			void link_varbls_to_funct();
+			//Метод замыкает список переменных в кольцо.
+			void close_list();
 
 			enum class variable_type {
 				INTEGER,

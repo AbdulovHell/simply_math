@@ -141,7 +141,13 @@ namespace Project {
 				if (temp_pointer == NULL)
 					return temp_pointer;
 				//заполняем массив аргументов
-				if (temp_pointer->type == varbl)
+				if (temp_pointer->type == vectr)
+				{
+					//пока ошибка. Надо расмотреть векторы с векторами внутри. Скорее всего в этом случае необходимо требовать чтобы все элементы вектора были векторами равной длины, возможно переопределение вектора в матрицу.
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::EQUALY_MISSING);
+					return NULL;
+				}
+				else if (temp_pointer->type == varbl)
 				{
 					count_var++;
 					if (temp_pointer->prop == undef)
@@ -150,8 +156,7 @@ namespace Project {
 						general_var_const->push_back(temp_pointer);
 					}
 					//если в вектор добавляются переменные - они нумеруются по порядку. Это необходимо в случае задания списка переменных, а так же для разрешения возможных неопределённостей при проходе по вектору определённых методов.
-					temp_pointer->var = count_var;
-					count_var++;
+					temp_pointer->var = count_var;					
 				}
 				else if (temp_pointer->type == funct)
 				{
@@ -177,6 +182,7 @@ namespace Project {
 				else
 					out->prop = arg_v;
 			}
+			out->var = size;
 			return out;
 		}
 
@@ -862,16 +868,66 @@ namespace Project {
 						}
 						else if (*temp == ',')
 						{
-							ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTORS_LIMITED);
-							return NULL;
-							comma++;
+							if (count == 1)
+								comma++;
 						}
 					}
+
 					if (pDest + 1 == temp)
 					{
 						//пустая строка в скобках. вроде не ошибка, но можно и запретить). Вообще в контекте построения дерева это означает запись нуля. Поэтому пока запрещено.
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::EMTY_BRACKETS);
 						return NULL;
+					}
+					else if (comma != 0)//в скобках записан вектор
+					{
+						name.assign(pDest + 1, temp);
+						temp_pointer = make_vector(comma + 1, &name[0], &name[name.length() - 1]);
+						if (temp_pointer == NULL)
+						{
+							return temp_pointer;
+						}
+						if ((high_pointer == NULL) && (low_pointer == NULL))
+						{
+							if ((*(temp + 1) == NULL)|| (*(temp + 1) == '='))
+							{
+								delete current_element;
+								current_element = temp_pointer;
+							}
+							else if ((*(temp + 1) == '+') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '-') || (*(temp + 1) == '^'))
+							{
+								if (current_element->type == exprs)
+								{	
+									if (temp_pointer->prop == arg_c)
+									{
+										current_element->prop == vectr;
+										current_element->point_left = temp_pointer;
+										high_pointer = temp_pointer;
+										low_pointer = high_pointer;
+									}
+									else if (temp_pointer->prop == arg_v)
+									{
+
+									}
+									else if (temp_pointer->prop == only_arg_v)
+									{
+
+									}
+								}
+							}
+							else
+							{
+
+							}
+						}
+						else if (low_pointer == high_pointer)
+						{
+
+						}
+						else
+						{
+
+						}
 					}
 					else
 					{
@@ -1910,13 +1966,14 @@ namespace Project {
 										low_pointer = high_pointer;
 									}
 								}
-								//число аргументов в скобках совпадает с числом аргументов у определённой заранее функции
+								
 								else
 								{
 
 									multiple_var = make_vector(comma + 1, pDest, temp);
 									if (multiple_var == NULL)
 										return multiple_var;
+									//число аргументов в скобках совпадает с числом аргументов у определённой заранее функции
 									if (high_pointer->var == comma + 1)
 									{
 
@@ -2421,8 +2478,6 @@ namespace Project {
 										current_element->prop = vectr;		//тут может создаваться неопределённость.							
 									else if (current_element->prop == arg_v)									
 										current_element->prop = vectr_arg_v;
-									
-
 								}
 								//в качестве аргументов есть переменные
 								else

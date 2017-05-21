@@ -318,7 +318,7 @@ namespace Project {
 			type = vectr;
 			prop = L"";
 			actn = L"";
-			var = 0;
+			var = size_n;
 			point_left = vector_create(size_n);
 			point_right = NULL;
 			point_collar = NULL;
@@ -360,6 +360,7 @@ namespace Project {
 			{
 				temp = new math_obj();
 				temp->point_right = vector_create(size - 1);
+				temp->point_collar = temp->point_right;
 			}
 			return temp;
 		}
@@ -380,14 +381,15 @@ namespace Project {
 					place = point_left;
 					if (pointer->type == funct)
 					{
-						point_left = new math_obj(L"temporary_variable", varbl, servc, -1, pointer, place->point_right,NULL);
+						point_left = new math_obj(L"temporary_variable", varbl, servc, -1, pointer, place->point_right, place->point_collar);						
 					}					
 					else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs)|| (pointer->type == vectr))
 					{
-						point_left = pointer;
+						point_left = pointer;						
 						point_left->point_right = NULL;
 						point_left->point_collar = NULL;
 						point_left->point_right = place->point_right;
+						point_left->point_collar = place->point_collar;
 					}
 				}
 				else
@@ -396,14 +398,17 @@ namespace Project {
 					place = place_minus_1->point_right;
 					if (pointer->type == funct)
 					{
-						place_minus_1->point_right = new math_obj(L"temporary_variable", varbl, servc, -1, pointer, place->point_right,NULL);
+						place_minus_1->point_right = new math_obj(L"temporary_variable", varbl, servc, -1, pointer, place->point_right, place->point_collar);
+						place_minus_1->point_collar = place_minus_1->point_right;
 					}					
 					else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs)|| (pointer->type == vectr))
 					{
 						place_minus_1->point_right = pointer;
+						place_minus_1->point_collar = place_minus_1->point_right;
 						place_minus_1->point_right->point_right = NULL;
 						place_minus_1->point_right->point_collar = NULL;
-						place_minus_1->point_right->point_right = place->point_right;						
+						place_minus_1->point_right->point_right = place->point_right;					
+						place_minus_1->point_right->point_collar = place->point_collar;
 					}					
 				}
 				if ((place->prop == servc) && (place->type == varbl))
@@ -477,7 +482,7 @@ namespace Project {
 			}
 			return count;
 		}
-		/*Метод добавляет элемент в конец вектора.
+		/*Метод добавляет элемент в конец вектора. 
 		-1 в случае ошибки*/
 		int math_obj::vector_push_back(math_obj*pointer)
 		{
@@ -498,7 +503,8 @@ namespace Project {
 					point_left = pointer;
 					point_left->point_right = NULL;
 					point_left->point_collar = NULL;
-				}				
+				}	
+				var = 1;
 			}
 			else
 			{
@@ -506,13 +512,16 @@ namespace Project {
 				if (pointer->type == funct)
 				{
 					place->point_right = new math_obj(L"temporary_variable", varbl, servc, -1, pointer, NULL, NULL);
+					place->point_collar = place->point_right;
 				}				
 				else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs) || (pointer->type == numbr)||(pointer->type == vectr))
 				{
 					place->point_right = pointer;
+					place->point_collar = place->point_right;
 					place->point_right->point_right = NULL;
 					place->point_right->point_collar = NULL;
-				}				
+				}		
+				var+=1;
 			}
 			return 0;
 		}
@@ -541,22 +550,23 @@ namespace Project {
 					point_left = pointer;
 					point_left->point_right = NULL;
 					point_left->point_collar = NULL;
-				}				
+				}	
+				var = 1;
 			}
 			else
 			{
 				math_obj* place = point_left;
 				if (pointer->type == funct)
 				{
-					point_left = new math_obj(L"temporary_variable", varbl, servc, -1, pointer, NULL, NULL);
-					point_left->point_right = place;
+					point_left = new math_obj(L"temporary_variable", varbl, servc, -1, pointer, place, place);
 				}				
 				else if ((pointer->type == varbl) || (pointer->type == cnst) || (pointer->type == exprs)|| (pointer->type == vectr))
 				{
 					point_left = pointer;
 					point_left->point_right = place;
-					point_left->point_collar = NULL;
-				}				
+					point_left->point_collar = place;
+				}	
+				var += 1;
 			}
 			return 0;
 		}

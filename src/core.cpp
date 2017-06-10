@@ -26,19 +26,18 @@ namespace Project {
 			
 			//корень 
 			{
-				temp = new math_obj((int)0);
+				temp = new math_obj((size_t)0);
 				temp_var->prop = L"root_";
 				temp->vector_push_back(new math_obj(temp_var));
 				temp_var->var += 1;
 				temp->vector_push_back(new math_obj(temp_var));
 				temp_var->var = 0;
 				temp_var->prop = servc;
-				temp->double_lincked_vector();
-				temp->vector_at(0)->point_left = temp->vector_at(1);
-				temp->vector_at(1)->point_right = temp->vector_at(0);
-				general_var_const->push_back(new math_obj(L"root", funct, servc, L"", 2, NULL, NULL, temp->point_collar));
+				temp->double_lincked_vector();				
+				general_var_const->push_back(new math_obj(L"root", funct, servc, L"", 2, NULL, NULL, temp->point_left));
 				delete temp;
 				temp = general_var_const->back();
+				temp->close_list();
 				temp->point_collar->point_collar = temp;
 				temp->point_collar->point_right->point_collar = temp;
 				temp->point_left = new math_obj(L"^", power, L"", L"", 0, temp->point_collar, new math_obj(L"/", divis, L"", L"", 0, new math_obj(L"0", numbr, real, 1), temp->point_collar->point_right, temp->point_left), temp);
@@ -46,7 +45,7 @@ namespace Project {
 			}
 			//модуль (корень из квадрата числа)
 			{
-				general_var_const->push_back(new math_obj(L"abs", funct, servc, L"", 0, new math_obj(temp_var)));
+				general_var_const->push_back(new math_obj(L"abs", funct, servc, L"", 0,NULL,NULL, new math_obj(temp_var)));
 				general_var_const->back()->point_collar->point_collar = general_var_const->back();
 				general_var_const->back()->point_left = new math_obj(temp);
 				general_var_const->back()->point_left->point_collar->point_collar = general_var_const->back()->point_left;
@@ -55,7 +54,7 @@ namespace Project {
 			//знак
 			{
 				temp = general_var_const->back();
-				general_var_const->push_back(new math_obj(L"sgn", funct, servc, L"", 0, new math_obj(temp_var)));
+				general_var_const->push_back(new math_obj(L"sgn", funct, servc, L"", 0, NULL, NULL, new math_obj(temp_var)));
 				general_var_const->back()->point_collar->point_collar = general_var_const->back();
 				general_var_const->back()->point_left = new math_obj(L"", divis, L"", L"", 0, general_var_const->back()->point_collar, new math_obj(temp), general_var_const->back());
 				general_var_const->back()->point_left->point_right->point_right = general_var_const->back()->point_collar;
@@ -77,9 +76,9 @@ namespace Project {
 		Возвращает строку с результатом текущей итерации вычислений.*/
 		wstring analized_output(wchar_t* _pDest, wchar_t* _endPtr, math_obj* _current_element)
 		{
-			math_obj* CE = new math_obj(_pDest, _endPtr,NULL);
+			math_obj* CE = new math_obj(_pDest, _endPtr,NULL,NULL);
 			wstring output;
-			math_obj* temp;
+			math_obj* temp=NULL;
 			//size_t output_size;
 			if (CE == NULL)
 			{
@@ -224,13 +223,13 @@ namespace Project {
 
 		/*Функция является точкой входа в вычислительное ядро.
 		Возвращает строку с результатом текущей итерации вычислений.*/
-		wstring input_to_analize(wchar_t* input)
+		int input_to_analize(data_list* all_math_data)
 		{
-			if (!Project::IO::VerifyInput(input)) {
+			/*if (!Project::IO::VerifyInput(input)) {
 				ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
 				ProjectError::GetProjectLastError(err);
 				return err->GetErrorWStr();
-			}
+			}*/
 
 			//size_t size_of_vect = general_var_const->size();
 
@@ -239,7 +238,7 @@ namespace Project {
 
 			wchar_t* point_start = input;	//start pointer
 			wchar_t* point_end = input + wcslen(input) - 1;	//end pointer	
-			return analized_output(point_start, point_end, new math_obj(L"", exprs, undef, 0));
+			return 0;
 		}
 	}
 }

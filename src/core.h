@@ -5,7 +5,6 @@
 #define GET_FRAC(var) ((double)((double)var-(int)var))
 #define GET_INTGR(var) ((int)var)
 ///
-#define _CRT_SECURE_NO_WARNINGS
 
 #include <iostream>
 #include <string>
@@ -34,7 +33,7 @@ namespace Project {
 		wstring analized_output(wchar_t* _pDest, wchar_t* _endPtr, math_obj* _current_element);
 		/*Функция является точкой входа в вычислительное ядро.
 		Возвращает строку с результатом текущей итерации вычислений.*/
-		wstring input_to_analize(wchar_t* input);
+		int input_to_analize(data_list* all_math_data);
 	}
 }
 #endif //CORE_H

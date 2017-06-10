@@ -51,13 +51,18 @@ namespace Project {
 								 //действия над объектами (actn)
 #define solve  L"solve"
 #define write  L"write"
-#define read  L"read_"
+//#define read  L"read_"
 
+		class math_obj;
 
 		class data_list {
 		private:
 
+			data_list*back_rec(data_list*pointer);
 
+			void index_plus_one();
+
+			data_list*at_rec(int* place, data_list*pointer);
 
 		public:
 			int index;
@@ -67,12 +72,28 @@ namespace Project {
 			data_list* right;
 			math_obj* math;
 
+			data_list();
+
+			data_list(wstring* _in);
+
+			data_list(wstring _in, math_obj* _math);
+
+			int push_back(data_list* pointer);
+
+			int push_left_to_zero(data_list* pointer);
+
+			int implace(int place, data_list*pointer);
 
 			data_list* at(int place);
 
 			data_list* back();
 
-			data_list* compare_in(wstring original);
+			//сравнение строки входа
+			int compare_in(wstring original);
+
+			int compare_out(wstring original);
+
+			math_obj* find_math_obj(wstring* name, data_list* place);
 
 			int run_string();
 
@@ -124,7 +145,7 @@ namespace Project {
 			/*PRIVATE. Рекурсия для vector_at*/
 			math_obj* vector_at_processing(math_obj*pointer, int* index, int count);
 			/*PRIVATE. Рекурсия для vector_size*/
-			int vector_size_processing(math_obj*pointer);			
+			int vector_size_processing(math_obj*pointer);
 			/*PRIVATE. Метод рекурсивно создаёт связный список указанной длинны size из служебных переменных, указывающих на один и тот же объект.*/
 			math_obj* convert_to_vector(int size, math_obj*obj);
 			/*PRIVATE. Метод рекурсивно копирует список переменных в вектор.
@@ -138,11 +159,11 @@ namespace Project {
 			math_obj* get_arg_for_var(math_obj*pointer, math_obj*arg);
 			/*PRIVATE. Деструктор вектора*/
 			int vector_destruct(math_obj* pointer);
-			
-			math_obj* vector_create(int size_n, wchar_t*begin, wchar_t*end);
-			
 
-		public:			
+			math_obj* vector_create(int size_n, wchar_t*begin, wchar_t*end);
+
+
+		public:
 			//Нулевой конструктор
 			math_obj();
 			//Конструктор записывает (ИМЯ объекта, ЧИСЛО типа double) 
@@ -154,29 +175,31 @@ namespace Project {
 			//Конструктор записывает (ТИП объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник") 
 			math_obj(wstring _type, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
 			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ДЕЙСТВИЕ над объектом (указание), ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник") 
-			math_obj(wstring _name, wstring _type, wstring _prop, wstring _actn, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);				
+			math_obj(wstring _name, wstring _type, wstring _prop, wstring _actn, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
 			//Конструктор копирования
 			math_obj(math_obj* var1);
-			
-			/*Конструктор дерева операций по строке символов типа wchar_t, имеющей начало strPtr и конец ePtr. 
-			Дополнительный параметр _pc присваивается полю point_collar (для получения дерева операций для функций с заранее обозначенным списком переменных).*/
-			math_obj(wchar_t* strPtr, wchar_t*ePtr, math_obj* _pc);
+
 			//Конструктор вектора длины size_n
-			math_obj(int size_n);
+			math_obj(size_t size_n);
 			//Конструктор вектора длины size_n по строке символов типа wchar_t, имеющей начало begin и конец end.
-			math_obj(int size_n, wchar_t*begin, wchar_t*end);
-			
+			math_obj(uint16_t dummy, size_t size_n, wchar_t*begin, wchar_t*end);
+
 			//Конструктор вектора служебных переменных, указывающих на один и тот же объект obj. Полагается что вектор унаследует имя объекта obj
-			math_obj(int size_n, math_obj * obj);
-			
+			math_obj(size_t size_n, math_obj * obj);
+
+			/*Конструктор дерева операций по строке символов типа wchar_t, имеющей начало strPtr и конец ePtr.
+			Дополнительный параметр _pc присваивается полю point_collar (для получения дерева операций для функций с заранее обозначенным списком переменных).*/
+			math_obj(wchar_t* strPtr, wchar_t* ePtr, math_obj* _pc, data_list* pob);
+
+
 			//Конструктор матрицы
-			math_obj(int size_n, int size_m);
+			//math_obj(int size_n, int size_m);
 
 			//Деструктор TODO: зачем он, если в нем пусто..., можно сюда запихнуть функционал tree_destrust, когда её отладим.
 			~math_obj();
 			//Метод копирования.
 			void copy(math_obj* ref);
-			
+
 			/*Метод возвращает приоритет операции, при условии, что this операция.
 			1 - сложение/вычитание
 			2 - умножение
@@ -194,7 +217,7 @@ namespace Project {
 			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и коструирующую строку с формальной записью текущего выражения.
 			Возвращает строку. ПОКА НЕ РАБОТАЕТ*/
 			wstring expresion(int comma);
-			
+
 			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и выполняющую их.
 			Результатом работы метода является запись результата вычислений в double var текущего элемента класса. */
 			void arithmetic();
@@ -227,7 +250,7 @@ namespace Project {
 			math_obj * sort_list(math_obj * var_list);
 			/*Медод определения функции. Создаёт список переменных, от которых зависит функция, основываясь на списке переменных и аргументов функции pointer.*/
 			void funct_define(math_obj *pointer);
-			
+
 			/*Метод возвращает указатель на элемент списка с номером index.*/
 			math_obj* vector_at(int index);
 			/*Метод возвращает количество элементов списка.*/
@@ -252,12 +275,12 @@ namespace Project {
 			void link_var_list_to_funct();
 			//Метод замыкает список переменных в кольцо.
 			void close_list();
-			/*Метод копирует список переменных в вектор. Если this так же вектор, то копируется его содержимое в другой вектор без повторов. 
+			/*Метод копирует список переменных в вектор. Если this так же вектор, то копируется его содержимое в другой вектор без повторов.
 			НЕ ИСПОЛЬЗОВАТЬ ДЛЯ КОПИРОВАНИЯ ВЕКТОРОВ (хотя если вектор не servс прямой ошибки не будет:-).
 			-1 при ошибке*/
 			int var_list_copy_to_vector(math_obj*vector);
 
-			
+
 			/*Метод преобразует текущий элемент с заданными параметрами (ТИП объекта, СВОЙСТВО объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "воротник").
 			Если текущий элемент - вектор, все элементы которого указывают на один и тот же объект, преобразуется так же объект*/
 			void convert_to(wstring _type, wstring _prop, double _num, math_obj *_pc);
@@ -312,6 +335,7 @@ namespace Project {
 			math_obj *point_left;		//левый рукав
 			math_obj *point_right;		//правый рукав
 			math_obj *point_collar;	//воротник
+			data_list *point_up;
 		};
 
 

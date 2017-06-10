@@ -6,9 +6,11 @@ namespace Project {
 		using namespace std;
 		using namespace Project;
 		using namespace Project::IO;
+		class data_list;
+		class math_obj;
 		/*Конструктор дерева операций по строке символов типа wchar_t, имеющей начало strPtr и конец ePtr.
 		Дополнительный параметр _pc присваивается полю point_collar (для получения дерева операций для функций с заранее обозначенным списком переменных).*/
-		math_obj::math_obj(wchar_t* strPtr, wchar_t* endPtr, math_obj* _pc)
+		math_obj::math_obj(wchar_t* strPtr, wchar_t* endPtr, math_obj* _pc, data_list*pob)
 		{
 			name = L"";
 			if (_pc != NULL)
@@ -28,6 +30,7 @@ namespace Project {
 			point_left = NULL;
 			point_right = NULL;
 			point_collar = _pc;
+			point_up = pob;
 
 			math_obj* t_p = NULL;
 			//ищем равно в полученной строке
@@ -64,7 +67,7 @@ namespace Project {
 					{
 						//список переменных будет передан в конструктор элемента для строки справа от равно. 					
 						t_p = point_collar;
-					}					
+					}
 					//смотрим на то что справа от равно. 
 					//если строка закнчивается на равно
 					if (temp == endPtr)
@@ -92,7 +95,7 @@ namespace Project {
 						//Вызывается конструктор для нового элемента.
 						wstring str_right;
 						str_right.assign(temp + 1, endPtr + 1);
-						math_obj* right = new math_obj(&str_right[0], &str_right[str_right.length() - 1], t_p);
+						math_obj* right = new math_obj(&str_right[0], &str_right[str_right.length() - 1], t_p, point_up);
 						//отсеяли ошибочный элемент
 						if (right->type == eror)
 						{
@@ -220,7 +223,7 @@ namespace Project {
 							{
 								if (right->type == vectr)
 								{
-									right->name == name;
+									right->name = name;
 									right->point_left->point_left->name = name;
 									right->point_left->point_left->prop = defnd;
 									copy(right);
@@ -228,8 +231,8 @@ namespace Project {
 								}
 								else
 								{
-									prop == defnd;
-									point_left == right->point_left;
+									prop = defnd;
+									point_left = right->point_left;
 									link_var_list_to_funct(); //возможно нужно удостовериться в том, что бы эта операция здесь не требовалась
 								}
 								delete right; //тут чистить дерево операций не надо!								
@@ -252,7 +255,7 @@ namespace Project {
 								//удалить дерево операций и набор переменных.
 								if (right->type == vectr)
 								{
-									right->name == name;
+									right->name = name;
 									right->point_left->point_left->name = name;
 									right->point_left->point_left->prop = defnd;
 									copy(right);
@@ -279,7 +282,7 @@ namespace Project {
 									//удалить дерево операций и список переменных.
 									if (right->type == vectr)
 									{
-										right->name == name;
+										right->name = name;
 										right->point_left->point_left->name = name;
 										right->point_left->point_left->prop = defnd;
 										copy(right);
@@ -314,7 +317,7 @@ namespace Project {
 								}
 								if (right->type == vectr)
 								{
-									right->name == name;
+									right->name = name;
 									right->point_left->point_left->name = name;
 									right->point_left->point_left->prop = defnd;
 									copy(right);
@@ -344,7 +347,7 @@ namespace Project {
 								{
 									if (right->type == vectr)
 									{
-										right->name == name;
+										right->name = name;
 										right->point_left->point_left->name = name;
 										right->point_left->point_left->prop = defnd;
 										copy(right);
@@ -532,7 +535,7 @@ namespace Project {
 					{
 						//сразу же считаем содержимое скобок вектором
 						temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
-						temp_pointer = new math_obj(comma + 1, &temp_str[0], &temp_str[temp_str.length() - 1]);
+						temp_pointer = new math_obj((uint16_t)NULL, comma + 1, &temp_str[0], &temp_str[temp_str.length() - 1]);
 						//TODO:переписать проверку
 						if (temp_pointer == NULL)
 						{
@@ -574,7 +577,7 @@ namespace Project {
 										else
 										{
 											delete high_pointer;
-											high_pointer = new math_obj((int)0);
+											high_pointer = new math_obj((size_t)0);
 											high_pointer->point_left = point_collar;
 											high_pointer->prop = servc;
 											high_pointer->var = var;
@@ -635,7 +638,7 @@ namespace Project {
 										else
 										{
 											delete low_pointer;
-											low_pointer = new math_obj((int)0);
+											low_pointer = new math_obj((size_t)0);
 											low_pointer->point_left = get_pc();
 											low_pointer->prop = servc;
 											low_pointer->var = get_var();
@@ -645,7 +648,7 @@ namespace Project {
 									}
 									else
 									{
-										low_pointer = new math_obj((int)0);
+										low_pointer = new math_obj((size_t)0);
 										low_pointer->point_left = get_pc();
 										low_pointer->prop = servc;
 										low_pointer->var = get_var();
@@ -672,7 +675,7 @@ namespace Project {
 					else
 					{
 						temp_str.assign(pDest + 1, temp);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки НЕ находились в строке.
-						temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL);
+						temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
 						if (temp_pointer == NULL)
 						{
 							return temp_pointer;
@@ -774,7 +777,7 @@ namespace Project {
 												ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
 												return NULL;
 											}
-											low_pointer = new math_obj((int)0);
+											low_pointer = new math_obj((size_t)0);
 											low_pointer->point_left = point_collar;
 											low_pointer->prop = servc;
 											low_pointer->var = var;
@@ -807,7 +810,7 @@ namespace Project {
 											}
 											else
 											{
-												low_pointer = new math_obj((int)0);
+												low_pointer = new math_obj((size_t)0);
 												low_pointer->point_left = point_collar;
 												low_pointer->prop = servc;
 												low_pointer->var = var;
@@ -938,7 +941,7 @@ namespace Project {
 											return NULL;
 										}
 										//должно сработать в любом случае
-										low_pointer = new math_obj((int)0);
+										low_pointer = new math_obj((size_t)0);
 										low_pointer->point_left = get_pl();
 										low_pointer->prop = servc;
 										low_pointer->var = get_var();
@@ -969,7 +972,7 @@ namespace Project {
 											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
 											return NULL;
 										}
-										low_pointer = new math_obj((int)0);
+										low_pointer = new math_obj((size_t)0);
 										low_pointer->point_left = get_pl();
 										low_pointer->prop = servc;
 										low_pointer->var = get_var();
@@ -1045,7 +1048,7 @@ namespace Project {
 								}
 								//pDest указывает на открывающую скобку, temp - на закрывающую
 								temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
-								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length - 1]);
+								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], (math_obj*)NULL, point_up);
 								//TODO:проверка ошибок
 								//поскольку функция попалась неизвестная: если после скобки строка не заканчивается - считаем запись ошибкой
 								if (temp != endPtr)
@@ -1165,7 +1168,7 @@ namespace Project {
 								{
 									//pDest указывает на открывающую скобку, temp - на закрывающую
 									temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
-									temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length - 1]);
+									temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
 									//TODO:проверка ошибок
 									if ((temp_pointer->type == numbr) && (temp_pointer->var == 0))
 									{
@@ -1236,12 +1239,12 @@ namespace Project {
 							{
 								if ((type == funct) && (point_collar != NULL))
 								{
-									if ((var != 1)||(point_collar->name.compare(high_pointer->name)!=0))
+									if ((var != 1) || (point_collar->name.compare(high_pointer->name) != 0))
 									{
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
 										return NULL;
 									}
-									point_left == point_collar;
+									point_left = point_collar;
 								}
 								else
 								{
@@ -1276,7 +1279,7 @@ namespace Project {
 								}
 								//pDest указывает на открывающую скобку, temp - на закрывающую
 								temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
-								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length - 1]);
+								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
 								//TODO:проверка ошибок
 								if ((temp_pointer->type == numbr) && (temp_pointer->var == 0))
 								{
@@ -1370,7 +1373,7 @@ namespace Project {
 								}
 								//pDest указывает на открывающую скобку, temp - на закрывающую
 								temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
-								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length - 1]);
+								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
 								//TODO:проверка ошибок
 								if ((temp_pointer->type == numbr) && (temp_pointer->var == 0))
 								{
@@ -1406,7 +1409,7 @@ namespace Project {
 										{
 											copy(high_pointer);
 											prop = arg_v;
-											low_pointer = new math_obj((int)0);
+											low_pointer = new math_obj((size_t)0);
 											low_pointer->vector_push_back(temp_pointer);
 											low_pointer->prop = only_arg_v;
 											point_right = low_pointer;
@@ -1417,7 +1420,7 @@ namespace Project {
 										{
 											high_pointer = new math_obj(high_pointer);
 											high_pointer->prop = arg_v;
-											low_pointer = new math_obj((int)0);
+											low_pointer = new math_obj((size_t)0);
 											low_pointer->vector_push_back(temp_pointer);
 											low_pointer->prop = only_arg_v;
 											high_pointer->point_right = low_pointer;
@@ -1454,7 +1457,7 @@ namespace Project {
 										{
 											copy(high_pointer);
 											prop = arg_c;
-											low_pointer = new math_obj((int)0);
+											low_pointer = new math_obj((size_t)0);
 											low_pointer->vector_push_back(temp_pointer);
 											low_pointer->prop = arg_c;
 											point_right = low_pointer;
@@ -1463,7 +1466,7 @@ namespace Project {
 										}
 										else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
 										{
-											low_pointer = new math_obj((int)0);
+											low_pointer = new math_obj((size_t)0);
 											low_pointer->vector_push_back(temp_pointer);
 											low_pointer->prop = arg_c;
 											point_left = new math_obj(high_pointer);
@@ -1490,7 +1493,7 @@ namespace Project {
 									{
 										copy(high_pointer);
 										prop = arg_v;
-										low_pointer = new math_obj((int)0);
+										low_pointer = new math_obj((size_t)0);
 										low_pointer->vector_push_back(temp_pointer);
 										low_pointer->prop = arg_v;
 										point_right = low_pointer;
@@ -1501,7 +1504,7 @@ namespace Project {
 									{
 										high_pointer = new math_obj(high_pointer);
 										high_pointer->prop = arg_v;
-										low_pointer = new math_obj((int)0);
+										low_pointer = new math_obj((size_t)0);
 										low_pointer->vector_push_back(temp_pointer);
 										low_pointer->prop = arg_v;
 										high_pointer->point_right = low_pointer;
@@ -1834,7 +1837,7 @@ namespace Project {
 								}
 								//pDest указывает на открывающую скобку, temp - на закрывающую
 								temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
-								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length - 1]);
+								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
 								//TODO:проверка ошибок
 								if ((temp_pointer->type == numbr) && (temp_pointer->var == 0))
 								{
@@ -1870,13 +1873,13 @@ namespace Project {
 										//TODO: новый метод хранения введённых данных
 										temp_pointer->prop == defnd;
 									}
-									multiple_var = new math_obj((int)0);
+									multiple_var = new math_obj((size_t)0);
 									multiple_var->vector_push_back(temp_pointer);
 									multiple_var->prop = only_arg_v;
 								}
 								else if ((temp_pointer->type == cnst) || ((temp_pointer->type == funct) && (temp_pointer->prop == arg_c)) || (temp_pointer->type == exprs))
 								{
-									multiple_var = new math_obj((int)0);
+									multiple_var = new math_obj((size_t)0);
 									multiple_var->vector_push_back(temp_pointer);
 									multiple_var->prop = arg_c;
 								}
@@ -1887,7 +1890,7 @@ namespace Project {
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
 										return NULL;
 									}
-									multiple_var = new math_obj((int)0);
+									multiple_var = new math_obj((size_t)0);
 									multiple_var->vector_push_back(temp_pointer);
 									multiple_var->prop = arg_v;
 								}
@@ -1975,7 +1978,7 @@ namespace Project {
 												return NULL;
 											}
 										}
-										low_pointer = new math_obj((int)buf, temp_pointer);
+										low_pointer = new math_obj((size_t)buf, temp_pointer);
 										temp_pointer = low_pointer;
 									}
 								}
@@ -1994,7 +1997,7 @@ namespace Project {
 										return NULL;
 									}
 								}
-								low_pointer = new math_obj((int)0);
+								low_pointer = new math_obj((size_t)0);
 								low_pointer->point_left = get_pc();
 								low_pointer->prop = servc;
 								low_pointer = temp_pointer->create_var_list(low_pointer);
@@ -2241,7 +2244,7 @@ namespace Project {
 			math_obj *buf = NULL;
 			if (var_list == NULL)
 			{
-				var_list = new math_obj((int)0);
+				var_list = new math_obj((size_t)0);
 				var_list->prop = servc;
 			}
 			if (type == funct)
@@ -2273,7 +2276,7 @@ namespace Project {
 							}
 							else if ((iter->prop == undef) || (iter->prop == defnd))
 							{
-								place = new math_obj((int)0);
+								place = new math_obj((size_t)0);
 								var_list_copy_to_vector_processing(iter->point_collar, place);
 								iter->prop = arg_v;
 								place->prop = only_arg_v;
@@ -2285,7 +2288,7 @@ namespace Project {
 				}
 				else if ((prop == undef) || (prop == defnd))
 				{
-					place = new math_obj((int)0);
+					place = new math_obj((size_t)0);
 					var_list_copy_to_vector_processing(point_collar, place);
 					prop = arg_v;
 					place->prop = only_arg_v;
@@ -2324,7 +2327,7 @@ namespace Project {
 						}
 						else if ((iter->prop == undef) || (iter->prop == defnd))
 						{
-							place = new math_obj((int)0);
+							place = new math_obj((size_t)0);
 							iter->var_list_copy_to_vector(place);
 							iter->prop = arg_v;
 							place->prop = arg_v;
@@ -2548,10 +2551,10 @@ namespace Project {
 
 
 		//Конструктор матрицы НИЧЕГО НЕ ДЕЛАЕТ!
-		math_obj::math_obj(int size_n, int size_m)
+		/*math_obj::math_obj(int size_n, int size_m)
 		{
 
-		}
+		}*/
 
 		//КОНСТРУКТОРЫ, МЕТОДЫ ПРЕОБРАЗОВАНИЯ И ОБРАЩЕНИЯ К ПОЛЯМ ОТТДЕЛЬНЫХ ЭКЗЕМПЛЯРОВ КЛАССА
 
@@ -2855,7 +2858,7 @@ namespace Project {
 		//ОБЩИЕ МЕТОДЫ ДЛЯ РАБОТЫ С ВЕКТОРАМИ (ОДНОСВЯЗНЫМИ СПИСКАМИ С ДВОЙНЫМ УКАЗАНИЕМ)
 
 		//Конструктор вектора длины size_n
-		math_obj::math_obj(int size_n)
+		math_obj::math_obj(size_t size_n)
 		{
 			name = L"";
 			type = vectr;
@@ -2868,7 +2871,7 @@ namespace Project {
 			math_obj *temp = vector_create(size_n, NULL, NULL);
 		}
 		//Конструктор вектора длины size_n по строке символов типа wchar_t, имеющей начало begin и конец end.
-		math_obj::math_obj(int size_n, wchar_t*begin, wchar_t*end)
+		math_obj::math_obj(uint16_t dummy, size_t size_n, wchar_t*begin, wchar_t*end)
 		{
 			name = L"";
 			type = vectr;
@@ -2927,7 +2930,7 @@ namespace Project {
 						}
 					}
 					name.assign(begin + 1, temp);
-					temp_pointer = new math_obj(&name[0], &name[name.length() - 1], NULL);
+					temp_pointer = new math_obj(&name[0], &name[name.length() - 1], NULL, point_up);
 					//TODO:переписать проверку
 					if (temp_pointer == NULL)
 						return temp_pointer;
@@ -2985,7 +2988,7 @@ namespace Project {
 
 		/*Конструктор вектора служебных переменных, указывающих на один и тот же объект obj. Полагается что вектор унаследует имя объекта obj.
 		Так же в случае если obj - вектор такой же длины, то служебные переменные будут указывать на элементы первоначального вектора*/
-		math_obj::math_obj(int size_n, math_obj * obj)
+		math_obj::math_obj(size_t size_n, math_obj * obj)
 		{
 			name = obj->name;
 			type = vectr;
@@ -3471,7 +3474,7 @@ namespace Project {
 
 
 
-		
+
 		/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и выполняющую их.
 		Результатом работы метода является запись результата вычислений в double var текущего элемента класса. */
 		void math_obj::arithmetic()
@@ -3553,7 +3556,7 @@ namespace Project {
 
 
 
-			
+
 
 		/*Медод определения функции. Создаёт список переменных, от которых зависит функция, основываясь на списке переменных и аргументов функции pointer.*/
 		void math_obj::funct_define(math_obj *pointer)
@@ -3561,9 +3564,9 @@ namespace Project {
 			math_obj* temp_pointer;
 			if (pointer->prop == defnd)
 			{
-				pointer->point_right = new math_obj((int)0);
+				pointer->point_right = new math_obj((size_t)0);
 				var_list_copy_to_vector_processing(pointer->point_collar, pointer->point_right);
-				temp_pointer = new math_obj((int)0);
+				temp_pointer = new math_obj((size_t)0);
 				temp_pointer->prop = servc;
 				var_list_copy_to_vector_processing(pointer->point_right->point_left, temp_pointer);
 				point_collar = temp_pointer->point_left;
@@ -3729,13 +3732,13 @@ namespace Project {
 			{
 				if (type == funct)
 				{
-					point_right = new math_obj((int)0);
+					point_right = new math_obj((size_t)0);
 					var_list_copy_to_vector_processing(point_collar, point_right);
 					point_right->vector_push_back(pointer);
 				}
 				else if (type == exprs)
 				{
-					point_right = new math_obj((int)0);
+					point_right = new math_obj((size_t)0);
 					point_right->vector_push_back(pointer);
 				}
 			}
@@ -3757,6 +3760,169 @@ namespace Project {
 
 
 
+
+		data_list * data_list::back_rec(data_list * pointer)
+		{
+			if (pointer->right != NULL)
+			{
+				return back_rec(pointer->right);
+			}
+			else
+				return pointer;
+		}
+
+		void data_list::index_plus_one()
+		{
+			index += 1;
+			if (right != NULL)
+				right->index_plus_one();
+		}
+
+		data_list * data_list::at_rec(int* place, data_list * pointer)
+		{
+			if (pointer->index == *place)
+				return pointer;
+			else if (pointer->right != NULL)
+				return at_rec(place, pointer->right);
+			else
+				return nullptr;
+		}
+
+		data_list::data_list()
+		{
+			index = 0;
+			left = nullptr;
+			right = nullptr;
+			math = nullptr;
+		}
+
+		data_list::data_list(wstring* _in)
+		{
+			
+			in = *_in;
+			index = 0;
+			left = nullptr;
+			right = nullptr;
+			math = nullptr;
+		}
+
+		data_list::data_list(wstring _in, math_obj * _math)
+		{
+			in = _in;
+			index = 0;
+			left = nullptr;
+			right = nullptr;
+			math = _math;
+		}
+
+		int data_list::push_back(data_list * pointer)
+		{
+			if (index == 0)
+			{
+				right = pointer;
+				right->left = this;
+				right->index = 1;
+				return 1;
+			}
+			else if (index > 0)
+			{
+				data_list*place = back();
+				place->right = pointer;
+				place->right->left = place;
+				right->index += 1;
+				return 1;
+			}
+			else
+				return 0;
+		}
+
+		int data_list::push_left_to_zero(data_list * pointer)
+		{
+			return 0;
+		}
+
+		int data_list::implace(int place, data_list * pointer)
+		{
+			data_list* temp = at(place);
+			if (temp == NULL)
+				return 0;
+			data_list*temp_plus_one = temp->right;
+			temp->right = pointer;
+			temp->right->index = temp->index + 1;
+			temp->right->left = temp;
+			temp->right->right = temp_plus_one;
+			if (temp_plus_one != NULL)
+			{
+				temp_plus_one->left = pointer;
+				temp_plus_one->index_plus_one();
+			}
+			return 1;
+		}
+
+		data_list * data_list::at(int place)
+		{
+			if (index != 0)
+				return nullptr;
+			else if (right != NULL)
+				return at_rec(&place, right);
+			else if (place == 0)
+				return this;
+			else
+				return NULL;
+
+		}
+
+		data_list * data_list::back()
+		{
+			if (index != 0)
+				return nullptr;
+			else if (right != NULL)
+			{
+				return back_rec(right);
+			}
+			else
+			{
+				return this;
+			}
+		}
+
+		int data_list::compare_in(wstring original)
+		{
+			return in.compare(original);
+		}
+
+		int data_list::compare_out(wstring original)
+		{
+			return out.compare(original);
+		}
+
+		math_obj * data_list::find_math_obj(wstring* name, data_list * place)
+		{
+			if (name->compare(math->name) == 0)
+				return math;
+			else if (place->left != NULL)
+				return find_math_obj(name, place);
+			else
+				return nullptr;
+		}
+
+		int data_list::run_string()
+		{
+			//проверка ввода
+			if (!Project::IO::VerifyInput(input)) {
+				ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+				ProjectError::GetProjectLastError(err);
+				return err->GetErrorWStr();
+			}
+			math = new math_obj(&in[0], &in[in.length() - 1], NULL, this);
+			if (math->type == eror)
+			{
+				delete math;
+				//чистить дерево
+				return 0;
+			}
+			return 1;
+		}
 
 	}
 };

@@ -16,6 +16,7 @@ namespace GUICLR {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
+	using namespace Project::Core;
 	//using namespace std;
 	/// <summary>
 	/// Сводка для MainForm
@@ -31,6 +32,7 @@ namespace GUICLR {
 			//
 			Project::Core::Init();
 			input_indexes = gcnew cli::array<int>(300);
+			all_math_data = new data_list();
 		}
 
 	protected:
@@ -69,7 +71,7 @@ namespace GUICLR {
 		/// Обязательная переменная конструктора.
 		/// </summary>
 		cli::array<int>^ input_indexes;
-
+		data_list* all_math_data;
 
 	private: System::ComponentModel::IContainer^  components;
 
@@ -157,63 +159,63 @@ namespace GUICLR {
 			 }
 #pragma endregion
 	private: System::Void ProceedBtn_Click(System::Object^  sender, System::EventArgs^  e) {
-		cli::array<String^>^ strs = textBox1->Lines;	//указатель на линии с текстбокса
-		int len = strs->Length;	//количество линий
-		List<int>^ temp = gcnew List<int>;	//массив для индексов линий ввода
-											//отделяем линии ввода по индексам
-		for (int i = 0;i < len;i++) {
-			if (!isOutOrEmpty(strs[i])) {
-				temp->Add(i);
-			}
-		}
-		//копируем линии нужного индекса
-		cli::array<String^>^ in = gcnew cli::array<String^>(temp->Count);
-		for (int i = 0;i < temp->Count;i++) {
-			in[i] = strs[temp[i]];
-		}
+		//cli::array<String^>^ strs = textBox1->Lines;	//указатель на линии с текстбокса
+		//int len = strs->Length;	//количество линий
+		//List<int>^ temp = gcnew List<int>;	//массив для индексов линий ввода
+		//									//отделяем линии ввода по индексам
+		//for (int i = 0;i < len;i++) {
+		//	if (!isOutOrEmpty(strs[i])) {
+		//		temp->Add(i);
+		//	}
+		//}
+		////копируем линии нужного индекса
+		//cli::array<String^>^ in = gcnew cli::array<String^>(temp->Count);
+		//for (int i = 0;i < temp->Count;i++) {
+		//	in[i] = strs[temp[i]];
+		//}
 
-		len = temp->Count;	//количество линий ввода
-		cli::array<String^>^ out = gcnew cli::array<String^>(len * 2);
-		wchar_t* str1;
-		//каждую по очереди в обработку 
-		for (int i = 0;i < len;i++) {
-			pin_ptr<const wchar_t> str2 = PtrToStringChars(in[i]);
-			out[i * 2] = in[i];
-			size_t temps = in[i]->Length + 2;
-			str1 = new wchar_t[temps];
-			wcscpy(str1, str2);
+		//len = temp->Count;	//количество линий ввода
+		//cli::array<String^>^ out = gcnew cli::array<String^>(len * 2);
+		//wchar_t* str1;
+		////каждую по очереди в обработку 
+		//for (int i = 0;i < len;i++) {
+		//	pin_ptr<const wchar_t> str2 = PtrToStringChars(in[i]);
+		//	out[i * 2] = in[i];
+		//	size_t temps = in[i]->Length + 2;
+		//	str1 = new wchar_t[temps];
+		//	wcscpy(str1, str2);
 
-			String^ outstr = gcnew String(Project::Core::input_to_analize(str1).c_str());
-			if (String::IsNullOrEmpty(outstr)) {
+		//	String^ outstr = gcnew String(Project::Core::input_to_analize(str1).c_str());
+		//	if (String::IsNullOrEmpty(outstr)) {
 
-			}
-			else {
-				out[i * 2 + 1] = ">>> " + outstr;
-			}
-			delete[] str1;
-		}
-		//если есть nullptr линии, сдвигаем те что за ней вверх
-		int inullstrs = 0;
-		for (int i = 0;i < out->Length;i++) {
-			if (out[i] == nullptr) {
-				inullstrs++;
-				for (int k = i;k < out->Length - 1;k++) {
-					out[k] = out[k + 1];
-				}
-			}
-		}
-		cli::array<String^>^ out2 = gcnew cli::array<String^>(len * 2 - inullstrs);
-		for (int i = 0;i < out->Length - inullstrs;i++)
-			out2[i] = out[i];
+		//	}
+		//	else {
+		//		out[i * 2 + 1] = ">>> " + outstr;
+		//	}
+		//	delete[] str1;
+		//}
+		////если есть nullptr линии, сдвигаем те что за ней вверх
+		//int inullstrs = 0;
+		//for (int i = 0;i < out->Length;i++) {
+		//	if (out[i] == nullptr) {
+		//		inullstrs++;
+		//		for (int k = i;k < out->Length - 1;k++) {
+		//			out[k] = out[k + 1];
+		//		}
+		//	}
+		//}
+		//cli::array<String^>^ out2 = gcnew cli::array<String^>(len * 2 - inullstrs);
+		//for (int i = 0;i < out->Length - inullstrs;i++)
+		//	out2[i] = out[i];
 
-		int a = textBox1->SelectionStart;
+		//int a = textBox1->SelectionStart;
 
-		this->textBox1->TextChanged -= gcnew System::EventHandler(this, &MainForm::verify);
-		textBox1->Lines = out2;
-		this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
+		//this->textBox1->TextChanged -= gcnew System::EventHandler(this, &MainForm::verify);
+		//textBox1->Lines = out2;
+		//this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
 
-		textBox1->SelectionStart = a;
-		textBox1->SelectionLength = 0;
+		//textBox1->SelectionStart = a;
+		//textBox1->SelectionLength = 0;
 	}
 	private: System::Void PrevBtn_Click(System::Object^  sender, System::EventArgs^  e) {
 
@@ -229,8 +231,21 @@ namespace GUICLR {
 	private: System::Void MainForm_Load(System::Object^  sender, System::EventArgs^  e) {
 	}
 	private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
+		
 		cli::array<String^>^ strs = textBox1->Lines;	//указатель на линии с текстбокса
 		int len = strs->Length;	//количество линий
+		data_list* temp_dt;
+		for (int i = 0; i < len; i++) {
+			temp_dt = new data_list(new wstring((wchar_t*)(void*)System::Runtime::InteropServices::Marshal::StringToHGlobalAuto(strs[i])));
+			all_math_data->push_back(temp_dt);
+			if (temp_dt->run_string())
+			{
+
+			}else {	//err
+
+			}
+		}
+		
 		List<int>^ temp = gcnew List<int>;	//массив для индексов линий ввода
 		//отделяем линии ввода по индексам
 		for (int i = 0;i < len;i++) {
@@ -246,24 +261,8 @@ namespace GUICLR {
 	
 		len = temp->Count;	//количество линий ввода
 		cli::array<String^>^ out = gcnew cli::array<String^>(len * 2);
-		wchar_t* str1;
 		//каждую по очереди в обработку 
-		for (int i = 0;i < len;i++) {
-			pin_ptr<const wchar_t> str2 = PtrToStringChars(in[i]);
-			out[i * 2] = in[i];
-			size_t temps = in[i]->Length + 2;
-			str1 = new wchar_t[temps];
-			wcscpy(str1, str2);
-
-			String^ outstr = gcnew String(Project::Core::input_to_analize(str1).c_str());
-			if (String::IsNullOrEmpty(outstr)) {
-
-			}
-			else {
-				out[i * 2 + 1] = ">>> " + outstr;
-			}
-			delete[] str1;
-		}
+		input_to_analize(all_math_data);
 		//если есть nullptr линии, сдвигаем те что за ней вверх
 		int inullstrs = 0;
 		for (int i = 0;i < out->Length;i++) {

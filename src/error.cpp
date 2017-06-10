@@ -57,6 +57,14 @@ namespace Project {
 				return L"Неверное количество переменных в вызове функции";
 			case ErrorCode::VARIABL_FUNCT:
 				return L"При вычислении нашлась функция с переменными аргументами";
+			case ErrorCode::VECTOR_DIMENSIONS:
+				return L"Размерность вектора не соответствует размерности вектор-функции";
+			case ErrorCode::VECTOR_DIVISION:
+				return L"Делить на вектор нельзя!";
+			case ErrorCode::FUNDAMENTAL_FUNCT:
+				return L"Вызов математической функции без аргументов";
+			case ErrorCode::USING_VAR_AS_CONST:
+				return L"Присвоение переменной константного выражения";
 			case ErrorCode::UNREAL_ERROR:
 				return L"Невозможная ошибка!";
 			default:

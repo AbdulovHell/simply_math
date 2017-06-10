@@ -7,7 +7,8 @@
 #include "../src/filters.h"
 #include "../src/core.h"
 #include <QFile>
-
+#include <QLoggingCategory>
+QLoggingCategory category("default");
 bool MainWindow::isOutOrEmpty(wchar_t* str,size_t len) {
                  if (str == L"") return true;
 
@@ -21,6 +22,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),ui(new Ui::MainWin
 {
     ui->setupUi(this);
     Project::Core::Init();
+
+    //! [enable gestures]
+    ui->centralWidget->grabGesture(Qt::SwipeGesture);
+    grabGesture(Qt::SwipeGesture);
+    ui->inputText->grabGesture(Qt::SwipeGesture);
+    //! [enable gestures]
 
     QImage imgCalc,imgClear,imgSqrt,imgPI;
     imgCalc.load(":/images/calc");
@@ -155,3 +162,34 @@ void MainWindow::AddSQRT(){
 void MainWindow::ClearArea(){
     ui->inputText->clear();
 }
+//! [gesture event handler]
+bool MainWindow::gestureEvent(QGestureEvent *event)
+{
+    if (QGesture *swipe = event->gesture(Qt::SwipeGesture))
+        swipeTriggered(static_cast<QSwipeGesture *>(swipe));
+    return true;
+}
+//! [gesture event handler]
+//! [swipe function]
+void MainWindow::swipeTriggered(QSwipeGesture *gesture)
+{
+    qCDebug(category) << "swipeTriggered(): swipe to previous";
+    int a=0;
+    if (gesture->state() == Qt::GestureFinished) {
+        if (gesture->horizontalDirection() == QSwipeGesture::Left) {
+           a++;
+        } else {
+           a--;
+        }
+
+    }
+}
+//! [swipe function]
+//! [event handler]
+bool MainWindow::event(QEvent *event)
+{
+    if (event->type() == QEvent::Gesture)
+        return gestureEvent(static_cast<QGestureEvent*>(event));
+    return QWidget::event(event);
+}
+//! [event handler]

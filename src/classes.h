@@ -44,7 +44,7 @@ namespace Project {
 								 //действия над объектами (actn)
 #define solve  L"solve"
 #define write  L"write"
-#define read  L"read_"
+#define read2  L"read_"
 
 		class math_obj {
 		private:

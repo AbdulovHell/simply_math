@@ -8,7 +8,7 @@
 
 #include <iostream>
 #include <string>
-#include <vector>
+
 
 #include "error.h"
 #include "IO.h"
@@ -26,7 +26,7 @@ namespace Project {
 
 		void ClearGeneral();
 		//Инициализация массива констант, переменных, функций и уравнений
-		void Init();
+		data_list* Init();
 		
 		/*Функция выполняет проверку/анализ результата заполнения дерева операций и запросов пользователя.
 		Возвращает строку с результатом текущей итерации вычислений.*/

@@ -30,9 +30,9 @@ namespace GUICLR {
 			//
 			//TODO: добавьте код конструктора
 			//
-			Project::Core::Init();
+			
 			input_indexes = gcnew cli::array<int>(300);
-			all_math_data = new data_list();
+			all_math_data = Init();
 		}
 
 	protected:
@@ -299,8 +299,8 @@ namespace GUICLR {
 	}
 	private: System::Void clr_rst(System::Object^  sender, System::EventArgs^  e) {
 		textBox1->Clear();
-		Project::Core::ClearGeneral();
-		Project::Core::Init();
+		//Project::Core::ClearGeneral();
+		//Project::Core::Init();
 	}
 };
 }

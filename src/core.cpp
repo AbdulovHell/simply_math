@@ -6,61 +6,50 @@ namespace Project {
 		using namespace Project;
 		using namespace Project::IO;
 
-		//структура хранения данных
-		vector<math_obj*>* general_var_const;
-		math_obj* temp_var;
+		
 
-		void ClearGeneral() {
-			general_var_const->clear();
-			delete general_var_const;
-		}
+		
 		//Инициализация массива констант, переменных, функций и уравнений
-		void Init() {
+		data_list* Init() {
 			ProjectError::Init();
 			math_obj* temp;
-			general_var_const = new vector<math_obj*>;
-			general_var_const->push_back(new math_obj(L"pi", cnst, fundm, 3.1415926535897932384626433832));
-			general_var_const->push_back(new math_obj(L"e", cnst, fundm, 2.7182818284590452353602874713527));
-			general_var_const->push_back(new math_obj(L"i", cnst, fundm, 0));
-			temp_var = new math_obj(L"", varbl, servc, L"", 0,NULL,NULL,NULL);
+			data_list* data = new data_list();
+			math_obj* temp_var = new math_obj(L"", varbl, servc, L"", 0, NULL, NULL, NULL);
+					
 			
 			//корень 
 			{
 				temp = new math_obj((size_t)0);
 				temp_var->prop = L"root_";
-				temp->vector_push_back(new math_obj(temp_var));
-				temp_var->var += 1;
-				temp->vector_push_back(new math_obj(temp_var));
-				temp_var->var = 0;
+				temp->vector_push_back(new math_obj(temp_var));				
+				temp->vector_push_back(new math_obj(temp_var));				
 				temp_var->prop = servc;
 				temp->double_lincked_vector();				
-				general_var_const->push_back(new math_obj(L"root", funct, servc, L"", 2, NULL, NULL, temp->point_left));
+				data->push_left(new math_obj(L"root", funct, fundm, L"", 2, NULL, NULL, temp->point_left));
 				delete temp;
-				temp = general_var_const->back();
+				temp = data->left->math;
 				temp->close_list();
-				temp->point_collar->point_collar = temp;
-				temp->point_collar->point_right->point_collar = temp;
-				temp->point_left = new math_obj(L"^", power, L"", L"", 0, temp->point_collar, new math_obj(L"/", divis, L"", L"", 0, new math_obj(L"0", numbr, real, 1), temp->point_collar->point_right, temp->point_left), temp);
+				temp->link_var_list_to_funct();				
+				temp->point_left = new math_obj(L"^", power, L"", L"", 0, temp->point_collar, new math_obj(L"/", divis, L"", L"", 0, new math_obj(L"0", numbr, real, 1), temp->point_collar->point_right, NULL), temp);
 				temp->point_left->point_right->point_collar = temp->point_left;
 			}
 			//модуль (корень из квадрата числа)
-			{
-				general_var_const->push_back(new math_obj(L"abs", funct, servc, L"", 0,NULL,NULL, new math_obj(temp_var)));
-				general_var_const->back()->point_collar->point_collar = general_var_const->back();
-				general_var_const->back()->point_left = new math_obj(temp);
-				general_var_const->back()->point_left->point_collar->point_collar = general_var_const->back()->point_left;
-				general_var_const->back()->point_left->point_right = new math_obj(L"", power, L"", L"", 0, general_var_const->back()->point_collar, new math_obj(L"0", 2), NULL);
+			{				
+				temp_var->prop = L"abs__";
+				temp=new math_obj(temp_var);
+				temp_var->prop = servc;				
+				data->push_left(new math_obj(L"abs", funct, servc, L"", 1,NULL,NULL, temp));
+				temp = data->left->math;
+				temp->close_list();				
+				temp->point_left = new math_obj(data->left->left->math);				
 			}
 			//знак
 			{
-				temp = general_var_const->back();
-				general_var_const->push_back(new math_obj(L"sgn", funct, servc, L"", 0, NULL, NULL, new math_obj(temp_var)));
-				general_var_const->back()->point_collar->point_collar = general_var_const->back();
-				general_var_const->back()->point_left = new math_obj(L"", divis, L"", L"", 0, general_var_const->back()->point_collar, new math_obj(temp), general_var_const->back());
-				general_var_const->back()->point_left->point_right->point_right = general_var_const->back()->point_collar;
-				general_var_const->back()->point_left->point_right->point_collar = general_var_const->back()->point_collar;
+				
 			}
-
+			data->push_left(new math_obj(L"pi", cnst, fundm, 3.1415926535897932384626433832));
+			data->push_left(new math_obj(L"e", cnst, fundm, 2.7182818284590452353602874713527));
+			data->push_left(new math_obj(L"i", cnst, fundm, 0));
 		}
 
 		
@@ -88,7 +77,7 @@ namespace Project {
 			}
 			else if (CE->type == exprs)
 			{
-				CE->arithmetic();
+				//CE->arithmetic();
 				output = to_string(CE->var, var_type::FRACTIONAL, 2);
 				CE->tree_destruct();
 				delete CE;
@@ -103,7 +92,7 @@ namespace Project {
 				//ptTest = new thread(testfunc);	//инициализировать, и он сразу запуститься
 				//mut->unlock();
 				CE->actn = solve;
-				general_var_const->push_back(CE);
+				//general_var_const->push_back(CE);
 			}
 			else if (CE->type == funct)
 			{
@@ -111,14 +100,14 @@ namespace Project {
 				{
 					if (CE->prop == arg_c)
 					{
-						CE->arithmetic();
+						//CE->arithmetic();
 						output = to_string(CE->var, var_type::FRACTIONAL, 2);
 						CE->tree_destruct();
 						delete CE;
 					}
 					else
 					{
-						output = CE->expresion(1);
+						//output = CE->expresion(1);
 					}
 				}
 				else if (CE->actn == write)
@@ -132,12 +121,12 @@ namespace Project {
 						//temp = run_vector(CE->name);
 						if (temp == NULL)
 						{
-							general_var_const->push_back(CE);
+							//general_var_const->push_back(CE);
 						}
 						else
 						{
 							temp->tree_destruct();
-							for (size_t count = 0; count < general_var_const->size(); count++)
+							/*for (size_t count = 0; count < general_var_const->size(); count++)
 							{
 								if (temp == general_var_const->at(count))
 								{
@@ -145,7 +134,7 @@ namespace Project {
 									delete temp;
 									break;
 								}
-							}
+							}*/
 						}
 					}
 					else
@@ -181,18 +170,18 @@ namespace Project {
 					}
 					else if (CE->prop == defnd)
 					{
-						CE->arithmetic();
+						//CE->arithmetic();
 						CE->tree_destruct();
 						CE->actn = L"";
 						//temp = run_vector(CE->name);
 						if (temp == NULL)
 						{
-							general_var_const->push_back(CE);
+							//general_var_const->push_back(CE);
 						}
 						else
 						{
 							temp->tree_destruct();
-							for (size_t count = 0; count < general_var_const->size(); count++)
+							/*for (size_t count = 0; count < general_var_const->size(); count++)
 							{
 								if (temp == general_var_const->at(count))
 								{
@@ -200,7 +189,7 @@ namespace Project {
 									delete temp;
 									break;
 								}
-							}
+							}*/
 						}
 					}
 				}
@@ -231,13 +220,16 @@ namespace Project {
 				return err->GetErrorWStr();
 			}*/
 
-			//size_t size_of_vect = general_var_const->size();
-
-
-			general_var_const->back();
-
-			wchar_t* point_start = input;	//start pointer
-			wchar_t* point_end = input + wcslen(input) - 1;	//end pointer	
+			size_t size = all_math_data->size_s();
+			data_list* temp = NULL;
+			for (int count = 1; count <= size; count++)
+			{
+				temp = all_math_data->at(count);			
+				if (temp->math!= NULL)
+					temp->out = analized_output(&temp->in[0], &temp->in[temp->in.length()-1], temp->math);
+			}
+			if (all_math_data->out == eror)
+				return -1;
 			return 0;
 		}
 	}

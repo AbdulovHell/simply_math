@@ -58,11 +58,17 @@ namespace Project {
 		class data_list {
 		private:
 
+			//Рекурсия для back
 			data_list*back_rec(data_list*pointer);
 
+			//Метод рекурсивно сдвигает индексы элементов вправо, начиная с текущего.
 			void index_plus_one();
 
+			//Рекурсия для метода at
 			data_list*at_rec(int* place, data_list*pointer);
+
+			//Рекурсия для методов size
+			int size_rec(data_list*pointer, bool* flag);
 
 		public:
 			int index;
@@ -72,30 +78,79 @@ namespace Project {
 			data_list* right;
 			math_obj* math;
 
+			//Нулевой конструктор
 			data_list();
-
+			//Коструктор для строкой ввода in
 			data_list(wstring* _in);
-
+			//Коструктор для строкой ввода in, мат. объекта math
 			data_list(wstring _in, math_obj* _math);
 
+			/*Метод вставляет элемент pointer в конец списока данных.
+			0 - в случае ошибки (номера place не существует)
+			1 - в случае успешного выполнения*/
 			int push_back(data_list* pointer);
 
-			int push_left_to_zero(data_list* pointer);
+			/*Метод вставляет элемент pointer в список данных до нулевого элемента. Индекс присваивается равным -1.
+			Метод возвращает:
+			0 - в случае ошибки 
+			1 - в случае успешного выполнения*/
+			int push_left(math_obj* pointer);
 
+			/*Метод возвращает указатель на нулевой элемент списка данных.
+			NULL - в случае ошибки (например, попытки поиска слева от нуля*/
+			data_list*begin();
+
+			/*Метод вставляет элемент pointer в список данных после номера place. Индексы следующих элементов списка сдвигаются на 1.
+			Метод возвращает:
+			0 - в случае ошибки (номера place не существует)
+			1 - в случае успешного выполнения*/
 			int implace(int place, data_list*pointer);
 
+			/*Метод возвращает указатель на элемент списка с номером place. 
+			Нумерация значащих элементов (со строками) начинается с 1 (не по православному, но так проще список хранить).
+			NULL - номера place нет в списке или он меньше нуля, и в случае вызова не для начального (нулевого) элемента*/
 			data_list* at(int place);
 
+			/*Метод возвращает указатель на последний элемент списка данных. Если ничего не было записано - указатель на нулевой элемент. 
+			NULL - в случае вызова не для начального (нулевого) элемента*/
 			data_list* back();
 
-			//сравнение строки входа
+			/*Метод сравнения строки in (ввод) с заданной строкой. Аналогичен методу compare класса wstring
+			Метод возвращает:
+			- 0 - строки совпадают
+			- разницу между первыми различными символами*/
 			int compare_in(wstring original);
 
+			/*Метод сравнения строки out (вывод) с заданной строкой. Аналогичен методу compare класса wstring
+			Метод возвращает:
+			- 0 - строки совпадают
+			- разницу между первыми различными символами*/
 			int compare_out(wstring original);
 
-			math_obj* find_math_obj(wstring* name, data_list* place);
+			/*Метод рекурсивно выполняет поиск по строке name в списке данных.
+			Метод возвращает:
+			- указатель math_obj* на нужный мат. объект
+			- NULL если ничего не найдено*/
+			math_obj* find_math_obj(wstring* name);
 
+			/*Метод вызыват конструктор математического объекта по строке in. Тут же происходит проверка ввода.			 
+			Метод возвращает:
+			0 - в случае ошибки, как при заполнении, так и при проверке ввода (текст ошибки в поле out).
+			1 - в случае успешного выполнения*/
 			int run_string();
+
+			/*Метод возвращает количество записанных элементов (строк) в списке данных.
+			Нумерация значащих элементов (со строками) начинается с 1 (не по православному, но так проще список хранить).
+			0 - если после нулевого элемента ничего нет
+			-1 - ошибка - обращение к элементу имеющему ненулевой индекс.
+			*/
+			int size_s();
+
+			/*Метод возвращает общее количество элементов в списке данных
+			0 - если после нулевого элемента ничего нет
+			-1 - ошибка - обращение к элементу имеющему ненулевой индекс.
+			*/
+			int size_all();
 
 		};
 
@@ -129,11 +184,11 @@ namespace Project {
 			/*PRIVATE. Рекурсия для tree_destruct*/
 			int tree_destruct_processing(math_obj* pointer);
 			/*PRIVATE. Рекурсия для prioritize*/
-			math_obj *prioritize_processing(math_obj *pc, int current_priority);
+			math_obj *prioritize_processing(math_obj *pc, int *current_priority);
 			/*PRIVATE. Рекурсия для arithmetic*/
-			double arithmetic_processing(math_obj *pointer, math_obj * last_arg, math_obj *arg);
+			//double arithmetic_processing(math_obj *pointer, math_obj * last_arg, math_obj *arg);
 			/*PRIVATE. Рекурсия для expresion*/
-			wstring expression_processing(math_obj *pointer, int* comma);
+			//wstring expression_processing(math_obj *pointer, int* comma);
 			/*PRIVATE. Рекурсия для var_list_back*/
 			math_obj *vector_back_processing(math_obj *pointer);
 			/*PRIVATE. Рекурсия для find_by_name*/
@@ -143,7 +198,7 @@ namespace Project {
 			/*PRIVATE. Создание двусвязного списка.*/
 			void reassing_left_pointers(math_obj* pointer);
 			/*PRIVATE. Рекурсия для vector_at*/
-			math_obj* vector_at_processing(math_obj*pointer, int* index, int count);
+			math_obj* vector_at_processing(math_obj*pointer, int* index, int* count);
 			/*PRIVATE. Рекурсия для vector_size*/
 			int vector_size_processing(math_obj*pointer);
 			/*PRIVATE. Метод рекурсивно создаёт связный список указанной длинны size из служебных переменных, указывающих на один и тот же объект.*/
@@ -156,7 +211,7 @@ namespace Project {
 			/*PRIVATE. Установка указателей point_collar для НЕЗАМКНУТОГО списка переменных на функцию*/
 			void var_list_collar(math_obj* pointer, math_obj*original);
 			/*PRIVATE. Метод возвращает указатель на аргумент соответствующий найденной переменной*/
-			math_obj* get_arg_for_var(math_obj*pointer, math_obj*arg);
+			//math_obj* get_arg_for_var(math_obj*pointer, math_obj*arg);
 			/*PRIVATE. Деструктор вектора*/
 			int vector_destruct(math_obj* pointer);
 
@@ -182,14 +237,14 @@ namespace Project {
 			//Конструктор вектора длины size_n
 			math_obj(size_t size_n);
 			//Конструктор вектора длины size_n по строке символов типа wchar_t, имеющей начало begin и конец end.
-			math_obj(uint16_t dummy, size_t size_n, wchar_t*begin, wchar_t*end);
+			math_obj(size_t size_n, wchar_t*begin, wchar_t*end, data_list* data);
 
 			//Конструктор вектора служебных переменных, указывающих на один и тот же объект obj. Полагается что вектор унаследует имя объекта obj
 			math_obj(size_t size_n, math_obj * obj);
 
 			/*Конструктор дерева операций по строке символов типа wchar_t, имеющей начало strPtr и конец ePtr.
 			Дополнительный параметр _pc присваивается полю point_collar (для получения дерева операций для функций с заранее обозначенным списком переменных).*/
-			math_obj(wchar_t* strPtr, wchar_t* ePtr, math_obj* _pc, data_list* pob);
+			math_obj(wchar_t* strPtr, wchar_t* ePtr, math_obj* _pc, data_list* data);
 
 
 			//Конструктор матрицы
@@ -216,11 +271,11 @@ namespace Project {
 
 			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и коструирующую строку с формальной записью текущего выражения.
 			Возвращает строку. ПОКА НЕ РАБОТАЕТ*/
-			wstring expresion(int comma);
+			//wstring expresion(int comma);
 
 			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и выполняющую их.
 			Результатом работы метода является запись результата вычислений в double var текущего элемента класса. */
-			void arithmetic();
+			//void arithmetic();
 			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и очищающую память.
 			Метод должен возвращать число ошибок при использовании delete. Это надо дописать
 			*/
@@ -229,7 +284,7 @@ namespace Project {
 			math_obj* find_by_name(math_obj*pointer);
 			/*Метод возвращает указатель на последний элемент списка переменных.
 			Если список уже замкнут - на элемент предшествующий нулевому (подобный запрос никогда не должен возникать).*/
-			math_obj* var_list_back();
+			//math_obj* var_list_back();
 			/*Метод сравнивает список аргументов (хотя бы один из которых переменная) обхекта pointer (функции, вектора или матрицы) со списком переменных данной функции.
 			Метод возвращает:
 			0 - список переменных pointer полностью входит в список переменных данной функции.
@@ -249,7 +304,7 @@ namespace Project {
 			/*Метод сортирует незамкнутый список переменных по алфавиту*/
 			math_obj * sort_list(math_obj * var_list);
 			/*Медод определения функции. Создаёт список переменных, от которых зависит функция, основываясь на списке переменных и аргументов функции pointer.*/
-			void funct_define(math_obj *pointer);
+			//void funct_define(math_obj *pointer);
 
 			/*Метод возвращает указатель на элемент списка с номером index.*/
 			math_obj* vector_at(int index);
@@ -268,7 +323,7 @@ namespace Project {
 			int vector_assing_at(math_obj*pointer, int index);
 			/*Метод добавляет элемент в конец вектора аргументов функции.
 			-1 в случае ошибки*/
-			int funct_arg_push_back(math_obj*pointer);
+			//int funct_arg_push_back(math_obj*pointer);
 			/*Метод преобразует односвязный список в двусвязный*/
 			void double_lincked_vector();
 			//Метод вызывает рекурсивную функцию установки указателей point_collar для НЕЗАМКНУТОГО списка переменных на текущий экземпляр класса
@@ -287,28 +342,58 @@ namespace Project {
 			/*Метод ПОЛНОСТЬЮ преобразует this с заданными параметрами (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ДЕЙСТВИЕ над объектом (указание), ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник").
 			Если текущий элемент - вектор, все элементы которого указывают на один и тот же объект, преобразуется так же объект*/
 			void convert_totaly(wstring _name, wstring _type, wstring _prop, wstring _actn, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
+
+
 			//Метод get. ТЕКУЩИЙ ЭЛЕМЕНТ
 			math_obj*get_this();
+
+
 			//Метод get. ИМЯ
 			wstring get_name();
+			//Метод assing. ИМЯ
+			void assing_name(wstring _name);
+
 			//Метод get. ТИП
 			wstring get_type();
+			//Метод assing. ТИП
+			void assing_type(wstring _type);
+
 			//Метод get. СВОЙСТВО
 			wstring get_prop();
+			//Метод assing. СВОЙСТВО
+			void assing_prop(wstring _prop);
+
+
 			//Метод get. ДЕЙСТВИЕ
 			wstring get_actn();
+			//Метод assing. ДЕЙСТВИЕ
+			void assing_actn(wstring _acnt);
+
+
 			//Метод get. ЧИСЛО
 			double get_var();
 			//Метод assing. ЧИСЛО
 			void assing_var(double _num);
+
+
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
 			math_obj* get_pl();
 			//Метод assing. УКАЗАТЕЛЬ "левый рукав"
 			void assing_pl(math_obj* pointer);
+
+
 			//Метод get. УКАЗАТЕЛЬ "правый рукав"
 			math_obj* get_pr();
+			//Метод assing. УКАЗАТЕЛЬ "правый рукав"
+			void assing_pr(math_obj* pointer);
+
+
 			//Метод get. УКАЗАТЕЛЬ "воротник"
 			math_obj* get_pc();
+			//Метод assing. УКАЗАТЕЛЬ "воротник"
+			void assing_pc(math_obj* pointer);
+
+
 			/*Метод добавляет переменную в конец списка переменных данной функции.
 			В том числе и для векторных/матричных.
 			-1 в случае ошибки.*/

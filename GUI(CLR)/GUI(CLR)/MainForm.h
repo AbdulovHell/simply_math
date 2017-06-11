@@ -246,6 +246,15 @@ namespace GUICLR {
 			}
 		}
 		
+		 
+		if (!input_to_analize(all_math_data))
+		{
+			//err
+		}
+		//далее all_math_data уже обработана в ядре
+		len = all_math_data->size_s();//количество элементов. Нумерация с 1.
+
+
 		List<int>^ temp = gcnew List<int>;	//массив для индексов линий ввода
 		//отделяем линии ввода по индексам
 		for (int i = 0;i < len;i++) {

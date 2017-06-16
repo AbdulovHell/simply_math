@@ -63,9 +63,9 @@ namespace Project {
 		
 		/*Функция выполняет проверку/анализ результата заполнения дерева операций и запросов пользователя.
 		Возвращает строку с результатом текущей итерации вычислений.*/
-		wstring analized_output(wchar_t* _pDest, wchar_t* _endPtr, math_obj* _current_element)
+		wstring analizer(math_obj* CE)
 		{
-			math_obj* CE = new math_obj(_pDest, _endPtr,NULL,NULL);
+			//math_obj* CE = new math_obj(_pDest, _endPtr,NULL,NULL);
 			wstring output;
 			math_obj* temp=NULL;
 			//size_t output_size;
@@ -222,12 +222,12 @@ namespace Project {
 
 			size_t size = all_math_data->size_s();
 			data_list* temp = NULL;
-			for (int count = 1; count <= size; count++)
+			/*for (int count = 1; count <= size; count++)
 			{
 				temp = all_math_data->at(count);			
 				if (temp->math!= NULL)
-					temp->out = analized_output(&temp->in[0], &temp->in[temp->in.length()-1], temp->math);
-			}
+					temp->out = analizer(temp->math);
+			}*/
 			if (all_math_data->out == eror)
 				return -1;
 			return 0;

@@ -72,7 +72,6 @@ namespace Project {
 					//если строка закнчивается на равно
 					if (temp == endPtr)
 					{
-
 						if ((actn == write) || ((type == varbl) && (prop == undef)))
 						{
 							type = eror;
@@ -97,6 +96,7 @@ namespace Project {
 						str_right.assign(temp + 1, endPtr + 1);
 						math_obj* right = new math_obj(&str_right[0], &str_right[str_right.length() - 1], t_p, point_up);
 						//отсеяли ошибочный элемент
+						double buf;
 						if (right->type == eror)
 						{
 							type = eror;
@@ -111,32 +111,37 @@ namespace Project {
 						}
 						//если справа от равно находится константное выражение, функция с конст аргументами или вектор имеющий только константные элементы
 						//тогда автоматически знаем, что справа НЕ могут быть функции с параметром write
-						else if ((right->type == exprs) || (right->type == cnst) || (right->type == numbr) || ((right->type == funct) && (right->prop == arg_c)) || ((right->type == vectr) && ((right->prop == exprs) || (right->prop == cnst) || (right->prop == arg_c))))
+						else if ((right->get_type() == exprs) || (right->get_type() == cnst) || (right->get_type() == numbr) || ((right->get_type() == funct) && (right->get_prop() == arg_c)) || ((right->type == vectr) && (right->prop == arg_c)))
 						{
 							//если справа от равно находится константное выражение, функция с конст аргументами или вектор имеющий только константные элементы (но не сами константы и конст векторы с именем) или определённая заранее переменная - ошибка
-							if ((type == exprs) || (type == numbr) || ((type == funct) && (prop == arg_c)) || ((type == vectr) && ((prop == exprs) || (prop == arg_c))))
+							if ((get_type() == exprs) || (get_type() == numbr) || ((get_type() == funct) && (get_prop() == arg_c)) || ((type == vectr) && (prop == arg_c)))
 							{
 								type = eror;
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
 								delete left;
 							}
+							//слева от равно заранее определённая переменная. поскольку переменные задаются неявно и используются в функциях, их нельзя переопределять в качестве констант.
 							else if ((type == varbl) && (prop == defnd))
 							{
 								type = eror;
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::USING_VAR_AS_CONST);
 								delete left;
 							}
-							else if ((type == cnst) || ((type == vectr) && (prop == cnst)))
+							//вектор с параметром cnst и arg_c - это один и тот же объект, однако cnst вектор имеет имя, т.е. его можно как-то переопределить.
+							else if (get_type() == cnst)
 							{
 								if (type == vectr)
 								{
-									//очистить константный вектор. Такой вектор должен сам по себе состоять из чисел или констант.			
-									type = cnst;
-									var = 0;
+									if (unvectorize() == NULL)
+									{
+										type = eror;
+										delete right;
+									}
 								}
 								if (right->type == vectr)
 								{
 									copy(right);
+									delete right;
 									prop = cnst;
 								}
 								else
@@ -146,11 +151,13 @@ namespace Project {
 								}
 								actn = write;
 							}
+							//слева от равно - неизвестный ранее набор символов - определение новой константы
 							else if ((type == varbl) && (prop == undef))
-							{								
+							{
 								if (right->type == vectr)
 								{
 									copy(right);
+									delete right;
 									prop = cnst;
 								}
 								else
@@ -161,34 +168,80 @@ namespace Project {
 								}
 								actn = write;
 							}
-							else if ((type == funct) || ((type == vectr) && (prop == funct)))
+							else if (get_type() == funct)
 							{
-								//Уравнение, надо дорабатывать случай с векторами
+								//Уравнение
+								//если справа и слева веторные объекты и их размерность не совпадает - ошибка
+								if ((type == vectr) && (right->type == vectr) && (var != right->var))
+								{
+									type = eror;
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTOR_DIMENSIONS);
+									delete right;
+								}
 								t_p = new math_obj(this);
-								convert_totaly(L"", equat, unslv, write, var, t_p, right, t_p->get_pc());
+								convert_totaly(L"", equat, unslv, write, get_var(), t_p, right, t_p->get_pc());
+								//тут немного сложнее. переменные, используемые в уравнении - могут быть записаны среди аргументов функции. Надо отдельно формировать список аргументов.
+								//возможно имеет смысл создание уравнения вынести в отдельный метод.
+								//TODO: собирать список переменных для данного уравнения
+								if (t_p->type == vectr)
+								{
+									buf = t_p->var;
+									t_p = new math_obj(this);
+									right = new math_obj((int)buf, t_p);
+									copy(right);
+									delete right;
+								}
+								else if (right->type == vectr)
+								{
+									buf = right->var;
+									t_p = new math_obj(this);
+									right = new math_obj((int)buf, t_p);
+									copy(right);
+									delete right;
+								}
 							}
 						}
+						//справа - переменная, как заранее определённая, так и новое буквосочетание
 						else if (right->type == varbl)
 						{
 							if (right->prop == undef)
 							{
 								right->prop = defnd;
-								point_up->push_left(new math_obj(right));								
+								point_up->push_left(new math_obj(right));
 							}
-							if ((((type == funct) || (type == vectr) && (prop == funct)) && ((get_prop() == undef) || (get_prop() == arg_v) || (get_prop() == arg_c))) || (type == exprs))
+							if (((get_type() == funct) && ((get_prop() == undef) || (get_prop() == arg_v) || (get_prop() == arg_c))) || (get_type() == exprs))
 							{
-								//Уравнение, надо дорабатывать случай с векторами
+								//Уравнение
 								t_p = new math_obj(this);
-								convert_totaly(L"", equat, unslv, write, var, t_p, right, t_p->get_pc());
+								convert_totaly(L"", equat, unslv, write, get_var(), t_p, right, t_p->get_pc());
+								//TODO: собирать список переменных для данного уравнения
+								if (t_p->type == vectr)
+								{
+									buf = t_p->var;
+									t_p = new math_obj(this);
+									right = new math_obj((int)buf, t_p);
+									copy(right);
+									delete right;
+								}
 							}
-							else if (type == cnst)
+							else if (get_type() == cnst)
 							{
+								if (type == vectr)
+								{
+									if (unvectorize() == NULL)
+									{
+										type = eror;
+										delete right;
+									}
+								}
+								//определение простейшей функции
 								convert_totaly(name, funct, defnd, write, 1, right, NULL, right);
 								link_var_list_to_funct();
 								close_list();
 							}
 							else if (type == varbl)
 							{
+								//если справа и слева стоит одно и тоже буквосочетание
 								if (name.compare(right->name) == 0)
 								{
 									type = eror;
@@ -197,34 +250,41 @@ namespace Project {
 								}
 								else
 								{
+									if (prop == undef)
+									{
+										prop = defnd;
+										point_up->push_left(new math_obj(this));
+									}
+									//определение простейшей функции
 									convert_totaly(name, funct, defnd, write, 1, right, NULL, right);
 									link_var_list_to_funct();
 									close_list();
 								}
 							}
-							else if (((type == funct) || (type == vectr) && (prop == funct)) && (get_prop() == defnd))
+							else if ((get_type() == funct) && (get_prop() == defnd))
 							{
 								if (type == vectr)
 								{
-									//очистить вектор. Такой вектор состоит из сервисных переменных, которые указывают на один и тот же элемент.			
-									type = funct;
-									var = 0;
+									if (unvectorize() == NULL)
+									{
+										type = eror;
+										delete right;
+									}
 								}
-								//удалить дерево операций и набор переменных.
 								convert_totaly(name, funct, defnd, write, 1, right, NULL, right);
 								link_var_list_to_funct();
 								close_list();
 							}
 						}
-						else if ((right->type == funct) || (right->type == vectr) && (prop == funct))
+						//справа функция. Случай с фуннкциями, имеющими конст. аргуметнты уже рассмотрен
+						else if (right->get_type() == funct) //defnd, undef, arg_v
 						{
 							if ((type == funct) && (actn == write))
 							{
 								if (right->type == vectr)
 								{
-									right->name = name;
-									right->point_left->point_left->name = name;
-									right->point_left->point_left->prop = defnd;
+									right->assing_name(name);
+									right->assing_prop(defnd);
 									copy(right);
 									actn = write;
 								}
@@ -232,137 +292,264 @@ namespace Project {
 								{
 									prop = defnd;
 									point_left = right->point_left;
-									link_var_list_to_funct(); //возможно нужно удостовериться в том, что бы эта операция здесь не требовалась
 								}
 								delete right; //тут чистить дерево операций не надо!								
 							}
 
-							else if (((type == funct) || (type == vectr) && (prop == funct)) && ((get_prop() == arg_c) || (get_prop() == undef) || ((get_prop() == arg_v) && (get_pr()->prop == arg_v))) || (type == exprs))
+							else if ((get_type() == funct) && ((get_prop() == arg_c) || (get_prop() == undef) || ((get_prop() == arg_v) && (get_pr()->prop == arg_v))) || (get_type() == exprs))
 							{
-								//Уравнение, надо дорабатывать случай с векторами
+								//Уравнение
+								//если справа и слева веторные объекты и их размерность не совпадает - ошибка
+								if ((type == vectr) && (right->type == vectr) && (var != right->var))
+								{
+									type = eror;
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTOR_DIMENSIONS);
+									delete right;
+								}
 								t_p = new math_obj(this);
 								convert_totaly(L"", equat, unslv, write, var, t_p, right, t_p->get_pc());
+								//TODO: собирать список переменных для данного уравнения
+								if ((right->type == vectr)&&(type != vectr))
+								{
+									buf = right->var;
+									t_p = new math_obj(this);
+									right = new math_obj((int)buf, t_p);
+									copy(right);
+									delete right;
+								}
 							}
-							else if (((type == funct) || (type == vectr) && (prop == funct)) && (get_prop() == defnd))
+							//слева определённая заранее функция - переопределяем заново
+							else if ((get_type() == funct) && (get_prop() == defnd))
 							{
 								if (type == vectr)
 								{
-									//очистить вектор. Такой вектор состоит из сервисных переменных, которые указывают на один и тот же элемент.			
-									type = funct;
-									var = 0;
+									if (unvectorize() == NULL)
+									{
+										type = eror;
+										delete right;
+									}
 								}
-								//удалить дерево операций и набор переменных.
-								if (right->type == vectr)
+								if (right->get_prop() == undef)
 								{
-									right->name = name;
-									right->point_left->point_left->name = name;
-									right->point_left->point_left->prop = defnd;
-									copy(right);
-									actn = write;
-								}
-								else
-								{
-									//TODO:сортировка переменных по алфавиту
-									convert_totaly(name, funct, defnd, write, right->var, right->point_left, right->point_right, right->point_collar);
-									link_var_list_to_funct();
-								}
-								if (get_pc()->point_left == NULL)
-								{
-									reassing_left_pointers(get_pc());
-									close_list();
-								}
-								delete right; //тут чистить дерево операций не надо!
-							}
-							else if (((type == funct) || (type == vectr) && (prop == funct)) && ((get_prop() == arg_v) && (get_pr()->prop == only_arg_v)))
-							{
-								//если все переменные в списке аргументов функции справа появляются слева и наоборот.
-								if ((right->var_list_compare(this) == 0) && (var_list_compare(right) == 0))
-								{
-									//удалить дерево операций и список переменных.
+									if (right->get_var() > 1)
+										t_p = sort_list(right->get_pc());//отсортированный по алфавиту и пронумерованный двусвязный список, НЕ ВЕКТОР
+									else
+										t_p = right->get_pc(); //незачем вызывать сортировку для одного элемента
 									if (right->type == vectr)
 									{
-										right->name = name;
-										right->point_left->point_left->name = name;
-										right->point_left->point_left->prop = defnd;
+										right->assing_name(name);
+										right->assing_prop(defnd);
 										copy(right);
+										assing_pc(t_p);
 										actn = write;
 									}
 									else
 									{
-										convert_totaly(name, funct, defnd, write, right->var, right->point_left, right->point_right, right->point_collar);
-										link_var_list_to_funct();
-									}
-									if (get_pc()->point_left == NULL)
-									{
-										reassing_left_pointers(get_pc());
-										close_list();
+										convert_totaly(name, funct, defnd, write, right->var, right->point_left, right->point_right, t_p);
 									}
 									delete right; //тут чистить дерево операций не надо!
 								}
+								else //defnd, arg_v
+								{
+									left = right->create_var_list(NULL);//список переменных функции, ВЕКТОР
+									if (left->var > 1)
+										t_p = sort_list(left->point_left);//отсортированный по алфавиту и пронумерованный двусвязный список, НЕ ВЕКТОР
+									else
+										t_p = left->point_left;
+									convert_totaly(name, funct, defnd, write, left->var, right, NULL, t_p);
+									if (right->type == vectr)
+									{
+										buf = right->var;
+										t_p = new math_obj(this);
+										right = new math_obj((int)buf, t_p);
+										copy(right);
+										delete right;
+									}
+									delete left;
+								}
+								//тут всегда будет необходимо устанавливать указатели переменных на созданную функцию.
+								link_var_list_to_funct();
+								close_list();								
+							}
+							//слева запись н-р f(x,y), но f была ранее определена
+							else if ((get_type() == funct) && ((get_prop() == arg_v) && (get_pr()->prop == only_arg_v)))
+							{
+								//важен только случай, при котором все переменные участвующие в выражении справа, появляются среди аргументов функции слева.
+								//фальшивая функция
+								t_p = new math_obj(L"",funct,undef,L"", get_pr()->var, NULL, NULL, get_pr()->point_left);
+								if (t_p->var_list_compare(right) == 0)
+								{
+									delete t_p;
+									if (type == vectr)
+									{
+										if (unvectorize() == NULL)
+										{
+											type = eror;
+											delete right;
+										}
+									}
+									t_p = point_right;
+									t_p->prop = servc;
+									left = right->create_var_list(t_p);
+									if (left->var > 1)
+										t_p = sort_list(left->point_left);//отсортированный по алфавиту и пронумерованный двусвязный список, НЕ ВЕКТОР
+									else
+										t_p = left->point_left;
+									convert_totaly(name, funct, defnd, write, left->var, right, NULL, t_p);
+									if (right->type == vectr)
+									{
+										buf = right->var;
+										t_p = new math_obj(this);
+										right = new math_obj((int)buf, t_p);
+										copy(right);
+										delete right;
+									}
+									delete left;									
+									//тут всегда будет необходимо устанавливать указатели переменных на созданную функцию.
+									link_var_list_to_funct();
+									close_list();
+
+								}
+								//если справа нашлась переменная не входящая в список аргументов левой функции - уравнение
 								else
 								{
-									//Уравнение, надо дорабатывать случай с векторами
+									delete t_p;
+									//Уравнение
+									//если справа и слева веторные объекты и их размерность не совпадает - ошибка
+									if ((type == vectr) && (right->type == vectr) && (var != right->var))
+									{
+										type = eror;
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTOR_DIMENSIONS);
+										delete right;
+									}
 									t_p = new math_obj(this);
 									convert_totaly(L"", equat, unslv, write, var, t_p, right, t_p->get_pc());
+									//TODO: собирать список переменных для данного уравнения
+									if ((right->type == vectr)&& (type != vectr))
+									{
+										buf = right->var;
+										t_p = new math_obj(this);
+										right = new math_obj((int)buf, t_p);
+										copy(right);
+										delete right;
+									}
 								}
 							}
-							else if ((type == cnst) || ((type == vectr) && (prop == cnst)) || ((type == varbl) && (prop == undef)))
+							//слева именная константа (вектор) или новое буквосочетание
+							else if ((get_type() == cnst) || ((type == varbl) && (prop == undef)))
 							{
 								if (type == vectr)
 								{
-									//очистить константный вектор. Такой вектор должен сам по себе состоять из чисел или констант.			
-									type = cnst;
-									var = 0;
+									if (unvectorize() == NULL)
+									{
+										type = eror;
+										delete right;
+									}
 								}
-								if (right->type == vectr)
+								if (right->get_prop() == undef)
 								{
-									right->name = name;
-									right->point_left->point_left->name = name;
-									right->point_left->point_left->prop = defnd;
-									copy(right);
-									actn = write;
-								}
-								else
-								{
-									convert_totaly(name, funct, defnd, write, right->var, right->point_left, right->point_right, right->point_collar);
-									link_var_list_to_funct();
-								}
-								if (get_pc()->point_left == NULL)
-								{
-									reassing_left_pointers(get_pc());
-									close_list();
-								}
-								delete right; //тут чистить дерево операций не надо!
-							}
-							else if ((type == varbl) && (prop == defnd))
-							{
-								if (right->find_by_name(this) != NULL)
-								{
-									//Уравнение, надо дорабатывать случай с векторами
-									t_p = new math_obj(this);
-									convert_totaly(L"", equat, unslv, write, var, t_p, right, right->get_pc());
-								}
-								else
-								{
+									if (right->get_var() > 1)
+										t_p = sort_list(right->get_pc());//отсортированный по алфавиту и пронумерованный двусвязный список, НЕ ВЕКТОР
+									else
+										t_p = right->get_pc(); //незачем вызывать сортировку для одного элемента
 									if (right->type == vectr)
 									{
-										right->name = name;
-										right->point_left->point_left->name = name;
-										right->point_left->point_left->prop = defnd;
+										right->assing_name(name);
+										right->assing_prop(defnd);
 										copy(right);
+										assing_pc(t_p);
 										actn = write;
 									}
 									else
 									{
-										convert_totaly(name, funct, defnd, write, right->var, right->point_left, right->point_right, right->point_collar);
-										link_var_list_to_funct();
-									}
-									if (get_pc()->point_left == NULL)
-									{
-										reassing_left_pointers(get_pc());
-										close_list();
+										convert_totaly(name, funct, defnd, write, right->var, right->point_left, right->point_right, t_p);
 									}
 									delete right; //тут чистить дерево операций не надо!
+								}
+								else //defnd, arg_v
+								{
+									left = right->create_var_list(NULL);//список переменных функции, ВЕКТОР
+									if (left->var > 1)
+										t_p = sort_list(left->point_left);//отсортированный по алфавиту и пронумерованный двусвязный список, НЕ ВЕКТОР
+									else
+										t_p = left->point_left;
+									convert_totaly(name, funct, defnd, write, left->var, right, NULL, t_p);
+									if (right->type == vectr)
+									{
+										buf = right->var;
+										t_p = new math_obj(this);
+										right = new math_obj((int)buf, t_p);
+										copy(right);
+										delete right;
+									}
+									delete left;
+								}
+								//тут всегда будет необходимо устанавливать указатели переменных на созданную функцию.
+								link_var_list_to_funct();
+								close_list();								
+							}
+							//слева уже используемая ранее переменная
+							else if ((type == varbl) && (prop == defnd))
+							{
+								//если в выражении справа эта переменная есть
+								if (right->find_by_name(this) != NULL)
+								{
+									//Уравнение
+									t_p = new math_obj(this);
+									convert_totaly(L"", equat, unslv, write, var, t_p, right, right->get_pc());
+									if (right->type == vectr)
+									{
+										buf = t_p->var;
+										t_p = new math_obj(this);
+										right = new math_obj((int)buf, t_p);
+										copy(right);
+										delete right;
+									}
+								}
+								//если в выражении справа этой переменной нет - переопределение переменной как функции
+								else
+								{
+									if (right->get_prop() == undef)
+									{
+										if (right->get_var() > 1)
+											t_p = sort_list(right->get_pc());//отсортированный по алфавиту и пронумерованный двусвязный список, НЕ ВЕКТОР
+										else
+											t_p = right->get_pc(); //незачем вызывать сортировку для одного элемента
+										if (right->type == vectr)
+										{
+											right->assing_name(name);
+											right->assing_prop(defnd);
+											copy(right);
+											assing_pc(t_p);
+											actn = write;
+										}
+										else
+										{
+											convert_totaly(name, funct, defnd, write, right->var, right->point_left, right->point_right, t_p);
+										}
+										delete right; //тут чистить дерево операций не надо!
+									}
+									else //defnd, arg_v
+									{
+										left = right->create_var_list(NULL);//список переменных функции, ВЕКТОР
+										if (left->var > 1)
+											t_p = sort_list(left->point_left);//отсортированный по алфавиту и пронумерованный двусвязный список, НЕ ВЕКТОР
+										else
+											t_p = left->point_left;
+										convert_totaly(name, funct, defnd, write, left->var, right, NULL, t_p);
+										if (right->type == vectr)
+										{
+											buf = right->var;
+											t_p = new math_obj(this);
+											right = new math_obj((int)buf, t_p);
+											copy(right);
+											delete right;
+										}
+										delete left;
+									}
+									//тут всегда будет необходимо устанавливать указатели переменных на созданную функцию.
+									link_var_list_to_funct();
+									close_list();
 								}
 							}
 						}
@@ -534,7 +721,7 @@ namespace Project {
 					{
 						//сразу же считаем содержимое скобок вектором
 						temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
-						temp_pointer = new math_obj(comma + 1, &temp_str[0], &temp_str[temp_str.length() - 1], point_up);						
+						temp_pointer = new math_obj(comma + 1, &temp_str[0], &temp_str[temp_str.length() - 1], point_up);
 						if (temp_pointer->type == eror)
 						{
 							delete temp_pointer;
@@ -1024,7 +1211,7 @@ namespace Project {
 						{
 							name_str.assign(pDest, temp);
 							pDest = temp;
-						}						
+						}
 						high_pointer = point_up->find_math_obj(&name_str);
 						//если не найден ни один элемент массива мат объектов с таким именем
 						if (high_pointer == NULL)
@@ -1412,7 +1599,7 @@ namespace Project {
 								else if (temp_pointer->type == varbl)
 								{
 									if (temp_pointer->prop == undef)
-									{										
+									{
 										temp_pointer->prop = defnd;
 										point_up->push_left(new math_obj(temp_pointer));
 									}
@@ -1728,7 +1915,7 @@ namespace Project {
 						{
 							name_str.assign(pDest, temp);
 							pDest = temp;
-						}								
+						}
 						low_pointer = point_up->find_math_obj(&name_str);
 						//далее всегда может быть только два варианта - текщуий элемент либо функция(вектор-функция), либо выражение (векторное), причём всегда undef.
 						//если не найден ни один элемент массива с таким именем
@@ -1744,7 +1931,7 @@ namespace Project {
 										//значит список переменных замкнут => новая переменная - лишняя
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
 										return NULL;
-									}									
+									}
 									temp_pointer = new math_obj(name, varbl, defnd, 0);
 									point_up->push_left(new math_obj(temp_pointer));
 									var_list_push_back(temp_pointer);
@@ -1754,7 +1941,7 @@ namespace Project {
 									temp_pointer = NULL;
 								}
 								else if ((type == exprs) || ((type == vectr) && (prop == exprs)))
-								{									
+								{
 									temp_pointer = new math_obj(name, varbl, defnd, L"", 0, NULL, NULL, NULL);
 									point_up->push_left(new math_obj(temp_pointer));
 									temp_pointer->point_collar = this;
@@ -1884,7 +2071,7 @@ namespace Project {
 										return NULL;
 									}
 									if (temp_pointer->prop == undef)
-									{										
+									{
 										temp_pointer->prop == defnd;
 										point_up->push_left(new math_obj(temp_pointer));
 									}
@@ -2294,9 +2481,15 @@ namespace Project {
 								place = new math_obj((size_t)0);
 								var_list_copy_to_vector_processing(iter->point_collar, place);
 								iter->prop = arg_v;
+								if (iter->prop == undef)
+								{
+									reassing_left_pointers(iter->point_collar);
+									iter->close_list();
+								}
 								place->prop = only_arg_v;
 								iter->point_right = place;
 								var_list_copy_to_vector_processing(place->point_left, var_list);
+
 							}
 						}
 					}
@@ -2306,6 +2499,11 @@ namespace Project {
 					place = new math_obj((size_t)0);
 					var_list_copy_to_vector_processing(point_collar, place);
 					prop = arg_v;
+					if (prop == undef)
+					{
+						reassing_left_pointers(point_collar);
+						close_list();
+					}
 					place->prop = only_arg_v;
 					point_right = place;
 					var_list_copy_to_vector_processing(point_left, var_list);
@@ -2345,7 +2543,12 @@ namespace Project {
 							place = new math_obj((size_t)0);
 							iter->var_list_copy_to_vector(place);
 							iter->prop = arg_v;
-							place->prop = arg_v;
+							if (iter->prop == undef)
+							{
+								reassing_left_pointers(iter->point_collar);
+								iter->close_list();
+							}
+							place->prop = only_arg_v;
 							iter->point_right = place;
 							place->var_list_copy_to_vector(var_list);
 						}
@@ -2551,7 +2754,29 @@ namespace Project {
 				return 0;
 		}
 
-
+		math_obj * math_obj::unvectorize()
+		{
+			if ((type == vectr) && ((prop == exprs) || (prop == funct) || (prop == equat)) && (point_left != NULL))
+			{
+				if ((point_left->point_left != NULL) && (point_left->point_right != NULL) && (point_left->point_left != point_left->point_right->point_left))
+				{
+					//ошибка - несколько различных указателей вектора не указывают на один и тот же объект
+					return NULL;
+				}
+				math_obj * temp = point_left->point_left;
+				vector_destruct();
+				copy(temp);
+				delete temp;
+			}
+			else if ((type == vectr) && (prop == cnst) && (point_left != NULL))
+			{
+				type = cnst;
+				prop = undef;
+				var = 0;
+				vector_destruct();
+			}
+			return this;
+		}
 
 
 
@@ -2641,7 +2866,7 @@ namespace Project {
 			var = _num;
 			point_left = _pl;
 			point_right = _pr;
-			point_collar = _pc;			
+			point_collar = _pc;
 		}
 		//Конструктор копирования
 		math_obj::math_obj(math_obj* var1)
@@ -2658,7 +2883,7 @@ namespace Project {
 		//Деструктор
 		math_obj::~math_obj()
 		{
-			//разобрать возможность использования tree_dust здесь
+
 		}
 		//Метод копирования.
 		void math_obj::copy(math_obj* ref) {
@@ -2686,7 +2911,7 @@ namespace Project {
 		}
 		//Метод get. ИМЯ
 		wstring math_obj::get_name()
-		{			
+		{
 			return name;
 		}
 		//Метод assing. ИМЯ
@@ -2695,9 +2920,8 @@ namespace Project {
 			if ((type == vectr) && (var != 0) && ((prop == funct) || (prop == exprs) || (prop == equat)))
 			{
 				point_left->point_left->name = _name;
-				
 			}
-			name = _name;			
+			name = _name;
 		}
 		//Метод get. ТИП
 		wstring math_obj::get_type()
@@ -2705,6 +2929,10 @@ namespace Project {
 			if ((type == vectr) && (var != 0) && ((prop == funct) || (prop == exprs) || (prop == equat)))
 			{
 				return point_left->point_left->type;
+			}
+			else if ((type == vectr) && (var != 0) && (prop == cnst))
+			{
+				return prop;
 			}
 			//текущий элемет - что угодно другое
 			else
@@ -2720,6 +2948,10 @@ namespace Project {
 				point_left->point_left->type = _type;
 				prop = _type;
 			}
+			else if ((type == vectr) && (var != 0) && (prop == cnst))
+			{
+				//если вектор имеет тип константы, менять его тип таким образом бессмысленно.				
+			}
 			//текущий элемет - что угодно другое
 			else
 			{
@@ -2732,6 +2964,11 @@ namespace Project {
 			if ((type == vectr) && (var != 0) && ((prop == funct) || (prop == exprs) || (prop == equat)))
 			{
 				return point_left->point_left->prop;
+			}
+			else if ((type == vectr) && (var != 0) && (prop == cnst))
+			{
+				//TODO:тут нужно выдавать свойство константных элементов вектора. Могут быть real, cmplx и т.д.
+				return prop;
 			}
 			//текущий элемет - что угодно другое
 			else
@@ -2746,6 +2983,10 @@ namespace Project {
 			{
 				point_left->point_left->prop = _prop;
 			}
+			else if ((type == vectr) && (var != 0) && (prop == cnst))
+			{
+				//если вектор имеет тип константы, менять его свойство таким образом бессмысленно.				
+			}
 			//текущий элемет - что угодно другое
 			else
 			{
@@ -2755,6 +2996,7 @@ namespace Project {
 		//Метод get. ДЕЙСТВИЕ
 		wstring math_obj::get_actn()
 		{
+			//нет никакой необходимости разделять пометку действия над векторными объектами и содержимым этих объектов
 			if ((type == vectr) && (var != 0) && ((prop == funct) || (prop == exprs) || (prop == equat)))
 			{
 				return point_left->point_left->actn;
@@ -2772,11 +3014,7 @@ namespace Project {
 			{
 				point_left->point_left->actn = _acnt;
 			}
-			//текущий элемет - что угодно другое
-			else
-			{
-				actn = _acnt;
-			}
+			actn = _acnt;
 		}
 		//Метод get. ЧИСЛО
 		double math_obj::get_var()
@@ -2976,6 +3214,8 @@ namespace Project {
 			math_obj *temp = vector_create(size_n, begin, end);
 		}
 
+
+
 		/*PRIVATE. Метод создаёт математический объект - вектор длины size_n по строке символов типа wchar_t, имеющей начало begin и конец end.
 		Метод возвращает указатель на созданный экземпляр класса math_obj. Функция вызывает в качестве внутренней функции, а так же рекурсивно, основную функцию заполнения build_tree.
 		NULL в случае какой-либо ошибки, см. error.h.*/
@@ -3022,7 +3262,7 @@ namespace Project {
 						}
 					}
 					name.assign(begin + 1, temp);
-					temp_pointer = new math_obj(&name[0], &name[name.length() - 1], NULL, point_up);					
+					temp_pointer = new math_obj(&name[0], &name[name.length() - 1], NULL, point_up);
 					if (temp_pointer->type == eror)
 					{
 						delete temp_pointer;
@@ -3075,13 +3315,13 @@ namespace Project {
 					else
 						prop = arg_v;
 				}
-				var = size_n;				
+				var = size_n;
 			}
 			return this;
 		}
 
 		/*Конструктор вектора служебных переменных, указывающих на один и тот же объект obj. Полагается что вектор унаследует имя объекта obj.
-		Так же в случае если obj - вектор такой же длины, то служебные переменные будут указывать на элементы первоначального вектора*/
+		*/
 		math_obj::math_obj(size_t size_n, math_obj * obj)
 		{
 			name = obj->name;
@@ -3094,33 +3334,52 @@ namespace Project {
 			point_collar = NULL;
 		}
 
-		/*PRIVATE. Деструктор вектора*/
-		int math_obj::vector_destruct(math_obj* pointer)
+		/*Деструктор вектора*/
+		int math_obj::vector_destruct()
 		{
 			int s = 0;
-			if (pointer->type == vectr)
+			int flag;
+			if ((type == vectr) && ((prop == exprs) || (prop == funct) || (prop == equat)) && (point_left != NULL))
 			{
-				s += vector_destruct(pointer->point_left);
-				delete pointer;
+				flag = 0;
+				s += vector_destruct_processing(point_left, &flag);
+			}
+			else if ((type == vectr) && (point_left != NULL))
+			{
+				flag = 1;
+				s += vector_destruct_processing(point_left, &flag);
 			}
 			else
+				return -1;
+			return s;
+		}
+
+		int math_obj::vector_destruct_processing(math_obj * pointer, int *flag)
+		{
+			int s = 0;//придумать что-нибудь другое
+			if ((pointer->type == varbl) && (pointer->prop == servc))
 			{
-				if (pointer->point_right != NULL)
+				if (*flag)
 				{
-					s += vector_destruct(pointer->point_right);
-					if ((pointer->prop == servc) && (pointer->type == varbl))
-					{
-						s += tree_destruct_processing(pointer->point_left);
-						delete pointer;
-					}
+					//s += tree_dest(pointer->point_left);
 				}
 				else
 				{
-					s += tree_destruct_processing(pointer);
+					//ничего не делать. пока
 				}
 			}
+			else
+			{
+				//s += tree_dest(pointer);
+			}
+			if (pointer->point_right != NULL)
+			{
+				s += vector_destruct_processing(pointer->point_right, flag);
+			}
+			delete pointer;
 			return s;
 		}
+
 		/*PRIVATE. Метод рекурсивно создаёт связный список указанной длинны size из служебных переменных, указывающих на один и тот же объект.*/
 		math_obj* math_obj::convert_to_vector(int size, math_obj*obj)
 		{
@@ -3200,7 +3459,7 @@ namespace Project {
 			}
 			else
 			{
-				int count=0;
+				int count = 0;
 				math_obj*place = vector_at_processing(point_left, &index, &count);
 				if ((place->prop == servc) && (place->type == varbl))
 				{
@@ -3424,7 +3683,7 @@ namespace Project {
 				}
 				else if ((prop == arg_c) || (prop == arg_v))
 				{
-					s += vector_destruct(point_right->point_collar);
+					//s += vector_destruct(point_right->point_collar);
 				}
 			}
 			else if (type == equat)
@@ -3433,7 +3692,7 @@ namespace Project {
 			}
 			else if (type == vectr)
 			{
-				s += vector_destruct(point_left);
+				//s += vector_destruct(point_left);
 			}
 			return s;
 		}
@@ -3469,7 +3728,7 @@ namespace Project {
 			{
 				if ((pointer->name == L"minus") || (pointer->name == L"root"))
 				{
-					temp += vector_destruct(pointer->point_right);
+					//temp += vector_destruct(pointer->point_right);
 				}
 				else
 				{
@@ -3489,7 +3748,7 @@ namespace Project {
 					}
 					else if ((pointer->prop == arg_c) || (pointer->prop == arg_v))
 					{
-						temp += vector_destruct(pointer->point_right);
+						//temp += vector_destruct(pointer->point_right);
 						delete pointer;
 						pointer = NULL;
 						return temp;
@@ -3516,7 +3775,7 @@ namespace Project {
 			else
 				return 0;
 		}
-			
+
 		/*Метод сортирует незамкнутый список переменных по алфавиту*/
 		math_obj* math_obj::sort_list(math_obj * var_list)
 		{
@@ -3554,7 +3813,7 @@ namespace Project {
 				temp->var = 0;
 				reassing_left_pointers(temp);
 				var_list_number(temp);
-				return  ;
+				return;
 			}
 			else
 			{
@@ -3607,8 +3866,8 @@ namespace Project {
 				reassing_left_pointers(pointer->point_right);
 			}
 		}
-		
-		
+
+
 
 
 
@@ -3646,7 +3905,7 @@ namespace Project {
 		}
 
 		int data_list::size_rec(data_list * pointer, bool* flag)
-		{			
+		{
 			if (*flag) //если 1
 			{
 				if (pointer->right != NULL)
@@ -3664,7 +3923,7 @@ namespace Project {
 				}
 				else
 					return 1;
-			}			
+			}
 		}
 
 		data_list::data_list()
@@ -3677,7 +3936,7 @@ namespace Project {
 
 		data_list::data_list(wstring* _in)
 		{
-			
+
 			in = *_in;
 			index = 0;
 			left = nullptr;
@@ -3699,12 +3958,12 @@ namespace Project {
 			if (index != 0)
 			{
 				return 0;
-			}			
+			}
 			data_list*place = back();
 			place->right = pointer;
 			place->right->left = place;
 			place->right->index = place->index + 1;
-			return 1;		
+			return 1;
 		}
 
 		int data_list::push_left(math_obj * pointer)
@@ -3713,10 +3972,10 @@ namespace Project {
 			if (zero == NULL)
 				return 0;
 			data_list * temp = zero->left;
-			zero->left = new data_list(L"",pointer);	
+			zero->left = new data_list(L"", pointer);
 			zero->left->right = zero;
 			zero->left->left = temp;
-			if (temp!=NULL)
+			if (temp != NULL)
 				temp->right = zero->left;
 		}
 
@@ -3751,7 +4010,7 @@ namespace Project {
 		{
 			if (index != 0)
 				return nullptr;
-			else if ((right != NULL) && (place>0))
+			else if ((right != NULL) && (place > 0))
 				return at_rec(&place, right);
 			else if (place == 0)
 				return this;
@@ -3786,7 +4045,7 @@ namespace Project {
 
 		math_obj * data_list::find_math_obj(wstring* name)
 		{
-			if ((math!=NULL)&&(name->compare(math->name) == 0))
+			if ((math != NULL) && (name->compare(math->name) == 0))
 				return math;
 			else if (left != NULL)
 				return left->find_math_obj(name);
@@ -3815,17 +4074,17 @@ namespace Project {
 			}
 			return 1;
 		}
-		
+
 		int data_list::size_s()
 		{
 			int out = 0;
 			bool flag = true;
-			if (index!=0)
+			if (index != 0)
 				return -1;
 			if (right != NULL)
 			{
 				out += size_rec(right, &flag);
-				
+
 			}
 			return out;
 		}

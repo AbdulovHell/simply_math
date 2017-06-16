@@ -179,7 +179,7 @@ namespace Project {
 
 
 
-
+			
 
 			/*PRIVATE. Рекурсия для tree_destruct*/
 			int tree_destruct_processing(math_obj* pointer);
@@ -212,8 +212,8 @@ namespace Project {
 			void var_list_collar(math_obj* pointer, math_obj*original);
 			/*PRIVATE. Метод возвращает указатель на аргумент соответствующий найденной переменной*/
 			//math_obj* get_arg_for_var(math_obj*pointer, math_obj*arg);
-			/*PRIVATE. Деструктор вектора*/
-			int vector_destruct(math_obj* pointer);
+			/*PRIVATE. Рекурсия для vector_destruct.*/
+			int vector_destruct_processing(math_obj* pointer, int *flag);
 
 			math_obj* vector_create(int size_n, wchar_t*begin, wchar_t*end);
 
@@ -312,6 +312,10 @@ namespace Project {
 			int vector_size();
 			/*Метод возвращает указатель на последний элемент вектора*/
 			math_obj* vector_back();
+
+			/*Деструктор вектора*/
+			int vector_destruct();
+
 			/*Метод добавляет элемент pointer в конец вектора. Полагается, что pointer - независимая копия какого либо элемента.
 			-1 в случае ошибки*/
 			int vector_push_back(math_obj*pointer);
@@ -400,6 +404,8 @@ namespace Project {
 			int var_list_push_back(math_obj*pointer);
 
 			wchar_t* brackets_close(wchar_t* brackets_open, wchar_t*end);
+
+			math_obj * unvectorize();
 
 			enum class variable_type {
 				INTEGER,

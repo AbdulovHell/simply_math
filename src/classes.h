@@ -13,45 +13,51 @@ namespace Project {
 	namespace Core {
 		using namespace std;
 		using namespace Project;
-#define eror L"error"
-#define cnst L"const"
-#define funct  L"funct"
-#define varbl  L"varbl"
-#define equat  L"equat"
-#define exprs  L"exprs"
-#define numbr  L"numbr"
-#define addit  L"oper+"
-#define minus  L"oper-"
-#define mltpl  L"oper*"
-#define divis  L"oper/"
-#define power  L"oper^"
-#define vectr L"vectr" //так же является свойством (prop) опредлённых defnd векторных функций и констант, а так же константных векторных выражений
-#define matrx L"matrx"
-		//свойства обЪектов (prop)		
-#define defnd  L"defnd"  //общее свойство
-#define undef  L"undef"  //общее свойство
 
-#define arg_c  L"arg_c" //функция/вектор с константными аргументами
-#define arg_v  L"arg_v" //функция/вектор с переменными аргументами 
-//#define arg_f  L"arg_f" //функция/вектор с функциональными аргументами 
-#define vectr_arg_c L"v_a_c" //свойство векторной функции с константными аргументами
-#define vectr_arg_v L"v_a_v"//свойство векторной функции с переменными аргументами
-//#define vectr_arg_f L"v_a_f"//свойство векторной функции с функциональными аргументами
-#define only_arg_v  L"arg_vo" //свойство вектора, содержащего только переменные
+		enum class types_props :short
+		{
+			error = -10,
+			nthng = -100,
+			//типы мат. объектов
+			matrx = -7,
+			vectr = -6,
+			exprs = -5,
+			equat = -4,
+			funct = -3,
+			varbl = -2,
+			cnst = -1,
+			numbr = 0,
+			//типы операций
+			addit = 1,
+			minus = 2,
+			mltpl = 3,
+			divis = 4,
+			power = 5,
+			//свойства
+			defnd = 6,			//общее свойство
+			undef = 7,			//общее свойство
+			arg_v = 8,			//функция/вектор с переменными аргументами 
+			arg_c = 9,			//функция/вектор с константными аргументами
+			only_arg_v = 10,	//свойство вектора, содержащего только переменные
 
-#define fundm  L"fundm"	//Фундаментальная константа
+			fundm = 11,			//свойства фундаметальных объектов: констант, натуральных функций и т.д.
 
-#define unslv  L"unslv"	//свойство уравнений и функций от конст выражений
-#define solvd  L"solvd"	//свойство уравнений и функций от конст выражений
+			unslv = 12,			//свойства уравнений
+			solvd = 13,			//свойства уравнений
 
-#define real L"real_"	//свойства чисел
-#define cmplx L"cmplx"	//свойства чисел
+			real = 14,			//свойство чисел, констант, возможно, функций
+			cmplx = 15,			//свойство чисел, констант, возможно, функций
+			qwtrn = 16,			//свойство чисел, констант, возможно, функций
 
-#define servc  L"servc"	//свойство служебных объектов
-								 //действия над объектами (actn)
-#define solve  L"solve"
-#define write  L"write"
-//#define read  L"read_"
+			servc = 20,			//свойство для служебных объектов
+			//действия
+			solve = 17,
+			write = 18,
+			read = 19
+
+
+
+		};
 
 		class math_obj;
 
@@ -167,14 +173,14 @@ namespace Project {
 			NULL в случае какой-либо ошибки, см. error.h.*/
 			math_obj* build_tree(wchar_t* pDest, wchar_t*endPtr);
 
-			math_obj *operations(math_obj *high, math_obj *low, wstring op_type);
+			math_obj *operations(math_obj *high, math_obj *low, types_props op_type);
 			/*PRIVATE.Метод возвращает приоритет операции, по указателю на строку с названием типа.
 			1 - сложение/вычитание
 			2 - умножение
 			3 - деление
 			4 - возведение в степень
 			0 - не операция*/
-			int priority(wstring *op_type);
+			int priority(types_props *op_type);
 
 
 
@@ -224,13 +230,13 @@ namespace Project {
 			//Конструктор записывает (ИМЯ объекта, ЧИСЛО типа double) 
 			math_obj(wstring _name, double _num);
 			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ЧИСЛО типа double) 
-			math_obj(wstring _name, wstring _type, wstring _prop, double _num);
+			math_obj(wstring _name, types_props _type, types_props _prop, double _num);
 			//Конструктор записывает (ТИП объекта, СВОЙСТВО объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "воротник") 
-			math_obj(wstring _type, wstring _prop, double _num, math_obj *_pc);
+			math_obj(types_props _type, types_props _prop, double _num, math_obj *_pc);
 			//Конструктор записывает (ТИП объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник") 
-			math_obj(wstring _type, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
+			math_obj(types_props _type, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
 			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ДЕЙСТВИЕ над объектом (указание), ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник") 
-			math_obj(wstring _name, wstring _type, wstring _prop, wstring _actn, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
+			math_obj(wstring _name, types_props _type, types_props _prop, types_props _actn, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
 			//Конструктор копирования
 			math_obj(math_obj* var1);
 
@@ -342,36 +348,36 @@ namespace Project {
 
 			/*Метод преобразует текущий элемент с заданными параметрами (ТИП объекта, СВОЙСТВО объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "воротник").
 			Если текущий элемент - вектор, все элементы которого указывают на один и тот же объект, преобразуется так же объект*/
-			void convert_to(wstring _type, wstring _prop, double _num, math_obj *_pc);
+			void convert_to(types_props _type, types_props _prop, double _num, math_obj *_pc);
 			/*Метод ПОЛНОСТЬЮ преобразует this с заданными параметрами (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ДЕЙСТВИЕ над объектом (указание), ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник").
 			Если текущий элемент - вектор, все элементы которого указывают на один и тот же объект, преобразуется так же объект*/
-			void convert_totaly(wstring _name, wstring _type, wstring _prop, wstring _actn, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
+			void convert_totaly(wstring _name, types_props _type, types_props _prop, types_props _actn, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
 
 
 			//Метод get. ТЕКУЩИЙ ЭЛЕМЕНТ
 			math_obj*get_this();
 
-
+			
 			//Метод get. ИМЯ
 			wstring get_name();
 			//Метод assing. ИМЯ
 			void assing_name(wstring _name);
 
 			//Метод get. ТИП
-			wstring get_type();
+			types_props get_type();
 			//Метод assing. ТИП
-			void assing_type(wstring _type);
+			void assing_type(types_props _type);
 
 			//Метод get. СВОЙСТВО
-			wstring get_prop();
+			types_props get_prop();
 			//Метод assing. СВОЙСТВО
-			void assing_prop(wstring _prop);
+			void assing_prop(types_props _prop);
 
 
 			//Метод get. ДЕЙСТВИЕ
-			wstring get_actn();
+			types_props get_actn();
 			//Метод assing. ДЕЙСТВИЕ
-			void assing_actn(wstring _acnt);
+			void assing_actn(types_props _acnt);
 
 
 			//Метод get. ЧИСЛО
@@ -417,9 +423,9 @@ namespace Project {
 			};
 
 			wstring name;
-			wstring type;
-			wstring prop;
-			wstring actn;
+			types_props type;
+			types_props prop;
+			types_props actn;
 			double var;
 			//double arg; //может пригодится.
 			//int exp;

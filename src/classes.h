@@ -14,9 +14,9 @@ namespace Project {
 		using namespace std;
 		using namespace Project;
 
-		enum class types_props :short
+		enum class flags : short
 		{
-			error = -10,
+			error = -10,//данный флаг поднимается в поле свойств
 			nthng = -100,
 			//типы мат. объектов
 			matrx = -7,
@@ -54,9 +54,6 @@ namespace Project {
 			solve = 17,
 			write = 18,
 			read = 19
-
-
-
 		};
 
 		class math_obj;
@@ -125,13 +122,13 @@ namespace Project {
 			Метод возвращает:
 			- 0 - строки совпадают
 			- разницу между первыми различными символами*/
-			int compare_in(wstring original);
+			int compare_in(wstring *original);
 
 			/*Метод сравнения строки out (вывод) с заданной строкой. Аналогичен методу compare класса wstring
 			Метод возвращает:
 			- 0 - строки совпадают
 			- разницу между первыми различными символами*/
-			int compare_out(wstring original);
+			int compare_out(wstring *original);
 
 			/*Метод рекурсивно выполняет поиск по строке name в списке данных.
 			Метод возвращает:
@@ -172,29 +169,28 @@ namespace Project {
 			Метод возвращает указатель на созданный экземпляр класса math_obj, представляющий собой верхушку (корень) дерева, либо на копию уже созданного экземпляра.
 			NULL в случае какой-либо ошибки, см. error.h.*/
 			math_obj* build_tree(wchar_t* pDest, wchar_t*endPtr);
-
-			math_obj *operations(math_obj *high, math_obj *low, types_props op_type);
+			/*PRIVATE.Метод создаёт мат. объект - мат. операцию, в соответствии с op_type, и записывает на нужное место в дереве high, с учётом low.
+			Метод возвращает указатель на созданную операцию.*/
+			math_obj *operations(math_obj *high, math_obj *low, flags op_type);
 			/*PRIVATE.Метод возвращает приоритет операции, по указателю на строку с названием типа.
 			1 - сложение/вычитание
 			2 - умножение
 			3 - деление
 			4 - возведение в степень
 			0 - не операция*/
-			int priority(types_props *op_type);
+			int priority(flags *op_type);
 
 
 
 
-			
+			math_obj* math_simplify_processing();
+
+			wstring expression_processing();
 
 			/*PRIVATE. Рекурсия для tree_destruct*/
 			int tree_destruct_processing(math_obj* pointer);
 			/*PRIVATE. Рекурсия для prioritize*/
-			math_obj *prioritize_processing(math_obj *pc, int *current_priority);
-			/*PRIVATE. Рекурсия для arithmetic*/
-			//double arithmetic_processing(math_obj *pointer, math_obj * last_arg, math_obj *arg);
-			/*PRIVATE. Рекурсия для expresion*/
-			//wstring expression_processing(math_obj *pointer, int* comma);
+			math_obj *prioritize_processing(math_obj *pc, int *current_priority);			
 			/*PRIVATE. Рекурсия для var_list_back*/
 			math_obj *vector_back_processing(math_obj *pointer);
 			/*PRIVATE. Рекурсия для find_by_name*/
@@ -215,12 +211,12 @@ namespace Project {
 			/*PRIVATE. Нумерация переменных по порядку.*/
 			void var_list_number(math_obj* pointer);
 			/*PRIVATE. Установка указателей point_collar для НЕЗАМКНУТОГО списка переменных на функцию*/
-			void var_list_collar(math_obj* pointer, math_obj*original);
-			/*PRIVATE. Метод возвращает указатель на аргумент соответствующий найденной переменной*/
-			//math_obj* get_arg_for_var(math_obj*pointer, math_obj*arg);
+			void var_list_collar(math_obj* pointer, math_obj*original);			
 			/*PRIVATE. Рекурсия для vector_destruct.*/
 			int vector_destruct_processing(math_obj* pointer, int *flag);
-
+			/*PRIVATE. Метод создаёт математический объект - вектор длины size_n по строке символов типа wchar_t, имеющей начало begin и конец end.
+			Метод возвращает указатель на созданный экземпляр класса math_obj. Функция вызывает в качестве внутренней функции, а так же рекурсивно, основную функцию заполнения build_tree.
+			NULL в случае какой-либо ошибки, см. error.h.*/
 			math_obj* vector_create(int size_n, wchar_t*begin, wchar_t*end);
 
 
@@ -230,13 +226,13 @@ namespace Project {
 			//Конструктор записывает (ИМЯ объекта, ЧИСЛО типа double) 
 			math_obj(wstring _name, double _num);
 			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ЧИСЛО типа double) 
-			math_obj(wstring _name, types_props _type, types_props _prop, double _num);
+			math_obj(wstring _name, flags _type, flags _prop, double _num);
 			//Конструктор записывает (ТИП объекта, СВОЙСТВО объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "воротник") 
-			math_obj(types_props _type, types_props _prop, double _num, math_obj *_pc);
+			math_obj(flags _type, flags _prop, double _num, math_obj *_pc);
 			//Конструктор записывает (ТИП объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник") 
-			math_obj(types_props _type, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
+			math_obj(flags _type, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
 			//Конструктор записывает (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ДЕЙСТВИЕ над объектом (указание), ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник") 
-			math_obj(wstring _name, types_props _type, types_props _prop, types_props _actn, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
+			math_obj(wstring _name, flags _type, flags _prop, flags _actn, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
 			//Конструктор копирования
 			math_obj(math_obj* var1);
 
@@ -273,24 +269,20 @@ namespace Project {
 			Возвращает указатель на элемент дерева (операцию), имеющий приоритет меньший или равный в сравнении с текущим элементом. */
 			math_obj* prioritize(int current_priority);
 
+			bool math_simplify();
 
+			wstring expression();
 
-			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и коструирующую строку с формальной записью текущего выражения.
-			Возвращает строку. ПОКА НЕ РАБОТАЕТ*/
-			//wstring expresion(int comma);
+			
 
-			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и выполняющую их.
-			Результатом работы метода является запись результата вычислений в double var текущего элемента класса. */
-			//void arithmetic();
+			
 			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и очищающую память.
 			Метод должен возвращать число ошибок при использовании delete. Это надо дописать
 			*/
 			int tree_destruct();
 			/*Метод возвращаяет указатель на элемент списка с данным именем*/
 			math_obj* find_by_name(math_obj*pointer);
-			/*Метод возвращает указатель на последний элемент списка переменных.
-			Если список уже замкнут - на элемент предшествующий нулевому (подобный запрос никогда не должен возникать).*/
-			//math_obj* var_list_back();
+			
 			/*Метод сравнивает список аргументов (хотя бы один из которых переменная) обхекта pointer (функции, вектора или матрицы) со списком переменных данной функции.
 			Метод возвращает:
 			0 - список переменных pointer полностью входит в список переменных данной функции.
@@ -309,9 +301,7 @@ namespace Project {
 
 			/*Метод сортирует незамкнутый список переменных по алфавиту*/
 			math_obj * sort_list(math_obj * var_list);
-			/*Медод определения функции. Создаёт список переменных, от которых зависит функция, основываясь на списке переменных и аргументов функции pointer.*/
-			//void funct_define(math_obj *pointer);
-
+			
 			/*Метод возвращает указатель на элемент списка с номером index.*/
 			math_obj* vector_at(int index);
 			/*Метод возвращает количество элементов списка.*/
@@ -331,9 +321,7 @@ namespace Project {
 			/*Метод вставляет с заменой в вектор элемент на место index, при условии что index существует.
 			-1 в случае ошибки*/
 			int vector_assing_at(math_obj*pointer, int index);
-			/*Метод добавляет элемент в конец вектора аргументов функции.
-			-1 в случае ошибки*/
-			//int funct_arg_push_back(math_obj*pointer);
+			
 			/*Метод преобразует односвязный список в двусвязный*/
 			void double_lincked_vector();
 			//Метод вызывает рекурсивную функцию установки указателей point_collar для НЕЗАМКНУТОГО списка переменных на текущий экземпляр класса
@@ -348,10 +336,10 @@ namespace Project {
 
 			/*Метод преобразует текущий элемент с заданными параметрами (ТИП объекта, СВОЙСТВО объекта, ЧИСЛО типа double, УКАЗАТЕЛЬ "воротник").
 			Если текущий элемент - вектор, все элементы которого указывают на один и тот же объект, преобразуется так же объект*/
-			void convert_to(types_props _type, types_props _prop, double _num, math_obj *_pc);
+			void convert_to(flags _type, flags _prop, double _num, math_obj *_pc);
 			/*Метод ПОЛНОСТЬЮ преобразует this с заданными параметрами (ИМЯ объекта, ТИП объекта, СВОЙСТВО объекта, ДЕЙСТВИЕ над объектом (указание), ЧИСЛО типа double, УКАЗАТЕЛЬ "левый рукав", УКАЗАТЕЛЬ "правый рукав", УКАЗАТЕЛЬ "воротник").
 			Если текущий элемент - вектор, все элементы которого указывают на один и тот же объект, преобразуется так же объект*/
-			void convert_totaly(wstring _name, types_props _type, types_props _prop, types_props _actn, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
+			void convert_totaly(wstring _name, flags _type, flags _prop, flags _actn, double _num, math_obj * _pl, math_obj *_pr, math_obj *_pc);
 
 
 			//Метод get. ТЕКУЩИЙ ЭЛЕМЕНТ
@@ -364,20 +352,20 @@ namespace Project {
 			void assing_name(wstring _name);
 
 			//Метод get. ТИП
-			types_props get_type();
+			flags get_type();
 			//Метод assing. ТИП
-			void assing_type(types_props _type);
+			void assing_type(flags _type);
 
 			//Метод get. СВОЙСТВО
-			types_props get_prop();
+			flags get_prop();
 			//Метод assing. СВОЙСТВО
-			void assing_prop(types_props _prop);
+			void assing_prop(flags _prop);
 
 
 			//Метод get. ДЕЙСТВИЕ
-			types_props get_actn();
+			flags get_actn();
 			//Метод assing. ДЕЙСТВИЕ
-			void assing_actn(types_props _acnt);
+			void assing_actn(flags _acnt);
 
 
 			//Метод get. ЧИСЛО
@@ -408,9 +396,12 @@ namespace Project {
 			В том числе и для векторных/матричных.
 			-1 в случае ошибки.*/
 			int var_list_push_back(math_obj*pointer);
-
+			/*Метод ищет в заданной строке начиная с места brackets_open соответствующую закрывающую скобку.
+			Метод возвращает указатель на нужное место в строке.
+			NULL в случае ошибки.*/
 			wchar_t* brackets_close(wchar_t* brackets_open, wchar_t*end);
-
+			/*Метод преобразует векторное выражение или функцию в скалярное.
+			NULL в случае ошибки*/
 			math_obj * unvectorize();
 
 			enum class variable_type {
@@ -423,9 +414,9 @@ namespace Project {
 			};
 
 			wstring name;
-			types_props type;
-			types_props prop;
-			types_props actn;
+			flags type;
+			flags prop;
+			flags actn;
 			double var;
 			//double arg; //может пригодится.
 			//int exp;

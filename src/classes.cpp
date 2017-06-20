@@ -48,7 +48,7 @@ namespace Project {
 					- использовать try при вызове конструктора и останавливать его вылетом. Потребуется сразу очищать память от ошибочного дереа операций.
 					- всегда предполагать работу конструктора корректной, даже в случае ошибки, но присваивать ему type = err и потом обрабатывать ошибочный экземпляр класса (чистить память и т.д.).
 						Можно будет попытаться сделать деструктор, который будет удалять нужное*/
-					type = flags::error;
+					prop = flags::error;
 				}
 				//больше ничего тут делать не надо. Если ошибок не было - конструктор выдаст какой-либо элемент
 			}
@@ -61,7 +61,7 @@ namespace Project {
 				math_obj* left = build_tree(&str_left[0], &str_left[str_left.length() - 1]);
 				if (left == NULL)
 				{
-					type = flags::error;
+					prop = flags::error;
 				}
 				else
 				{
@@ -77,7 +77,7 @@ namespace Project {
 					{
 						if ((actn == flags::write) || ((type == flags::varbl) && (prop == flags::undef)))
 						{
-							type = flags::error;
+							prop= flags::error;
 						}
 						/*Запрос на действие:
 						- type == funct, prop == undef - запрос на "упрощение" выражения для неявно заданной функции.
@@ -100,15 +100,15 @@ namespace Project {
 						math_obj* right = new math_obj(&str_right[0], &str_right[str_right.length() - 1], t_p, point_up);
 						//отсеяли ошибочный элемент
 						double buf;
-						if (right->type == flags::error)
+						if (right->prop == flags::error)
 						{
-							type = flags::error;
+							prop = flags::error;
 							//попытаться сделать деструктор, который будет удалять нужное
 							delete right;
 						}
 						else if ((right->type == flags::funct) && (right->actn == flags::write))
 						{
-							type = flags::error;
+							prop = flags::error;
 							ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
 							delete right;
 						}
@@ -119,14 +119,14 @@ namespace Project {
 							//если справа от равно находится константное выражение, функция с конст аргументами или вектор имеющий только константные элементы (но не сами константы и конст векторы с именем) или определённая заранее переменная - ошибка
 							if ((get_type() == flags::exprs) || (get_type() == flags::numbr) || ((get_type() == flags::funct) && (get_prop() == flags::arg_c)) || ((type == flags::vectr) && (prop == flags::arg_c)))
 							{
-								type = flags::error;
+								prop = flags::error;
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::BOOL_EXPRESSION);
 								delete left;
 							}
 							//слева от равно заранее определённая переменная. поскольку переменные задаются неявно и используются в функциях, их нельзя переопределять в качестве констант.
 							else if ((type == flags::varbl) && (prop == flags::defnd))
 							{
-								type = flags::error;
+								prop = flags::error;
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::USING_VAR_AS_CONST);
 								delete left;
 							}
@@ -137,7 +137,7 @@ namespace Project {
 								{
 									if (unvectorize() == NULL)
 									{
-										type = flags::error;
+										prop = flags::error;
 										delete right;
 									}
 								}
@@ -177,7 +177,7 @@ namespace Project {
 								//если справа и слева веторные объекты и их размерность не совпадает - ошибка
 								if ((type == flags::vectr) && (right->type == flags::vectr) && (var != right->var))
 								{
-									type = flags::error;
+									prop = flags::error;
 									ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTOR_DIMENSIONS);
 									delete right;
 								}
@@ -234,7 +234,7 @@ namespace Project {
 								{
 									if (unvectorize() == NULL)
 									{
-										type = flags::error;
+										prop = flags::error;
 										delete right;
 									}
 								}
@@ -248,7 +248,7 @@ namespace Project {
 								//если справа и слева стоит одно и тоже буквосочетание
 								if (name.compare(right->name) == 0)
 								{
-									type = flags::error;
+									prop = flags::error;
 									ProjectError::SetProjectLastError(ProjectError::ErrorCode::USING_VAR_AS_FUNC);
 									delete right;
 								}
@@ -271,7 +271,7 @@ namespace Project {
 								{
 									if (unvectorize() == NULL)
 									{
-										type = flags::error;
+										prop = flags::error;
 										delete right;
 									}
 								}
@@ -307,7 +307,7 @@ namespace Project {
 								//если справа и слева веторные объекты и их размерность не совпадает - ошибка
 								if ((type == flags::vectr) && (right->type == flags::vectr) && (var != right->var))
 								{
-									type = flags::error;
+									prop = flags::error;
 									ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTOR_DIMENSIONS);
 									delete right;
 								}
@@ -331,7 +331,7 @@ namespace Project {
 								{
 									if (unvectorize() == NULL)
 									{
-										type = flags::error;
+										prop = flags::error;
 										delete right;
 									}
 								}
@@ -390,7 +390,7 @@ namespace Project {
 									{
 										if (unvectorize() == NULL)
 										{
-											type = flags::error;
+											prop = flags::error;
 											delete right;
 										}
 									}
@@ -423,7 +423,7 @@ namespace Project {
 									//если справа и слева веторные объекты и их размерность не совпадает - ошибка
 									if ((type == flags::vectr) && (right->type == flags::vectr) && (var != right->var))
 									{
-										type = flags::error;
+										prop = flags::error;
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTOR_DIMENSIONS);
 										delete right;
 									}
@@ -448,7 +448,7 @@ namespace Project {
 								{
 									if (unvectorize() == NULL)
 									{
-										type = flags::error;
+										prop = flags::error;
 										delete right;
 									}
 								}
@@ -570,7 +570,7 @@ namespace Project {
 		Данный метод в общем случае может быть рекурсивен.
 		Метод возвращает указатель на созданный экземпляр класса math_obj, представляющий собой верхушку (корень) дерева, либо на копию уже созданного экземпляра.
 		NULL в случае какой-либо ошибки, см. error.h.*/
-		math_obj* math_obj::build_tree(wchar_t* pDest, wchar_t*endPtr)
+		math_obj* math_obj::build_tree(wchar_t* strPtr, wchar_t*endPtr)
 		{
 			unsigned int count, comma, iter;
 			int count_var;
@@ -581,16 +581,17 @@ namespace Project {
 			wchar_t* temp/*, *temp_2*/;
 			wstring temp_str, name_str;
 			double buf;
+			wchar_t* s_iter = strPtr;
 			//math_obj* current_element = this;
-			while (pDest <= endPtr)
+			while (s_iter <= endPtr)
 			{
-				if ((*pDest == '1') || (*pDest == '2') || (*pDest == '3') || (*pDest == '4') || (*pDest == '5') || (*pDest == '6') || (*pDest == '7') || (*pDest == '8') || (*pDest == '9') || (*pDest == '0'))
+				if ((*s_iter == '1') || (*s_iter == '2') || (*s_iter == '3') || (*s_iter == '4') || (*s_iter == '5') || (*s_iter == '6') || (*s_iter == '7') || (*s_iter == '8') || (*s_iter == '9') || (*s_iter == '0'))
 				{
 					// если данное число первое в записи выражения
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						//создание элемента класса и запись числа, воротник -> константу
-						point_left = new math_obj(flags::numbr, flags::real, wcstod(pDest, &pDest), NULL);
+						point_left = new math_obj(flags::numbr, flags::real, wcstod(s_iter, &s_iter), NULL);
 						//оба указателя -> на число, тебуется для проверки условия при записи операции
 						low_pointer = point_left;
 						high_pointer = low_pointer;
@@ -599,71 +600,75 @@ namespace Project {
 					else
 					{
 						//создание элемента класса и запись числа, воротник -> пред операцию 
-						high_pointer->point_right = new math_obj(flags::numbr, flags::real, wcstod(pDest, &pDest), NULL);
+						high_pointer->point_right = new math_obj(flags::numbr, flags::real, wcstod(s_iter, &s_iter), NULL);
 						low_pointer = high_pointer->point_right;
 					}
 				}
-				else if (*pDest == '+')
+				else if (*s_iter == '+')
 				{
 					high_pointer = operations(high_pointer, low_pointer, flags::addit);
-					pDest++;
-					temp = wcspbrk(pDest, L")+-*^/=,");
-					if (pDest == temp)
+					//low_pointer = high_pointer->point_left;
+					s_iter++;
+					temp = wcspbrk(s_iter, L")+-*^/=,");
+					if (s_iter == temp)
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
 						return NULL;
 					}
 				}
-				else if (*pDest == '*')
+				else if (*s_iter == '*')
 				{
 					high_pointer = operations(high_pointer, low_pointer, flags::mltpl);
-					pDest++;
-					temp = wcspbrk(pDest, L")+-*^/=,");
-					if (pDest == temp)
+					//low_pointer = high_pointer->point_left;
+					s_iter++;
+					temp = wcspbrk(s_iter, L")+-*^/=,");
+					if (s_iter == temp)
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
 						return NULL;
 					}
 				}
-				else if (*pDest == '/')
+				else if (*s_iter == '/')
 				{
 					high_pointer = operations(high_pointer, low_pointer, flags::divis);
-					pDest++;
-					temp = wcspbrk(pDest, L")+-*^/=,");
-					if (pDest == temp)
+					//low_pointer = high_pointer->point_left;
+					s_iter++;
+					temp = wcspbrk(s_iter, L")+-*^/=,");
+					if (s_iter == temp)
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
 						return NULL;
 					}
 				}
-				else if (*pDest == '^')
+				else if (*s_iter == '^')
 				{
 					high_pointer = operations(high_pointer, low_pointer, flags::power);
-					pDest++;
-					temp = wcspbrk(pDest, L")+-*^/=,");
-					if (pDest == temp)
+					//low_pointer = high_pointer->point_left;
+					s_iter++;
+					temp = wcspbrk(s_iter, L")+-*^/=,");
+					if (s_iter == temp)
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
 						return NULL;
 					}
 				}
-				else if (*pDest == '-')
+				else if (*s_iter == '-')
 				{
 					//минус - просто отдельная операция. если минус оказался вначале строчки - предполагается вычитание из нуля
-					high_pointer = operations(high_pointer, low_pointer, flags::minus);
+					high_pointer = operations(high_pointer, low_pointer, flags::minus);		
 					if (low_pointer == NULL)
 						low_pointer = high_pointer->point_left;
-					pDest++;
-					temp = wcspbrk(pDest, L")+-*^/=,");
-					if (pDest == temp)
+					s_iter++;
+					temp = wcspbrk(s_iter, L")+-*^/=,");
+					if (s_iter == temp)
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
 						return NULL;
 					}
 				}
-				else if (*pDest == '(')
+				else if (*s_iter == '(')
 				{
-					temp = pDest;
+					temp = s_iter;
 					count = 1;
 					comma = 0;
 					while (count != 0)
@@ -694,7 +699,7 @@ namespace Project {
 								comma++;
 						}
 					}
-					if (pDest + 1 == temp)
+					if (s_iter + 1 == temp)
 					{
 						//пустая строка в скобках. Считаестя нулём. 5*() = 0
 						//скобка открывается в начале строки
@@ -727,9 +732,9 @@ namespace Project {
 					else if (comma != 0)
 					{
 						//сразу же считаем содержимое скобок вектором
-						temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
+						temp_str.assign(s_iter, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
 						temp_pointer = new math_obj(comma + 1, &temp_str[0], &temp_str[temp_str.length() - 1], point_up);
-						if (temp_pointer->type == flags::error)
+						if (temp_pointer->prop == flags::error)
 						{
 							temp_pointer->vector_destruct();
 							delete temp_pointer;
@@ -868,7 +873,7 @@ namespace Project {
 					//если в скобках не было запятых. Точнее не было запятых на "первом уровне" скобок
 					else
 					{
-						temp_str.assign(pDest + 1, temp);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки НЕ находились в строке.
+						temp_str.assign(s_iter + 1, temp);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки НЕ находились в строке.
 						temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
 						if (temp_pointer->prop == flags::error)
 						{
@@ -1237,34 +1242,34 @@ namespace Project {
 						}
 					}
 					//сразу переходим к следующей позиции после скобки					
-					pDest = temp + 1;
-					if ((*pDest == '(') || (*pDest == ','))
+					s_iter = temp + 1;
+					if ((*s_iter == '(') || (*s_iter == ','))
 					{
 						//по идее запись вида )( может означать )*(. Потом добавть сюда определение для подобного случая
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
 						return NULL;
 					}
 				}
-				else if (*pDest == '[')
+				else if (*s_iter == '[')
 				{
 					//векторное произведение
 				}
 				//случай с символами в строке
 				else
 				{
-					temp = wcspbrk(pDest, L"()+-*^/");
+					temp = wcspbrk(s_iter, L"()+-*^/");
 					//если строчка начинается с cимвола
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						if (temp == NULL)
 						{
-							name_str.assign(pDest, endPtr + 1);
-							pDest = endPtr + 1;
+							name_str.assign(s_iter, endPtr + 1);
+							s_iter = endPtr + 1;
 						}
 						else
 						{
-							name_str.assign(pDest, temp);
-							pDest = temp;
+							name_str.assign(s_iter, temp);
+							s_iter = temp;
 						}
 						high_pointer = point_up->find_math_obj(&name_str);
 						//если не найден ни один элемент массива мат объектов с таким именем
@@ -1284,10 +1289,10 @@ namespace Project {
 								{
 									return NULL;
 								}
-								//pDest указывает на открывающую скобку, temp - на закрывающую
-								temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
+								//s_iter указывает на открывающую скобку, temp - на закрывающую
+								temp_str.assign(s_iter, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
 								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], (math_obj*)NULL, point_up);
-								if (temp_pointer->type == flags::error)
+								if (temp_pointer->prop == flags::error)
 								{
 									delete temp_pointer;
 									return NULL;
@@ -1337,7 +1342,7 @@ namespace Project {
 								}
 								high_pointer = this;
 								low_pointer = high_pointer;
-								pDest = temp + 1;
+								s_iter = temp + 1;
 							}
 							//после буквосочетания идут операции
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
@@ -1408,10 +1413,10 @@ namespace Project {
 								//строка заканчивается скобкой
 								else
 								{
-									//pDest указывает на открывающую скобку, temp - на закрывающую
-									temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
+									//s_iter указывает на открывающую скобку, temp - на закрывающую
+									temp_str.assign(s_iter, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
 									temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
-									if (temp_pointer->type == flags::error)
+									if (temp_pointer->prop == flags::error)
 									{
 										delete temp_pointer;
 										return NULL;
@@ -1456,7 +1461,7 @@ namespace Project {
 									}
 									high_pointer = this;
 									low_pointer = high_pointer;
-									pDest = temp + 1;
+									s_iter = temp + 1;
 								}
 
 							}
@@ -1523,10 +1528,10 @@ namespace Project {
 									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
 									return NULL;
 								}
-								//pDest указывает на открывающую скобку, temp - на закрывающую
-								temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
+								//s_iter указывает на открывающую скобку, temp - на закрывающую
+								temp_str.assign(s_iter, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
 								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
-								if (temp_pointer->type == flags::error)
+								if (temp_pointer->prop == flags::error)
 								{
 									delete temp_pointer;
 									return NULL;
@@ -1579,7 +1584,7 @@ namespace Project {
 								}
 								high_pointer = this;
 								low_pointer = high_pointer;
-								pDest = temp + 1;
+								s_iter = temp + 1;
 							}
 							//текущий элемент становится функцией от найденной переменной
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
@@ -1621,10 +1626,10 @@ namespace Project {
 								{
 									return NULL;
 								}
-								//pDest указывает на открывающую скобку, temp - на закрывающую
-								temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
+								//s_iter указывает на открывающую скобку, temp - на закрывающую
+								temp_str.assign(s_iter, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
 								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
-								if (temp_pointer->type == flags::error)
+								if (temp_pointer->prop == flags::error)
 								{
 									delete temp_pointer;
 									return NULL;
@@ -1962,13 +1967,13 @@ namespace Project {
 					{
 						if (temp == NULL)
 						{
-							name_str.assign(pDest, endPtr + 1);
-							pDest = endPtr + 1;
+							name_str.assign(s_iter, endPtr + 1);
+							s_iter = endPtr + 1;
 						}
 						else
 						{
-							name_str.assign(pDest, temp);
-							pDest = temp;
+							name_str.assign(s_iter, temp);
+							s_iter = temp;
 						}
 						low_pointer = point_up->find_math_obj(&name_str);
 						//далее всегда может быть только два варианта - текщуий элемент либо функция(вектор-функция), либо выражение (векторное), причём всегда flags::undef.
@@ -2087,10 +2092,10 @@ namespace Project {
 								{
 									return NULL;
 								}
-								//pDest указывает на открывающую скобку, temp - на закрывающую
-								temp_str.assign(pDest, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
+								//s_iter указывает на открывающую скобку, temp - на закрывающую
+								temp_str.assign(s_iter, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
 								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
-								if (temp_pointer->type == flags::error)
+								if (temp_pointer->prop == flags::error)
 								{
 									delete temp_pointer;
 									return NULL;
@@ -2156,7 +2161,7 @@ namespace Project {
 								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
 								return NULL;
 							}
-							pDest = temp + 1;
+							s_iter = temp + 1;
 							//если все аргументы полученные от функции либо константы, либо конст. выражения, либо функции с конст аргументами
 							if ((multiple_var != NULL) && ((multiple_var->prop == flags::arg_c) || (multiple_var->prop == flags::exprs) || (multiple_var->prop == flags::cnst)))
 							{
@@ -2506,7 +2511,7 @@ namespace Project {
 				res = point_left->math_simplify_processing();
 				if ((res == NULL)||(res->type != flags::numbr))
 					return false;
-				prop = flags::solvd;
+				prop = res->prop;//константа или выражение принимает свойство посчитанного числа 
 				actn = flags::nthng;
 				var = res->var;
 				//сразу чистить дерево операций по point_left
@@ -2524,7 +2529,7 @@ namespace Project {
 					res = point_left->math_simplify_processing();
 					if ((res == NULL) || (res->type != flags::numbr))
 						return false;
-					prop = flags::solvd;
+					prop = flags::solvd;//тут подумать
 					actn = flags::nthng;
 					//point_left = res;	
 					point_collar = res;
@@ -3562,7 +3567,7 @@ namespace Project {
 					}
 					name.assign(begin + 1, temp);
 					temp_pointer = new math_obj(&name[0], &name[name.length() - 1], NULL, point_up);
-					if (temp_pointer->type == flags::error)
+					if (temp_pointer->prop == flags::error)
 					{
 						delete temp_pointer;
 						return NULL;
@@ -4369,7 +4374,7 @@ namespace Project {
 				math = NULL;
 			}*/
 			math = new math_obj(&in[0], &in[in.length() - 1], NULL, this);
-			if (math->type == flags::error)
+			if (math->prop == flags::error)
 			{
 				delete math;
 				//чистить дерево
@@ -4378,6 +4383,50 @@ namespace Project {
 				out = err->GetErrorWStr();
 				math = NULL;
 				return 0;
+			}
+			if (math->actn == flags::write)
+			{
+				if (math->type == flags::cnst)
+				{
+					if (math->prop == flags::undef)
+					{
+						//CE->tree_destruct();
+						//delete CE;
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
+						ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+						ProjectError::GetProjectLastError(err);
+						out = err->GetErrorWStr();
+						return 0;
+					}
+					else if (math->prop == flags::defnd)
+					{
+						if (!math->math_simplify()) //сразу посчитать константу						
+						{
+							ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+							ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+							ProjectError::GetProjectLastError(err);
+							out = err->GetErrorWStr();
+							return 0;
+						}
+					}
+				}
+				else if (math->type == flags::exprs)
+				{
+					if (!math->math_simplify()) //сразу посчитать результат					
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+						ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+						ProjectError::GetProjectLastError(err);
+						out = err->GetErrorWStr();
+						return 0;
+					}
+				}
+				else if (math->type == flags::funct)
+				{
+					//видимой реакции от программы быть не должно. Забили функцию - записали. Возможно в отдельный поток отдать разложение сложной функции 
+					//на элементарные. Можно и не в отдельный, врядли там будет высокая сложность вычислений
+					math->actn == flags::nthng;
+				}				
 			}
 			return 1;
 		}
@@ -4414,6 +4463,24 @@ namespace Project {
 			}
 			return out;
 		}
-
+		/*Метод удаляет все элементы списка данных начиная с позиции start. Позиция start не удаляется*/
+		int data_list::delete_starting_at(int start)
+		{
+			return at(start)->delete_starting_at_rec();						
+		}
+		/*Рекурсия для delete_starting_at*/
+		int data_list::delete_starting_at_rec()
+		{
+			int k = 0;
+			if (right != NULL)
+			{
+				k += right->delete_starting_at_rec();
+				delete right;
+				right = NULL;
+			}			
+			//math->~math_obj();//TODO: деструктор math_obj должен удалять всё полностью без разбора (деревья и т.д.) для выбранного экземпляра класса.
+			delete math;			
+			return k;
+		}
 	}
 };

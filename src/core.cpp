@@ -72,7 +72,7 @@ namespace Project {
 			//size_t output_size;			
 			if (CE->type == flags::exprs)
 			{
-				if (CE->math_simplify())
+				if (CE->prop != flags::error)
 				{
 					output = to_string(CE->var, var_type::FRACTIONAL, 4);
 				}
@@ -118,13 +118,7 @@ namespace Project {
 					{
 						//output = CE->expresion(1);
 					}
-				}
-				else if (CE->actn == flags::write)
-				{
-					//опять же, видимой реакции от программы быть не должно. Забили функцию - записали. Возможно в отдельный поток отдать разложение сложной функции 
-					//на элементарные. Можно и не в отдельный, врядли там будет высокая сложность вычислений
-					CE->actn == flags::nthng;				
-				}
+				}				
 				else
 				{
 					
@@ -135,29 +129,7 @@ namespace Project {
 				if (CE->actn == flags::solve)
 				{					
 					output = to_string(CE->var, var_type::FRACTIONAL, 4);	
-				}
-				else if (CE->actn == flags::write)
-				{
-					if (CE->prop == flags::undef)
-					{
-						//CE->tree_destruct();
-						//delete CE;
-						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
-						ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
-						ProjectError::GetProjectLastError(err);
-						return err->GetErrorWStr();
-					}
-					else if (CE->prop == flags::defnd)
-					{
-						if (!CE->math_simplify()) //сразу посчитать константу						
-						{
-							ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
-							ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
-							ProjectError::GetProjectLastError(err);
-							return err->GetErrorWStr();
-						}						
-					}
-				}
+				}				
 			}
 			else if (CE->type == flags::varbl)
 			{

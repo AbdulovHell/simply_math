@@ -73,6 +73,9 @@ namespace Project {
 			//Рекурсия для методов size
 			int size_rec(data_list*pointer, bool* flag);
 
+			/*Рекурсия для delete_starting_at*/
+			int delete_starting_at_rec();
+
 		public:
 			int index;
 			wstring in;
@@ -154,6 +157,9 @@ namespace Project {
 			-1 - ошибка - обращение к элементу имеющему ненулевой индекс.
 			*/
 			int size_all();
+			/*Метод удаляет все элементы списка данных начиная с позиции start. Позиция start не удаляется*/
+			int delete_starting_at(int start);
+			
 
 		};
 
@@ -168,7 +174,7 @@ namespace Project {
 			Данный метод в общем случае может быть рекурсивен.
 			Метод возвращает указатель на созданный экземпляр класса math_obj, представляющий собой верхушку (корень) дерева, либо на копию уже созданного экземпляра.
 			NULL в случае какой-либо ошибки, см. error.h.*/
-			math_obj* build_tree(wchar_t* pDest, wchar_t*endPtr);
+			math_obj* build_tree(wchar_t* strPtr, wchar_t*endPtr);
 			/*PRIVATE.Метод создаёт мат. объект - мат. операцию, в соответствии с op_type, и записывает на нужное место в дереве high, с учётом low.
 			Метод возвращает указатель на созданную операцию.*/
 			math_obj *operations(math_obj *high, math_obj *low, flags op_type);

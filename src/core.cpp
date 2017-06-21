@@ -72,6 +72,13 @@ namespace Project {
 			//size_t output_size;			
 			if (CE->type == flags::exprs)
 			{
+				if (!CE->math_simplify()) //сразу посчитать результат					
+				{
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+					ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+					ProjectError::GetProjectLastError(err);
+					return err->GetErrorWStr();					
+				}
 				if (CE->prop != flags::error)
 				{
 					output = to_string(CE->var, var_type::FRACTIONAL, 4);
@@ -98,7 +105,17 @@ namespace Project {
 			}
 			else if (CE->type == flags::funct)
 			{
-				if (CE->actn == flags::solve)
+				if (CE->actn == flags::write)
+				{
+					if (!CE->math_simplify())			
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+						ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+						ProjectError::GetProjectLastError(err);
+						return err->GetErrorWStr();
+					}
+				}
+				else if (CE->actn == flags::solve)
 				{
 					if (CE->prop == flags::arg_c)
 					{
@@ -125,11 +142,41 @@ namespace Project {
 				}
 			}
 			else if (CE->type == flags::cnst)
-			{
-				if (CE->actn == flags::solve)
-				{					
-					output = to_string(CE->var, var_type::FRACTIONAL, 4);	
-				}				
+			{					
+				if (CE->actn == flags::write)
+				{
+					if (CE->prop == flags::undef)
+					{
+						//CE->tree_destruct();
+						//delete CE;
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
+						ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+						ProjectError::GetProjectLastError(err);
+						return err->GetErrorWStr();						
+					}
+					else if (CE->prop == flags::defnd)
+					{
+						if (!CE->math_simplify()) //сразу посчитать константу						
+						{
+							ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+							ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+							ProjectError::GetProjectLastError(err);
+							return err->GetErrorWStr();							
+						}
+					}
+				}
+				else if (CE->actn == flags::solve)
+				{
+					if (!CE->math_simplify()) //хотя значение константы уже посчитано, требуется пройти по ссылке и его забрать					
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+						ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+						ProjectError::GetProjectLastError(err);
+						return err->GetErrorWStr();
+					}
+					CE->actn = flags::solve;
+					output = to_string(CE->var, var_type::FRACTIONAL, 4);
+				}
 			}
 			else if (CE->type == flags::varbl)
 			{

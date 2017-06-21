@@ -77,7 +77,7 @@ namespace Project {
 					{
 						if ((actn == flags::write) || ((type == flags::varbl) && (prop == flags::undef)))
 						{
-							prop= flags::error;
+							prop = flags::error;
 						}
 						/*Запрос на действие:
 						- type == funct, prop == undef - запрос на "упрощение" выражения для неявно заданной функции.
@@ -346,7 +346,7 @@ namespace Project {
 										right->assing_name(name);
 										right->assing_prop(flags::defnd);
 										copy(right);
-										assing_pc(t_p);										
+										assing_pc(t_p);
 									}
 									else
 									{
@@ -413,7 +413,7 @@ namespace Project {
 									delete left;
 									//тут всегда будет необходимо устанавливать указатели переменных на созданную функцию.
 									link_var_list_to_funct();
-									close_list();									
+									close_list();
 								}
 								//если справа нашлась переменная не входящая в список аргументов левой функции - уравнение
 								else
@@ -437,7 +437,7 @@ namespace Project {
 										right = new math_obj((int)buf, t_p);
 										copy(right);
 										delete right;
-									}									
+									}
 								}
 								actn = flags::write;
 							}
@@ -463,7 +463,7 @@ namespace Project {
 										right->assing_name(name);
 										right->assing_prop(flags::defnd);
 										copy(right);
-										assing_pc(t_p);										
+										assing_pc(t_p);
 									}
 									else
 									{
@@ -655,7 +655,7 @@ namespace Project {
 				else if (*s_iter == '-')
 				{
 					//минус - просто отдельная операция. если минус оказался вначале строчки - предполагается вычитание из нуля
-					high_pointer = operations(high_pointer, low_pointer, flags::minus);		
+					high_pointer = operations(high_pointer, low_pointer, flags::minus);
 					if (low_pointer == NULL)
 						low_pointer = high_pointer->point_left;
 					s_iter++;
@@ -884,7 +884,7 @@ namespace Project {
 						if ((high_pointer == NULL) && (low_pointer == NULL))
 						{
 							//и закрывается в конце
-							if ((temp + 1) == NULL)
+							if (*(temp + 1) == NULL)
 							{
 								copy(temp_pointer);
 								delete temp_pointer;
@@ -1271,7 +1271,7 @@ namespace Project {
 							name_str.assign(s_iter, temp);
 							s_iter = temp;
 						}
-						high_pointer = point_up->find_math_obj(&name_str);
+						high_pointer = point_up->left->find_math_obj(&name_str);
 						//если не найден ни один элемент массива мат объектов с таким именем
 						if (high_pointer == NULL)
 						{
@@ -1605,6 +1605,7 @@ namespace Project {
 						//найден элемент массива мат объектов с совпадающим именем - функция
 						else if (high_pointer->type == flags::funct)
 						{
+							
 							if (temp == NULL)
 							{
 								copy(high_pointer);
@@ -1627,8 +1628,9 @@ namespace Project {
 									return NULL;
 								}
 								//s_iter указывает на открывающую скобку, temp - на закрывающую
-								temp_str.assign(s_iter, temp + 1);//проверить как формируется строка temp_str. здесь необходимо, чтобы сами скобки тоже были в строке.
+								temp_str.assign(s_iter, temp + 1);
 								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
+
 								if (temp_pointer->prop == flags::error)
 								{
 									delete temp_pointer;
@@ -1667,6 +1669,7 @@ namespace Project {
 										if (temp == endPtr)
 										{
 											copy(high_pointer);
+
 											prop = flags::arg_v;
 											low_pointer = new math_obj((size_t)0);
 											low_pointer->vector_push_back(temp_pointer);
@@ -1715,6 +1718,7 @@ namespace Project {
 										if (temp == endPtr)
 										{
 											copy(high_pointer);
+											actn = flags::nthng;
 											prop = flags::arg_c;
 											low_pointer = new math_obj((size_t)0);
 											low_pointer->vector_push_back(temp_pointer);
@@ -1933,6 +1937,7 @@ namespace Project {
 										}
 									}
 								}
+								s_iter = temp + 1;
 							}
 							else if (*temp == ')')
 							{
@@ -2509,35 +2514,41 @@ namespace Project {
 				if (point_left == NULL)//если нечего вычислять считаем, что результат уже есть
 					return true;
 				res = point_left->math_simplify_processing(NULL);
-				if ((res == NULL)||(res->type != flags::numbr))
+				if ((res == NULL) || (res->type != flags::numbr))
 					return false;
-				prop = res->prop;//константа или выражение принимает свойство посчитанного числа 
-				actn = flags::nthng;
-				var = res->var;
-				//сразу чистить дерево операций по point_left
-				//point_left = res;			
-				//point_collar = res;
-				delete res;
-				return true;				
+				if (res == point_left)
+				{
+					prop = res->prop;//константа или выражение принимает свойство посчитанного числа 
+					actn = flags::nthng;
+					var = res->var;
+					return true;
+				}
+				else return false;
+
 			}
 			else if (type == flags::funct)
 			{
 				if (point_left == NULL)//если нечего вычислять считаем, что результат уже есть
 					return true;
-				if (prop == flags::arg_c)
+
+				vector<math_obj*>* last = new vector<math_obj*>;
+				last->push_back(this);
+				res = point_left->math_simplify_processing(last);
+				if ((res == NULL) || (res->type != flags::numbr))
+					return false;
+				if (res == point_left)
 				{
-					vector<math_obj*>* last = new vector<math_obj*>;
-					last->push_back(this);
-					res = point_left->math_simplify_processing(last);
-					if ((res == NULL) || (res->type != flags::numbr))
-						return false;
 					prop = flags::solvd;//тут подумать
 					actn = flags::nthng;
-					//point_left = res;	
-					point_collar = res;
-					return true;
 				}
+				else // если указатели не совпадают - функция не имеет константных аргументов
+				{
 
+				}
+				last->pop_back();
+				delete last;
+				return true;
+				
 			}
 			else if (type == flags::equat)
 			{
@@ -2556,7 +2567,7 @@ namespace Project {
 			}
 			return false;
 		}
-		
+
 		math_obj * math_obj::math_simplify_processing(vector<math_obj*>* last_funct)
 		{
 			switch (type)
@@ -2599,7 +2610,7 @@ namespace Project {
 					type = flags::numbr;
 					delete point_left; point_left = NULL;
 					return this;
-				}								
+				}
 				math_obj*out = point_left->math_simplify_processing(NULL);
 				if ((point_left == out) && ((out->type == flags::numbr) || (out->type == flags::cnst)))
 				{
@@ -2629,7 +2640,7 @@ namespace Project {
 				math_obj* out = NULL;
 				if (last_funct == NULL)
 				{
-					last_funct = new vector<math_obj*>;					
+					last_funct = new vector<math_obj*>;
 				}
 				last_funct->push_back(this);//добавляется новый указатель к списку функций в дереве операций
 				out = point_left->math_simplify_processing(last_funct);
@@ -2643,9 +2654,13 @@ namespace Project {
 					//point_right->vector_destruct();//очистка аргументов функции
 					//delete point_right;
 					point_right = NULL;
-					delete out;					
+					delete out;
 				}
-				//undef, arg_v, defnd						
+				//undef, arg_v, defnd		
+
+				last_funct->pop_back();//последний указатель удаляется
+				if (last_funct->size() == 0)
+					delete last_funct;
 				return this;
 				break;
 			}
@@ -2660,7 +2675,7 @@ namespace Project {
 				math_obj* last = last_funct->back();//указатель на последнюю функцию
 				math_obj* temp_var = this;//указатель на переменную в списке переменных
 				math_obj* iter = NULL;//указатель на соответствующий аргумент				
-				int size = last_funct->size()-1;				
+				int size = last_funct->size() - 1;
 				//пока в векторе есть функции и они аргументированы
 				while ((size >= 0) && ((last->prop == flags::arg_c) || (last->prop == flags::arg_v)))
 				{
@@ -2669,19 +2684,19 @@ namespace Project {
 					{
 						ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
 						return NULL;
-					}					
+					}
 					if (iter->type == flags::varbl)//переменная среди аргументов функции должна указывать на переменную более верхней функции
 					{
 						if (iter->point_left == NULL)//|| (iter->point_left->point_collar->name.compare(last->name) != 0))
 						{
 							ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
 							return NULL;
-						}							
+						}
 						if (size != 0)
 						{
 							size--;
-							last = last_funct->at(size);							
-							temp_var = iter->point_left;							
+							last = last_funct->at(size);
+							temp_var = iter->point_left;
 						}
 						else//size == 0
 						{
@@ -2700,7 +2715,7 @@ namespace Project {
 					return new math_obj(flags::numbr, flags::real, 0, NULL);
 				}
 				//для выражений, констант, чисел и функций с конст аргументами
-				else if ((out == iter)||(out->type == flags::numbr))
+				else if ((out == iter) || (out->type == flags::numbr))
 				{
 					return out;
 				}
@@ -2709,11 +2724,11 @@ namespace Project {
 				{
 					return new math_obj(flags::numbr, flags::real, 0, NULL);
 				}
-				
+
 				break;
 			}
 			case Project::Core::flags::cnst://для константы её значение/значения будут находится по указателю point_left
-			{				
+			{
 				//TODO: для типов чисел отличных от real должна быть доп. проверка. так же рассмотреть константу i	
 				math_obj* out;
 				if (last_funct != NULL)//если идёт проход по дереву операций для какой-либо функции - его менять каким-либо образом нельзя
@@ -2733,46 +2748,47 @@ namespace Project {
 					}
 					out = point_left->math_simplify_processing(last_funct);
 					if ((point_left == out) && (out->type == flags::numbr))
-					{						
+					{
 						var = out->var;
 						prop = out->prop;
 						return this;
-					}					
+					}
 					else return NULL;
 				}
 				else//если идёт проход по дереву операций для константного выражения
 				{
 					if (point_left == NULL)//конст превращается в число
-					{						
-						type = flags::numbr;
-						prop = flags::real;
+					{
+						type = flags::numbr;						
 						if (prop != flags::fundm)
-						{							
+						{
 							var = 0;
 						}
+						prop = flags::real;
 						return this;
 					}
 					else if (point_left->type == flags::numbr)
 					{
 						var = point_left->var;
 						prop = point_left->prop;
+						type = flags::numbr;
 						return this;
 					}
-					out = point_left->math_simplify_processing(last_funct);					
-					if ((point_left == out)&&(out->type == flags::numbr))
+					out = point_left->math_simplify_processing(last_funct);
+					if ((point_left == out) && (out->type == flags::numbr))
 					{
 						var = out->var;
 						prop = out->prop;
 						type = flags::numbr;
 						return this;
-					}					
+					}
 					else return NULL;
-				}				
+				}
 				break;
 			}
 			case Project::Core::flags::numbr:
-			{								
-				return this;	
+			{
+				return this;
 				break;
 			}
 
@@ -2830,7 +2846,7 @@ namespace Project {
 					delete point_left; point_left = NULL;
 					delete point_right; point_right = NULL;
 					return this;
-				}			
+				}
 				break;
 			}
 			case Project::Core::flags::minus:
@@ -4723,13 +4739,8 @@ namespace Project {
 				out = err->GetErrorWStr();
 				return 0;
 			}
-			/*if (math != NULL)
-			{
-				math->tree_destruct();
-				delete math; 
-				math = NULL;
-			}*/
-			math = new math_obj(&in[0], &in[in.length() - 1], NULL, this);
+			
+			math = new math_obj(&in[0], &in[in.length() - 1], NULL, this);			
 			if (math->prop == flags::error)
 			{
 				delete math;
@@ -4739,51 +4750,9 @@ namespace Project {
 				out = err->GetErrorWStr();
 				math = NULL;
 				return 0;
-			}
-			if (math->actn == flags::write)
-			{
-				if (math->type == flags::cnst)
-				{
-					if (math->prop == flags::undef)
-					{
-						//CE->tree_destruct();
-						//delete CE;
-						ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
-						ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
-						ProjectError::GetProjectLastError(err);
-						out = err->GetErrorWStr();
-						return 0;
-					}
-					else if (math->prop == flags::defnd)
-					{
-						if (!math->math_simplify()) //сразу посчитать константу						
-						{
-							ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
-							ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
-							ProjectError::GetProjectLastError(err);
-							out = err->GetErrorWStr();
-							return 0;
-						}
-					}
-				}
-				else if (math->type == flags::exprs)
-				{
-					if (!math->math_simplify()) //сразу посчитать результат					
-					{
-						ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
-						ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
-						ProjectError::GetProjectLastError(err);
-						out = err->GetErrorWStr();
-						return 0;
-					}
-				}
-				else if (math->type == flags::funct)
-				{
-					//видимой реакции от программы быть не должно. Забили функцию - записали. Возможно в отдельный поток отдать разложение сложной функции 
-					//на элементарные. Можно и не в отдельный, врядли там будет высокая сложность вычислений
-					math->actn == flags::nthng;
-				}				
-			}
+			}			
+			/*if ((math->actn == flags::write)&&(math->type!=flags::funct))
+				math->actn = flags::nthng;*/
 			return 1;
 		}
 
@@ -4822,7 +4791,7 @@ namespace Project {
 		/*Метод удаляет все элементы списка данных начиная с позиции start. Позиция start не удаляется*/
 		int data_list::delete_starting_at(int start)
 		{
-			return at(start)->delete_starting_at_rec();						
+			return at(start)->delete_starting_at_rec();
 		}
 		/*Рекурсия для delete_starting_at*/
 		int data_list::delete_starting_at_rec()
@@ -4833,9 +4802,9 @@ namespace Project {
 				k += right->delete_starting_at_rec();
 				delete right;
 				right = NULL;
-			}			
+			}
 			//math->~math_obj();//TODO: деструктор math_obj должен удалять всё полностью без разбора (деревья и т.д.) для выбранного экземпляра класса.
-			delete math;			
+			delete math;
 			return k;
 		}
 	}

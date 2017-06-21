@@ -96,12 +96,14 @@ namespace GUICLR {
 				 // textBox1
 				 // 
 				 this->textBox1->Dock = System::Windows::Forms::DockStyle::Bottom;
+				 this->textBox1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 14, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
+					 static_cast<System::Byte>(204)));
 				 this->textBox1->Location = System::Drawing::Point(0, 28);
 				 this->textBox1->Multiline = true;
 				 this->textBox1->Name = L"textBox1";
 				 this->textBox1->Size = System::Drawing::Size(607, 329);
 				 this->textBox1->TabIndex = 0;
-				 this->textBox1->Text = L"x+5";
+				 this->textBox1->Text = L"f(x)=(e+pi)*x\r\na=f(x)\r\na=";
 				 this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
 				 // 
 				 // toolStrip1
@@ -133,11 +135,6 @@ namespace GUICLR {
 				 this->toolStripButton1->Size = System::Drawing::Size(23, 22);
 				 this->toolStripButton1->Text = L"Clear";
 				 this->toolStripButton1->Click += gcnew System::EventHandler(this, &MainForm::clr_rst);
-				 // 
-				 // timer1
-				 // 
-				 //this->timer1->Interval = 1200;
-				 //this->timer1->Tick += gcnew System::EventHandler(this, &MainForm::timer1_Tick);
 				 // 
 				 // MainForm
 				 // 
@@ -238,18 +235,21 @@ namespace GUICLR {
 		int out_strings = 0;
 		data_list* place;
 		wstring *in_str;
+		bool flag = false;
+		//all_math_data->delete_starting_at(0);
 		for (int i = 0; i < size; i++) {
 			if (!isOutOrEmpty(strs[i]))
 			{
 				in_str = new wstring((wchar_t*)(void*)System::Runtime::InteropServices::Marshal::StringToHGlobalAuto(strs[i]));
 
-				place = all_math_data->at(i + 1);
+				place = all_math_data->at(i - out_strings + 1);
 				if (place != NULL)
 				{
-					if (place->compare_in(in_str))//если строчки не совпадают
+					if ((place->compare_in(in_str)) || (flag))//если строчки не совпадают
 					{
 						place->in = *in_str;
 						place->run_string();
+						flag = true;
 					}
 					else
 					{
@@ -263,7 +263,6 @@ namespace GUICLR {
 					//в run_string текст ошибки сразу записывается в поле вывода.
 					place->run_string();
 				}
-
 			}
 			else
 			{

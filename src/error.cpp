@@ -16,7 +16,7 @@ namespace Project {
 			case ErrorCode::UNDEFINED_FUNC:
 				return L"Неопределенная функция";
 			case ErrorCode::VECTORS_LIMITED:
-				return L"Векторы не поддерживаются в полной мере.";
+				return L"Часть математических вычислений не поддерживаются в полной мере.";
 			case ErrorCode::IS_EQUATION:
 				return L"Уравнения не реализованы";
 			case ErrorCode::MULTIPLE_VARIABLES:

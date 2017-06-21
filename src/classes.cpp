@@ -2508,7 +2508,7 @@ namespace Project {
 			{
 				if (point_left == NULL)//если нечего вычислять считаем, что результат уже есть
 					return true;
-				res = point_left->math_simplify_processing();
+				res = point_left->math_simplify_processing(NULL);
 				if ((res == NULL)||(res->type != flags::numbr))
 					return false;
 				prop = res->prop;//константа или выражение принимает свойство посчитанного числа 
@@ -2526,7 +2526,9 @@ namespace Project {
 					return true;
 				if (prop == flags::arg_c)
 				{
-					res = point_left->math_simplify_processing();
+					vector<math_obj*>* last = new vector<math_obj*>;
+					last->push_back(this);
+					res = point_left->math_simplify_processing(last);
 					if ((res == NULL) || (res->type != flags::numbr))
 						return false;
 					prop = flags::solvd;//тут подумать
@@ -2555,163 +2557,517 @@ namespace Project {
 			return false;
 		}
 		
-		math_obj * math_obj::math_simplify_processing()
+		math_obj * math_obj::math_simplify_processing(vector<math_obj*>* last_funct)
 		{
 			switch (type)
 			{
 			case Project::Core::flags::error:
 			{
+				ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTORS_LIMITED);
 				return NULL;
 				break;
 			}
 			case Project::Core::flags::nthng:
 			{
+				ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTORS_LIMITED);
 				return NULL;
 				break;
 			}
 			case Project::Core::flags::matrx:
 			{
+				ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTORS_LIMITED);
 				return NULL;
 				break;
 			}
 			case Project::Core::flags::vectr:
 			{
+				ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTORS_LIMITED);
 				return NULL;
 				break;
 			}
-			case Project::Core::flags::exprs:
+			case Project::Core::flags::exprs://для выражений предполагается отсутствие каких-либо переменных, всегда константные результаты вычислений
 			{
-				math_obj* out = NULL;
-				if (point_left != NULL)
-					out = point_left->math_simplify_processing();
-				//if (out->type == flags::numbr)
-				return out;
-				//else return NULL;
+				if (point_left == NULL)
+				{
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+					return NULL;
+				}
+				else if (point_left->type == flags::numbr)
+				{
+					var = point_left->var;
+					prop = point_left->prop;
+					type = flags::numbr;
+					delete point_left; point_left = NULL;
+					return this;
+				}								
+				math_obj*out = point_left->math_simplify_processing(NULL);
+				if ((point_left == out) && ((out->type == flags::numbr) || (out->type == flags::cnst)))
+				{
+					var = point_left->var;
+					prop = point_left->prop;
+					type = flags::numbr;
+					delete point_left; point_left = NULL;
+					return this;
+				}
+				else return NULL;
 				break;
 			}
 			case Project::Core::flags::equat:
 			{
+				ProjectError::SetProjectLastError(ProjectError::ErrorCode::VECTORS_LIMITED);
 				//пока оставлю это условие здесь, хотя в рекурсии оно не должно попадаться
 				return NULL;
 				break;
 			}
 			case Project::Core::flags::funct:
 			{
+				if (point_left == NULL)
+				{
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+					return NULL;
+				}
 				math_obj* out = NULL;
-				if (point_left != NULL)
-					out = point_left->math_simplify_processing();
-				return out;
+				if (last_funct == NULL)
+				{
+					last_funct = new vector<math_obj*>;					
+				}
+				last_funct->push_back(this);//добавляется новый указатель к списку функций в дереве операций
+				out = point_left->math_simplify_processing(last_funct);
+				if ((prop == flags::arg_c) && (out->type == flags::numbr))
+				{
+					type = flags::numbr;
+					prop = out->prop;
+					var = out->var;
+					point_left = NULL;
+					point_collar = NULL;
+					//point_right->vector_destruct();//очистка аргументов функции
+					//delete point_right;
+					point_right = NULL;
+					delete out;					
+				}
+				//undef, arg_v, defnd						
+				return this;
 				break;
 			}
 			case Project::Core::flags::varbl:
 			{
+				if (last_funct == NULL)//переменная за пределами функции
+				{
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+					return NULL;
+				}
 				math_obj* out = NULL;
-				//переменная является частью вектора
-				if ((point_right == point_collar) && (point_left != NULL))
+				math_obj* last = last_funct->back();//указатель на последнюю функцию
+				math_obj* temp_var = this;//указатель на переменную в списке переменных
+				math_obj* iter = NULL;//указатель на соответствующий аргумент				
+				int size = last_funct->size()-1;				
+				//пока в векторе есть функции и они аргументированы
+				while ((size >= 0) && ((last->prop == flags::arg_c) || (last->prop == flags::arg_v)))
 				{
-					out = point_left->math_simplify_processing();
+					iter = last->point_right->vector_at((int)temp_var->var);
+					if (iter == NULL)//если среди аргументов функции нет нужного номера
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+						return NULL;
+					}					
+					if (iter->type == flags::varbl)//переменная среди аргументов функции должна указывать на переменную более верхней функции
+					{
+						if (iter->point_left == NULL)//|| (iter->point_left->point_collar->name.compare(last->name) != 0))
+						{
+							ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+							return NULL;
+						}							
+						if (size != 0)
+						{
+							size--;
+							last = last_funct->at(size);							
+							temp_var = iter->point_left;							
+						}
+						else//size == 0
+						{
+							size--;
+							//значит переменная участвует в выражении для undef или defnd функций
+						}
+					}
+					else //if ((iter->type == flags::funct)|| (iter->type == flags::exprs)|| (iter->type == flags::cnst)|| (iter->type == flags::numbr))
+					{
+						out = iter->math_simplify_processing(last_funct);
+						size = -1;
+					}
 				}
-				//переменная является частью выражения функции
-				else if ((var != -1) && (point_collar != NULL) && (point_collar->point_right != NULL))//рассматриваются функции с аргументами.
+				if (out == NULL)//если не найден аргумент для подстановки (переменная указывает на функцию без аргументов)
 				{
-					out = point_collar->point_right->vector_at((int)var)->math_simplify_processing();
+					return new math_obj(flags::numbr, flags::real, 0, NULL);
 				}
-				//else if ((var != -1) && (point_collar != NULL)&&(point_collar->point_right == NULL)) // функции без аргументов								
-				return out;
+				//для выражений, констант, чисел и функций с конст аргументами
+				else if ((out == iter)||(out->type == flags::numbr))
+				{
+					return out;
+				}
+				//для функций с переменными аргументами и без аргументов
+				else if (out != iter)
+				{
+					return new math_obj(flags::numbr, flags::real, 0, NULL);
+				}
+				
 				break;
 			}
-			case Project::Core::flags::cnst:
-			{
-				//текущий элемент дерева - константа - наверх уходит число с параметрами и значением константы.
-				//TODO: для типов чисел отличных от real должна быть доп. проверка. так же рассмотреть константу i
-				math_obj* out = new math_obj(flags::numbr, flags::real, var, NULL);
-				return out;
+			case Project::Core::flags::cnst://для константы её значение/значения будут находится по указателю point_left
+			{				
+				//TODO: для типов чисел отличных от real должна быть доп. проверка. так же рассмотреть константу i	
+				math_obj* out;
+				if (last_funct != NULL)//если идёт проход по дереву операций для какой-либо функции - его менять каким-либо образом нельзя
+				{
+					if ((point_left == NULL) && (prop == flags::fundm))
+						return this;
+					else if (point_left == NULL)
+					{
+						var = 0;
+						return this;
+					}
+					else if (point_left->type == flags::numbr)//если константа уже посчитана
+					{
+						var = point_left->var;
+						prop = point_left->prop;
+						return this;
+					}
+					out = point_left->math_simplify_processing(last_funct);
+					if ((point_left == out) && (out->type == flags::numbr))
+					{						
+						var = out->var;
+						prop = out->prop;
+						return this;
+					}					
+					else return NULL;
+				}
+				else//если идёт проход по дереву операций для константного выражения
+				{
+					if (point_left == NULL)//конст превращается в число
+					{						
+						type = flags::numbr;
+						prop = flags::real;
+						if (prop != flags::fundm)
+						{							
+							var = 0;
+						}
+						return this;
+					}
+					else if (point_left->type == flags::numbr)
+					{
+						var = point_left->var;
+						prop = point_left->prop;
+						return this;
+					}
+					out = point_left->math_simplify_processing(last_funct);					
+					if ((point_left == out)&&(out->type == flags::numbr))
+					{
+						var = out->var;
+						prop = out->prop;
+						type = flags::numbr;
+						return this;
+					}					
+					else return NULL;
+				}				
 				break;
 			}
 			case Project::Core::flags::numbr:
-			{
-				//текущий элемент дерева - число - наверх уходит его копия.
-				//TODO: для типов чисел отличных от real должна быть доп. проверка.
-				math_obj* out = new math_obj(this);
-				return out;
+			{								
+				return this;	
 				break;
 			}
 
 			case Project::Core::flags::addit:
 			{
-				math_obj* left = point_left->math_simplify_processing();
-				math_obj* right = point_right->math_simplify_processing();
+				if ((point_left == NULL) || (point_right == NULL))
+				{
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+					return NULL;
+				}
+				math_obj* left = point_left->math_simplify_processing(last_funct);
+				math_obj* right = point_right->math_simplify_processing(last_funct);
 				if ((left == NULL) || (right == NULL))
 					return NULL;
-				if ((left->type == flags::numbr) && (right->type == flags::numbr))
+				if (last_funct != NULL)
 				{
-					left->var += right->var;//простое сложение
-					delete right;
-					return left;
+					if ((point_left == left) && (point_right == right)) //если при вычислении справа и слева находятся константные элементы
+					{
+						var = left->var + right->var;//простое сложение
+						prop = left->prop;//много проверок на сложение двух чисел
+						type = flags::numbr;
+						//далее дерево операций упрощается
+						delete point_left; point_left = NULL;
+						delete point_right; point_right = NULL;
+						return this;
+					}
+					else if ((point_left != left) && (point_right != right))
+					{
+						left->var += right->var;//простое сложение
+						delete right;
+						return left;
+					}
+					else if (point_left != left)
+					{
+						left->var += right->var;//простое сложение						
+						return left;
+					}
+					else if (point_right != right)
+					{
+						right->var += left->var;//простое сложение						
+						return right;
+					}
 				}
+				else
+				{
+					if ((point_left != left) || (point_right != right))
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+						return NULL;
+					}
+					var = left->var + right->var;//простое сложение
+					prop = left->prop;//много проверок на сложение двух чисел
+					type = flags::numbr;
+					//далее дерево операций упрощается
+					delete point_left; point_left = NULL;
+					delete point_right; point_right = NULL;
+					return this;
+				}			
 				break;
 			}
 			case Project::Core::flags::minus:
 			{
-				math_obj* left = point_left->math_simplify_processing();
-				math_obj* right = point_right->math_simplify_processing();
+				if ((point_left == NULL) || (point_right == NULL))
+				{
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+					return NULL;
+				}
+				math_obj* left = point_left->math_simplify_processing(last_funct);
+				math_obj* right = point_right->math_simplify_processing(last_funct);
 				if ((left == NULL) || (right == NULL))
 					return NULL;
-				if ((left->type == flags::numbr) && (right->type == flags::numbr))
+				if (last_funct != NULL)
 				{
-					left->var -= right->var;//простое вычитание
-					delete right;
-					return left;
+					if ((point_left == left) && (point_right == right)) //если при вычислении справа и слева находятся константные элементы
+					{
+						var = left->var - right->var;//простое вычитание
+						prop = left->prop;//много проверок на сложение двух чисел
+						type = flags::numbr;
+						//далее дерево операций упрощается
+						delete point_left; point_left = NULL;
+						delete point_right; point_right = NULL;
+						return this;
+					}
+					else if ((point_left != left) && (point_right != right))
+					{
+						left->var -= right->var;//простое вычитание
+						delete right;
+						return left;
+					}
+					else if (point_left != left)
+					{
+						left->var -= right->var;//простое вычитание						
+						return left;
+					}
+					else if (point_right != right)
+					{
+						right->var = left->var - right->var;//простое вычитание						
+						return right;
+					}
+				}
+				else
+				{
+					if ((point_left != left) || (point_right != right))
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+						return NULL;
+					}
+					var = left->var - right->var;//простое вычитание
+					prop = left->prop;//много проверок на сложение двух чисел
+					type = flags::numbr;
+					//далее дерево операций упрощается
+					delete point_left; point_left = NULL;
+					delete point_right; point_right = NULL;
+					return this;
 				}
 				break;
 			}
 			case Project::Core::flags::mltpl:
 			{
-				math_obj* left = point_left->math_simplify_processing();
-				math_obj* right = point_right->math_simplify_processing();
+				if ((point_left == NULL) || (point_right == NULL))
+				{
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+					return NULL;
+				}
+				math_obj* left = point_left->math_simplify_processing(last_funct);
+				math_obj* right = point_right->math_simplify_processing(last_funct);
 				if ((left == NULL) || (right == NULL))
 					return NULL;
-				if ((left->type == flags::numbr) && (right->type == flags::numbr))
+				if (last_funct != NULL)
 				{
-					left->var *= right->var;//простое умножение
-					delete right;
-					return left;
+					if ((point_left == left) && (point_right == right)) //если при вычислении справа и слева находятся константные элементы
+					{
+						var = left->var * right->var;//простое умножение
+						prop = left->prop;//много проверок на умножение двух чисел
+						type = flags::numbr;
+						//далее дерево операций упрощается
+						delete point_left; point_left = NULL;
+						delete point_right; point_right = NULL;
+						return this;
+					}
+					else if ((point_left != left) && (point_right != right))
+					{
+						left->var *= right->var;//простое умножение
+						delete right;
+						return left;
+					}
+					else if (point_left != left)
+					{
+						left->var *= right->var;//простое умножение						
+						return left;
+					}
+					else if (point_right != right)
+					{
+						right->var = left->var * right->var;//простое умножение						
+						return right;
+					}
+				}
+				else
+				{
+					if ((point_left != left) || (point_right != right))
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+						return NULL;
+					}
+					var = left->var * right->var;//простое умножение
+					prop = left->prop;//много проверок на умножение двух чисел
+					type = flags::numbr;
+					//далее дерево операций упрощается
+					delete point_left; point_left = NULL;
+					delete point_right; point_right = NULL;
+					return this;
 				}
 				break;
 			}
 			case Project::Core::flags::divis:
 			{
-				math_obj* left = point_left->math_simplify_processing();
-				math_obj* right = point_right->math_simplify_processing();
+				if ((point_left == NULL) || (point_right == NULL))
+				{
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+					return NULL;
+				}
+				math_obj* left = point_left->math_simplify_processing(last_funct);
+				math_obj* right = point_right->math_simplify_processing(last_funct);
 				if ((left == NULL) || (right == NULL))
 					return NULL;
-				if ((left->type == flags::numbr) && (right->type == flags::numbr))
+				if (last_funct != NULL)
 				{
-					left->var /= right->var;//простое деление
-					delete right;
-					return left;
+					if ((point_left == left) && (point_right == right)) //если при вычислении справа и слева находятся константные элементы
+					{
+						var = left->var / right->var;//простое деление
+						prop = left->prop;//много проверок на деление двух чисел
+						type = flags::numbr;
+						//далее дерево операций упрощается
+						delete point_left; point_left = NULL;
+						delete point_right; point_right = NULL;
+						return this;
+					}
+					else if ((point_left != left) && (point_right != right))
+					{
+						left->var /= right->var;//простое деление
+						delete right;
+						return left;
+					}
+					else if (point_left != left)
+					{
+						left->var /= right->var;//простое деление						
+						return left;
+					}
+					else if (point_right != right)
+					{
+						right->var = left->var / right->var;//простое деление						
+						return right;
+					}
+				}
+				else
+				{
+					if ((point_left != left) || (point_right != right))
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+						return NULL;
+					}
+					var = left->var / right->var;//простое деление
+					prop = left->prop;//много проверок на деление двух чисел
+					type = flags::numbr;
+					//далее дерево операций упрощается
+					delete point_left; point_left = NULL;
+					delete point_right; point_right = NULL;
+					return this;
 				}
 				break;
 			}
 			case Project::Core::flags::power:
 			{
-				math_obj* left = point_left->math_simplify_processing();
-				math_obj* right = point_right->math_simplify_processing();
+				if ((point_left == NULL) || (point_right == NULL))
+				{
+					ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+					return NULL;
+				}
+				math_obj* left = point_left->math_simplify_processing(last_funct);
+				math_obj* right = point_right->math_simplify_processing(last_funct);
 				if ((left == NULL) || (right == NULL))
 					return NULL;
-				if ((left->type == flags::numbr) && (right->type == flags::numbr))
+				if (last_funct != NULL)
 				{
-					left->var = pow(left->var, right->var);//простое возведение в степень
-					delete right;
-					return left;
+					if ((point_left == left) && (point_right == right)) //если при вычислении справа и слева находятся константные элементы
+					{
+						var = pow(left->var, right->var);//простое возведение в степень
+						prop = left->prop;//много проверок на возведение в степень двух чисел
+						type = flags::numbr;
+						//далее дерево операций упрощается
+						delete point_left; point_left = NULL;
+						delete point_right; point_right = NULL;
+						return this;
+					}
+					else if ((point_left != left) && (point_right != right))
+					{
+						left->var = pow(left->var, right->var);//простое возведение в степень
+						delete right;
+						return left;
+					}
+					else if (point_left != left)
+					{
+						left->var = pow(left->var, right->var);//простое возведение в степень						
+						return left;
+					}
+					else if (point_right != right)
+					{
+						right->var = pow(left->var, right->var);//простое возведение в степень						
+						return right;
+					}
+				}
+				else
+				{
+					if ((point_left != left) || (point_right != right))
+					{
+						ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
+						return NULL;
+					}
+					var = pow(left->var, right->var);//простое возведение в степень
+					prop = left->prop;//много проверок на возведение в степень двух чисел
+					type = flags::numbr;
+					//далее дерево операций упрощается
+					delete point_left; point_left = NULL;
+					delete point_right; point_right = NULL;
+					return this;
 				}
 				break;
 			}
 			default:
 			{
+				ProjectError::SetProjectLastError(ProjectError::ErrorCode::MATH_ERROR);
 				return NULL;
 				break;
 			}
+
 			}
 			return nullptr;
 		}

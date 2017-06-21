@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <stack>
+#include <vector>
 #include "IO.h"
 #include "error.h"
 
@@ -189,7 +190,7 @@ namespace Project {
 
 
 
-			math_obj* math_simplify_processing();
+			math_obj * math_simplify_processing(vector<math_obj*>* last_funct);
 
 			wstring expression_processing();
 

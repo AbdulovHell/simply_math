@@ -11,12 +11,12 @@ namespace Project {
 		wstring GetProjectError(ErrorCode code) {
 			switch (code)
 			{
-			case ErrorCode::VARBL_BLOCKED:
-				return L"Переопределение переменной в качестве константы";
+			case ErrorCode::MATH_ERROR:
+				return L"Ошибка мат. вычислений";
 			case ErrorCode::UNDEFINED_FUNC:
 				return L"Неопределенная функция";
 			case ErrorCode::VECTORS_LIMITED:
-				return L"Векторы не поддерживаются в полной мере.";
+				return L"Часть математических вычислений не поддерживаются в полной мере.";
 			case ErrorCode::IS_EQUATION:
 				return L"Уравнения не реализованы";
 			case ErrorCode::MULTIPLE_VARIABLES:
@@ -60,7 +60,7 @@ namespace Project {
 			case ErrorCode::VECTOR_DIMENSIONS:
 				return L"Размерность вектора не соответствует размерности вектор-функции";
 			case ErrorCode::VECTOR_DIVISION:
-				return L"Делить на вектор нельзя!";
+				return L"Делить на вектор нельзя! Возводить в векторную степень нельзя!!";
 			case ErrorCode::FUNDAMENTAL_FUNCT:
 				return L"Вызов математической функции без аргументов";
 			case ErrorCode::USING_VAR_AS_CONST:

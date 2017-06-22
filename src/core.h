@@ -8,7 +8,7 @@
 
 #include <iostream>
 #include <string>
-#include <vector>
+
 
 #include "error.h"
 #include "IO.h"
@@ -24,15 +24,16 @@ namespace Project {
 		//using namespace Project::IO;
 		using namespace Project::Core;
 
-		void ClearGeneral();
+	//	void ClearGeneral();
 		//Инициализация массива констант, переменных, функций и уравнений
-		void Init();
+		data_list* Init();
 		
 		/*Функция выполняет проверку/анализ результата заполнения дерева операций и запросов пользователя.
 		Возвращает строку с результатом текущей итерации вычислений.*/
-		wstring analized_output(wchar_t* _pDest, wchar_t* _endPtr, math_obj* _current_element);
+		wstring analizer(math_obj* CE);
 		/*Функция является точкой входа в вычислительное ядро.
-		Возвращает строку с результатом текущей итерации вычислений.*/
+		Возвращает 0 в случае успешного выполнения.
+		-1 -  ошибка.*/
 		int input_to_analize(data_list* all_math_data);
 	}
 }

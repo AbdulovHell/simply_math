@@ -8,8 +8,8 @@ namespace Project {
 	namespace ProjectError {
 
 		enum class ErrorCode : int {
-			//Переопределение переменной в качестве константы
-			VARBL_BLOCKED = -1,
+			//Ошибка мат. вычислений
+			MATH_ERROR = -1,
 			//Векторы не поддерживаются в полной мере.
 			VECTORS_LIMITED = -3,
 			//Уравнения не реализованы
@@ -63,7 +63,7 @@ namespace Project {
 			VARIABL_FUNCT = 17,
 			//Размерность вектора не соответствует размерности вектор-функции
 			VECTOR_DIMENSIONS = 18,
-			//Делить на вектор нельзя!
+			//Делить на вектор нельзя! Возводить в векторную степень нельзя!!
 			VECTOR_DIVISION = 19,
 			//Вызов математической функции без аргументов
 			FUNDAMENTAL_FUNCT = 20,

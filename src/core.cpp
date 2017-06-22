@@ -135,7 +135,7 @@ namespace Project {
 					{
 						//output = CE->expresion(1);
 					}
-					CE->actn = flags::solve;
+					//CE->actn = flags::solve;
 				}				
 				/*else if (CE->actn == flags::nthng)
 				{
@@ -175,7 +175,7 @@ namespace Project {
 						ProjectError::GetProjectLastError(err);
 						return err->GetErrorWStr();
 					}
-					CE->actn = flags::solve;
+					//CE->actn = flags::solve;
 					output = to_string(CE->var, var_type::FRACTIONAL, 4);
 				}
 			}
@@ -208,11 +208,16 @@ namespace Project {
 
 			//size_t size = all_math_data->size_s();
 			data_list* iter = all_math_data;
+			wstring temp;
 			while (iter->right!= NULL)
 			{
 				iter = iter->right;
-				if (iter->math!= NULL)
-					iter->out = analizer(iter->math);
+				if (iter->math != NULL)
+				{
+					temp = analizer(iter->math);
+					if (temp.length() != 0)
+						iter->out = temp;
+				}
 			}
 			if (all_math_data->out == L"error")
 				return -1;

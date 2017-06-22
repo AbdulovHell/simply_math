@@ -2136,7 +2136,7 @@ namespace Project {
 									}
 									if (temp_pointer->prop == flags::undef)
 									{
-										temp_pointer->prop == flags::defnd;
+										temp_pointer->prop = flags::defnd;
 										point_up->push_left(new math_obj(temp_pointer));
 									}
 									multiple_var = new math_obj((size_t)0);
@@ -2219,7 +2219,7 @@ namespace Project {
 										return NULL;
 									}
 									temp_pointer->point_right = multiple_var;
-									temp_pointer->prop == flags::arg_v;
+									temp_pointer->prop = flags::arg_v;
 									buf = multiple_var->var;
 									if ((get_pc()->point_left != NULL) && (var_list_compare(temp_pointer) != 0))
 									{
@@ -2285,7 +2285,7 @@ namespace Project {
 										return NULL;
 									}
 									temp_pointer->point_right = multiple_var;
-									temp_pointer->prop == flags::arg_v;
+									temp_pointer->prop = flags::arg_v;
 									buf = multiple_var->var;
 									if ((get_pc()->point_left != NULL) && (var_list_compare(temp_pointer) != 0))
 									{

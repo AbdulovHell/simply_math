@@ -230,42 +230,37 @@ namespace GUICLR {
 	private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
 
 		cli::array<String^>^ strs = textBox1->Lines;	//указатель на линии с текстбокса
-		int size = strs->Length;	//количество линий		
-		int len = all_math_data->size_s();
+		int size = strs->Length;	//количество линий в поле		
+		int len = all_math_data->size_s();	//количество линий в мат векторе
 		int out_strings = 0;
 		data_list* place;
 		wstring *in_str;
-		bool flag = false;
-		//all_math_data->delete_starting_at(0);
+		bool needReCalc = false;
+
 		for (int i = 0; i < size; i++) {
-			if (!isOutOrEmpty(strs[i]))
-			{
+			if (!isOutOrEmpty(strs[i])) {
+
 				in_str = new wstring((wchar_t*)(void*)System::Runtime::InteropServices::Marshal::StringToHGlobalAuto(strs[i]));
 
 				place = all_math_data->at(i - out_strings + 1);
-				if (place != NULL)
-				{
-					if ((place->compare_in(in_str)) || (flag))//если строчки не совпадают
-					{
+				if (place != NULL) {
+					if ((place->compare_in(in_str)) || (needReCalc)) {//если строчки не совпадают
 						place->in = *in_str;
 						place->run_string();
-						flag = true;
+						needReCalc = true;
 					}
-					else
-					{
+					else {
 						//строки совпали
 					}
 				}
-				else
-				{
+				else {
 					place = new data_list(in_str);
 					all_math_data->push_back(place);
 					//в run_string текст ошибки сразу записываетс€ в поле вывода.
 					place->run_string();
 				}
-			}
-			else
-			{
+			}	//if (!isOutOrEmpty(strs[i]))
+			else {
 				out_strings++;//посчитать количество строк вывода из предыдущих выполнений программы
 			}
 		}
@@ -281,71 +276,21 @@ namespace GUICLR {
 			//err
 		}
 		//далее all_math_data уже обработана в €дре		
-		len = all_math_data->size_s();//количество элементов. Ќумераци€ с 1.
-
-
-		//List<int>^ temp = gcnew List<int>;	//массив дл€ индексов линий ввода
-		////отдел€ем линии ввода по индексам
-		//for (int i = 0;i < len;i++) {
-		//	if (!isOutOrEmpty(strs[i])) {
-		//		temp->Add(i);
-		//	}
-		//}
-		////копируем линии нужного индекса
-		//cli::array<String^>^ in = gcnew cli::array<String^>(temp->Count);
-		//for (int i = 0;i < temp->Count;i++) {
-		//	in[i] = strs[temp[i]];
-		//}
-
-		//len = temp->Count;	//количество линий ввода
-
-		////каждую по очереди в обработку 
-		//input_to_analize(all_math_data);
-		////если есть nullptr линии, сдвигаем те что за ней вверх
-
-		//for (int i = 0;i < out->Length;i++) {
-		//	if (out[i] == nullptr) {
-		//		inullstrs++;
-		//		for (int k = i;k < out->Length-1;k++) {
-		//			out[k] = out[k + 1];
-		//		}
-		//	}
-		//}
-		int inullstrs = 0;
-		//cli::array<String^>^ in = gcnew cli::array<String^>(len);		
-		cli::array<String^>^ out = gcnew cli::array<String^>(len * 2);
+		len = all_math_data->size_s();//количество элементов. Ќумераци€ с 1.	
+		cli::array<String^>^ out = gcnew cli::array<String^>(len * 2);	//резервируем возможный максимум
 		String^ outstr;
-		for (int i = 0; i < len; i++)
+		for (int i = 0, k = 0; i < len; i++)
 		{
-			out[i * 2] = gcnew String(all_math_data->at(i + 1)->in.c_str());
+			out[k++] = gcnew String(all_math_data->at(i + 1)->in.c_str());
 			outstr = gcnew String(all_math_data->at(i + 1)->out.c_str());
-			if (String::IsNullOrEmpty(outstr))
-				inullstrs++;
-			out[i * 2 + 1] = outstr;
-
+			if (!String::IsNullOrEmpty(outstr))
+				out[k++] = ">>> " + outstr;
 		}
-		int empty = 0;
-		cli::array<String^>^ out2 = gcnew cli::array<String^>(len * 2 - inullstrs);
-		for (int i = 0; i < (2 * len); i++)
-		{
-			if (i % 2 == 0)
-				out2[i - empty] = out[i];
-			else if (i % 2 == 1)
-			{
-				if (String::IsNullOrEmpty(out[i]))
-				{
-					empty++;
-				}
-				else
-				{
-					out2[i - empty] = ">>> " + out[i];
-				}
-			}
-		}
+		
 		int a = textBox1->SelectionStart;
 
 		this->textBox1->TextChanged -= gcnew System::EventHandler(this, &MainForm::verify);
-		textBox1->Lines = out2;
+		textBox1->Lines = out;
 		this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
 
 		textBox1->SelectionStart = a;

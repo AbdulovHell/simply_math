@@ -137,9 +137,9 @@ namespace Project {
 					}
 					CE->actn = flags::solve;
 				}				
-				else
+				else if (CE->actn == flags::nthng)
 				{
-					
+					output = to_string(CE->point_left->var, var_type::FRACTIONAL, 4);
 				}
 			}
 			else if (CE->type == flags::cnst)

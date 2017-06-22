@@ -103,7 +103,7 @@ namespace GUICLR {
 				 this->textBox1->Name = L"textBox1";
 				 this->textBox1->Size = System::Drawing::Size(607, 329);
 				 this->textBox1->TabIndex = 0;
-				 this->textBox1->Text = L"f(x)=(e+pi)*x\r\na=f(x)\r\na=";
+				 this->textBox1->Text = L"f(x)=(e+pi)*x\r\nf(2)=";
 				 this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
 				 // 
 				 // toolStrip1

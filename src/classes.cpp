@@ -2536,15 +2536,15 @@ namespace Project {
 				res = point_left->math_simplify_processing(last);
 				if ((res == NULL) || (res->type != flags::numbr))
 					return false;
-				if (res == point_left)
-				{
-					prop = flags::solvd;//тут подумать
-					actn = flags::nthng;
+				if (prop  == flags::arg_c)
+				{					
+					point_left = res;
 				}
-				else // если указатели не совпадают - функция не имеет константных аргументов
+				else // функция не имеет константных аргументов
 				{
 
 				}
+				actn = flags::nthng;
 				last->pop_back();
 				delete last;
 				return true;

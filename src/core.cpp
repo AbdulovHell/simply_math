@@ -121,7 +121,7 @@ namespace Project {
 					{
 						if (CE->math_simplify())
 						{
-							output = to_string(CE->point_collar->var, var_type::FRACTIONAL, 4);
+							output = to_string(CE->point_left->var, var_type::FRACTIONAL, 4);
 						}
 						else
 						{

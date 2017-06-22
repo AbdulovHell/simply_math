@@ -135,6 +135,7 @@ namespace Project {
 					{
 						//output = CE->expresion(1);
 					}
+					CE->actn = flags::solve;
 				}				
 				else
 				{

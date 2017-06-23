@@ -14,6 +14,7 @@ namespace Project {
 			ProjectError::Init();
 			math_obj* temp;
 			data_list* data = new data_list();
+			data->in = L"@start#";
 			math_obj* temp_var = new math_obj(L"", flags::varbl, flags::servc, flags::nthng, 0, NULL, NULL, NULL);
 					
 			
@@ -32,7 +33,7 @@ namespace Project {
 				temp->close_list();
 				temp->point_left = new math_obj(L"^", flags::power, flags::nthng, flags::nthng, 0, temp->point_collar, new math_obj(L"/", flags::divis, flags::nthng, flags::nthng, 0, new math_obj(L"0", flags::numbr, flags::real, 1), temp->point_collar->point_right, NULL), temp);
 				temp->point_left->point_right->point_collar = temp->point_left;
-			}
+			}			
 			//модуль (корень из квадрата числа)
 			{				
 				//temp_var->prop = L"abs__";

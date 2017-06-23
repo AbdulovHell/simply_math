@@ -58,6 +58,7 @@ namespace Project {
 				//смотрим на то что слева от равно. При этом проиходит заполнение текущего элемента в данном конструкторе.
 				wstring str_left;
 				str_left.assign(strPtr, temp);
+				double buf;
 				math_obj* left = build_tree(&str_left[0], &str_left[str_left.length() - 1]);
 				if (left == NULL)
 				{
@@ -88,6 +89,20 @@ namespace Project {
 						- type == vectr - рассматривается аналогично для поля prop.*/
 						else
 						{
+							//если справа находится функция с конст. аргументами или именная константа - создаётся выражение с указателем на неё. (чтобы в списке данных наименования не повторялись)
+							if (((get_type() == flags::funct) && (get_prop() == flags::arg_c))|| (get_type() == flags::cnst))
+							{
+								t_p = new math_obj(this);
+								convert_totaly(L"", flags::exprs, flags::undef, flags::solve, 0, t_p, NULL, NULL);								
+								if (t_p->type == flags::vectr)
+								{
+									buf = t_p->var;
+									t_p = new math_obj(this);
+									t_p = new math_obj((int)buf, t_p);
+									copy(t_p);
+									delete t_p;
+								}
+							}
 							actn = flags::solve;
 						}
 					}
@@ -98,8 +113,7 @@ namespace Project {
 						wstring str_right;
 						str_right.assign(temp + 1, endPtr + 1);
 						math_obj* right = new math_obj(&str_right[0], &str_right[str_right.length() - 1], t_p, point_up);
-						//отсеяли ошибочный элемент
-						double buf;
+						//отсеяли ошибочный элемент						
 						if (right->prop == flags::error)
 						{
 							prop = flags::error;
@@ -1377,6 +1391,7 @@ namespace Project {
 							if (temp == NULL)
 							{
 								copy(high_pointer);
+								actn = flags::nthng;
 								high_pointer = this;
 								low_pointer = high_pointer;
 							}
@@ -1458,6 +1473,7 @@ namespace Project {
 										//вылезло что угодно другое - this -> копия найденной константы
 										//TODO: временно игнорируется возможность с(...) = с*(...). доработать.
 										copy(high_pointer);
+										actn = flags::nthng;
 									}
 									high_pointer = this;
 									low_pointer = high_pointer;
@@ -1500,6 +1516,7 @@ namespace Project {
 								else
 								{
 									copy(high_pointer);
+									actn = flags::nthng;
 									high_pointer = this;
 									low_pointer = high_pointer;
 								}
@@ -1609,6 +1626,7 @@ namespace Project {
 							if (temp == NULL)
 							{
 								copy(high_pointer);
+								actn = flags::nthng;
 								high_pointer = this;
 								low_pointer = high_pointer;
 								//данная функция может быть использована в каком-то уравнении/другой функции в качестве операнда. 
@@ -1669,7 +1687,7 @@ namespace Project {
 										if (temp == endPtr)
 										{
 											copy(high_pointer);
-
+											actn = flags::nthng;
 											prop = flags::arg_v;
 											low_pointer = new math_obj((size_t)0);
 											low_pointer->vector_push_back(temp_pointer);
@@ -1755,6 +1773,7 @@ namespace Project {
 									if (temp == endPtr)
 									{
 										copy(high_pointer);
+										actn = flags::nthng;
 										prop = flags::arg_v;
 										low_pointer = new math_obj((size_t)0);
 										low_pointer->vector_push_back(temp_pointer);
@@ -1797,6 +1816,7 @@ namespace Project {
 											if (temp == endPtr)
 											{
 												copy(high_pointer);
+												actn = flags::nthng;
 												prop = flags::arg_v;
 												point_right = temp_pointer;
 												high_pointer = this;
@@ -1827,6 +1847,7 @@ namespace Project {
 											if (temp == endPtr)
 											{
 												copy(high_pointer);
+												actn = flags::nthng;
 												prop = flags::arg_c;
 												point_right = temp_pointer;
 												high_pointer = this;
@@ -1860,6 +1881,7 @@ namespace Project {
 												if (temp == endPtr)
 												{
 													copy(high_pointer);
+													actn = flags::nthng;
 													prop = flags::arg_v;
 													point_right = temp_pointer;
 													high_pointer = this;
@@ -1891,6 +1913,7 @@ namespace Project {
 												if (temp == endPtr)
 												{
 													copy(high_pointer);
+													actn = flags::nthng;
 													prop = flags::arg_c;
 													point_right = temp_pointer;
 													high_pointer = this;
@@ -1980,7 +2003,7 @@ namespace Project {
 							name_str.assign(s_iter, temp);
 							s_iter = temp;
 						}
-						low_pointer = point_up->find_math_obj(&name_str);
+						low_pointer = point_up->left->find_math_obj(&name_str);
 						//далее всегда может быть только два варианта - текщуий элемент либо функция(вектор-функция), либо выражение (векторное), причём всегда flags::undef.
 						//если не найден ни один элемент массива с таким именем
 						if (low_pointer == NULL)
@@ -4554,14 +4577,13 @@ namespace Project {
 
 		//DATA_LIST
 
-		data_list * data_list::back_rec(data_list * pointer)
+		data_list * data_list::back_rec()
 		{
-			if (pointer->right != NULL)
+			if (right != NULL)
 			{
-				return back_rec(pointer->right);
-			}
-			else
-				return pointer;
+				return right->back_rec();
+			}			
+			return this;
 		}
 
 		void data_list::index_plus_one()
@@ -4571,32 +4593,31 @@ namespace Project {
 				right->index_plus_one();
 		}
 
-		data_list * data_list::at_rec(int* place, data_list * pointer)
+		data_list * data_list::at_rec(int* place)
 		{
-			if (pointer->index == *place)
-				return pointer;
-			else if (pointer->right != NULL)
-				return at_rec(place, pointer->right);
-			else
-				return nullptr;
+			if (index == *place)
+				return this;
+			if (right != NULL)
+				return right->at_rec(place);			
+			return nullptr;
 		}
 
-		int data_list::size_rec(data_list * pointer, bool* flag)
+		int data_list::size_rec(bool* flag)
 		{
-			if (*flag) //если 1
+			if (*flag) //если true
 			{
-				if (pointer->right != NULL)
+				if (right != NULL)
 				{
-					return (1 + size_rec(pointer->right, flag));
+					return (1 + right->size_rec(flag));
 				}
 				else
 					return 1;
 			}
 			else
 			{
-				if (pointer->left != NULL)
+				if (left != NULL)
 				{
-					return (1 + size_rec(pointer->left, flag));
+					return (1 + left->size_rec(flag));
 				}
 				else
 					return 1;
@@ -4632,14 +4653,15 @@ namespace Project {
 
 		int data_list::push_back(data_list * pointer)
 		{
-			if (index != 0)
-			{
-				return 0;
-			}
+			if (in.compare(L"@start#") != 0)			
+				return 0;			
 			data_list*place = back();
+			if (place == nullptr)
+				return 0;
 			place->right = pointer;
 			place->right->left = place;
-			place->right->index = place->index + 1;
+			place->right->index = index;
+			index++;
 			return 1;
 		}
 
@@ -4658,8 +4680,13 @@ namespace Project {
 
 		data_list * data_list::begin()
 		{
+			if (in.compare(L"@start#") == 0)							
+				return this;			
 			if (index == 0)
-				return this;
+			{				
+				if (left->in.compare(L"@start#") == 0)
+					return left;
+			}
 			if ((index > 0) && (left != NULL))
 				return left->begin();
 			return nullptr;
@@ -4667,6 +4694,8 @@ namespace Project {
 
 		int data_list::implace(int place, data_list * pointer)
 		{
+			if (in.compare(L"@start#") != 0)
+				return 0;
 			data_list* temp = at(place);
 			if (temp == NULL)
 				return 0;
@@ -4680,29 +4709,29 @@ namespace Project {
 				temp_plus_one->left = pointer;
 				temp_plus_one->index_plus_one();
 			}
+			index++;
 			return 1;
 		}
 
 		data_list * data_list::at(int place)
 		{
-			if (index != 0)
+			if (in.compare(L"@start#") != 0)
 				return nullptr;
-			else if ((right != NULL) && (place > 0))
-				return at_rec(&place, right);
-			else if (place == 0)
-				return this;
-			else
-				return NULL;
+			if (index < place)//дополнительно размер массива записывается в поле index стартового элемента
+				return nullptr;
+			if ((right != NULL) && (place >= 0))
+				return right->at_rec(&place);
+			return NULL;
 
 		}
 
 		data_list * data_list::back()
 		{
-			if (index != 0)
+			if (in.compare(L"@start#") != 0)
 				return nullptr;
 			else if (right != NULL)
 			{
-				return back_rec(right);
+				return right->back_rec();
 			}
 			else
 			{
@@ -4722,7 +4751,7 @@ namespace Project {
 
 		math_obj * data_list::find_math_obj(wstring* name)
 		{
-			if ((math != NULL) && (name->compare(math->name) == 0))
+			if ((math != NULL) &&(math->name.length()!=0)&& (name->compare(math->name) == 0))
 				return math;
 			else if (left != NULL)
 				return left->find_math_obj(name);
@@ -4758,40 +4787,62 @@ namespace Project {
 
 		int data_list::size_s()
 		{
-			int out = 0;
-			bool flag = true;
-			if (index != 0)
+			if (in.compare(L"@start#") != 0)
 				return -1;
+			int out = 0;
+			bool flag = true;			
 			if (right != NULL)
 			{
-				out += size_rec(right, &flag);
-
+				out += right->size_rec(&flag);
 			}
+			if (index != out)//доп. проверка для записанного в поле index стартового элемента размера массива данных
+				index = out;
 			return out;
 		}
 
 		int data_list::size_all()
 		{
-			int out = 0;
-			bool flag;
-			if (index != 0)
+			if (in.compare(L"@start#") != 0)
 				return -1;
+			int out = 0;
+			bool flag;			
 			if (right != NULL)
 			{
 				flag = true;
-				out += size_rec(right, &flag);
+				out += right->size_rec(&flag);
 			}
+			if (index != out)//доп. проверка для записанного в поле index стартового элемента размера массива данных
+				index = out;
 			if (left != NULL)
 			{
 				flag = false;
-				out += size_rec(right, &flag);
+				out += left->size_rec(&flag);
 			}
-			return out;
+			return out+1;//так же считается элемент start
 		}
-		/*Метод удаляет все элементы списка данных начиная с позиции start. Позиция start не удаляется*/
-		int data_list::delete_starting_at(int start)
+		/*Метод удаляет все элементы списка данных начиная с позиции from. Позиция from не удаляется. 
+		В случае вызова для позиции from = -1 - удаляются все элементы справа от start (включая нулевой)
+		-1 в случае ошибки. */
+		int data_list::delete_starting_at(int from)
 		{
-			return at(start)->delete_starting_at_rec();
+			if (in.compare(L"@start#") != 0)
+				return -1;
+			index = from + 1;			
+			if (from > -1)
+			{
+				data_list* temp = at(from + 1);
+				int k = temp->delete_starting_at_rec();
+				delete temp;
+				return k;
+			}
+			else if (from == -1)
+			{
+				data_list* temp = at(0);
+				int k = temp->delete_starting_at_rec();
+				delete temp;
+				return k;
+			}
+			else return -1;
 		}
 		/*Рекурсия для delete_starting_at*/
 		int data_list::delete_starting_at_rec()
@@ -4803,7 +4854,7 @@ namespace Project {
 				delete right;
 				right = NULL;
 			}
-			//math->~math_obj();//TODO: деструктор math_obj должен удалять всё полностью без разбора (деревья и т.д.) для выбранного экземпляра класса.
+			//math->~math_obj();//TODO: деструктор math_obj должен удалять всё полностью без разбора (деревья и т.д.) для выбранного экземпляра класса math_obj.
 			delete math;
 			return k;
 		}

@@ -103,7 +103,7 @@ namespace GUICLR {
 				 this->textBox1->Name = L"textBox1";
 				 this->textBox1->Size = System::Drawing::Size(607, 329);
 				 this->textBox1->TabIndex = 0;
-				 this->textBox1->Text = L"f(x)=(e+pi)*x\r\nf(2)=";
+				 this->textBox1->Text = L"f(x)=(e+pi)*x\r\na=f(3)\r\nb=2^(0.5)\r\na=\r\nb=\r\na+b=";
 				 this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
 				 // 
 				 // toolStrip1
@@ -242,7 +242,7 @@ namespace GUICLR {
 
 				in_str = new wstring((wchar_t*)(void*)System::Runtime::InteropServices::Marshal::StringToHGlobalAuto(strs[i]));
 
-				place = all_math_data->at(i - out_strings + 1);
+				place = all_math_data->at(i - out_strings);
 				if (place != NULL) {
 					if ((place->compare_in(in_str)) || (needReCalc)) {//если строчки не совпадают
 						place->in = *in_str;
@@ -266,8 +266,8 @@ namespace GUICLR {
 		}
 		if (size - out_strings < len)
 		{
-			//если количество введённых строк (с учётом вывода в предыду оказалось меньше числа злементов в списке данных - удаляем лишнее
-			all_math_data->delete_starting_at(size - out_strings);
+			//если количество введённых строк (с учётом вывода в предыдущее выполнение программы) оказалось меньше числа злементов в списке данных - удаляем лишнее
+			all_math_data->delete_starting_at(size - out_strings-1);//нумерация теперь с нуля
 		}
 
 		if (!input_to_analize(all_math_data))
@@ -276,13 +276,13 @@ namespace GUICLR {
 			//err
 		}
 		//далее all_math_data уже обработана в ядре		
-		len = all_math_data->size_s();//количество элементов. Нумерация с 1.	
+		len = all_math_data->size_s();//количество элементов. Нумерация с 0.	
 		cli::array<String^>^ out = gcnew cli::array<String^>(len * 2);	//резервируем возможный максимум
 		String^ outstr;
 		for (int i = 0, k = 0; i < len; i++)
 		{
-			out[k++] = gcnew String(all_math_data->at(i + 1)->in.c_str());
-			outstr = gcnew String(all_math_data->at(i + 1)->out.c_str());
+			out[k++] = gcnew String(all_math_data->at(i)->in.c_str());
+			outstr = gcnew String(all_math_data->at(i)->out.c_str());
 			if (!String::IsNullOrEmpty(outstr))
 				out[k++] = ">>> " + outstr;
 		}

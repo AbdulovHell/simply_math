@@ -758,7 +758,7 @@ namespace Project {
 						if ((high_pointer == NULL) && (low_pointer == NULL))
 						{
 							//и закрывается в конце
-							if ((temp + 1) == NULL)
+							if (*(temp + 1) == NULL)
 							{
 								copy(temp_pointer);
 								//наверх выдаётся сам созданный вектор, без проверки что в нём
@@ -1132,7 +1132,7 @@ namespace Project {
 								high_pointer->point_right = temp_pointer;
 								low_pointer = high_pointer->point_right;
 							}
-							else if ((type == flags::funct) || ((type == flags::vectr) && (prop == flags::funct)))
+							else if (get_type() == flags::funct) 
 							{
 								if (temp_pointer->type == flags::varbl)
 								{
@@ -1177,7 +1177,7 @@ namespace Project {
 										}
 										//должно сработать в любом случае
 										low_pointer = new math_obj((size_t)0);
-										low_pointer->point_left = get_pl();
+										low_pointer->point_left = get_pc();
 										low_pointer->prop = flags::servc;
 										low_pointer->var = get_var();
 										low_pointer = temp_pointer->create_var_list(low_pointer);
@@ -1208,7 +1208,7 @@ namespace Project {
 											return NULL;
 										}
 										low_pointer = new math_obj((size_t)0);
-										low_pointer->point_left = get_pl();
+										low_pointer->point_left = get_pc();
 										low_pointer->prop = flags::servc;
 										low_pointer->var = get_var();
 										low_pointer = temp_pointer->create_var_list(low_pointer);
@@ -1490,6 +1490,7 @@ namespace Project {
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
 							{
 								point_left = new math_obj(high_pointer);
+								point_left->actn = flags::nthng;
 								high_pointer = point_left;
 								low_pointer = high_pointer;
 							}
@@ -2050,7 +2051,7 @@ namespace Project {
 						{
 							if ((temp == NULL) || (*temp == '+') || (*temp == '-') || (*temp == '*') || (*temp == '/') || (*temp == '^'))
 							{
-								if ((type == flags::funct) || ((type == flags::vectr) && (prop == flags::funct)))
+								if (get_type() == flags::funct) 
 								{
 									temp_pointer = find_by_name(low_pointer);
 									if (temp_pointer != NULL)
@@ -2667,6 +2668,8 @@ namespace Project {
 				}
 				last_funct->push_back(this);//добавляется новый указатель к списку функций в дереве операций
 				out = point_left->math_simplify_processing(last_funct);
+				if (out == NULL)
+					return NULL;
 				if ((prop == flags::arg_c) && (out->type == flags::numbr))
 				{
 					type = flags::numbr;
@@ -2684,6 +2687,8 @@ namespace Project {
 				last_funct->pop_back();//последний указатель удаляется
 				if (last_funct->size() == 0)
 					delete last_funct;
+				if ((prop == flags::arg_v) || (prop == flags::undef) || (prop == flags::defnd))
+					return out;
 				return this;
 				break;
 			}
@@ -3183,15 +3188,15 @@ namespace Project {
 				{
 					place = new math_obj((size_t)0);
 					var_list_copy_to_vector_processing(point_collar, place);
-					prop = flags::arg_v;
 					if (prop == flags::undef)
 					{
 						reassing_left_pointers(point_collar);
 						close_list();
 					}
+					prop = flags::arg_v;					
 					place->prop = flags::only_arg_v;
 					point_right = place;
-					var_list_copy_to_vector_processing(point_left, var_list);
+					var_list_copy_to_vector_processing(point_right->point_left, var_list);
 				}
 			}
 			else if (type == flags::vectr)
@@ -3227,12 +3232,12 @@ namespace Project {
 						{
 							place = new math_obj((size_t)0);
 							iter->var_list_copy_to_vector(place);
-							iter->prop = flags::arg_v;
 							if (iter->prop == flags::undef)
 							{
 								reassing_left_pointers(iter->point_collar);
 								iter->close_list();
 							}
+							iter->prop = flags::arg_v;							
 							place->prop = flags::only_arg_v;
 							iter->point_right = place;
 							place->var_list_copy_to_vector(var_list);
@@ -3975,15 +3980,15 @@ namespace Project {
 						return NULL;
 					}
 					else if (temp_pointer->type == flags::varbl)
-					{
-						count_var++;
+					{						
 						if (temp_pointer->prop == flags::undef)
 						{
 							temp_pointer->prop = flags::defnd;
-							//general_var_const->push_back(temp_pointer);
+							point_up->push_left(new math_obj(temp_pointer));
 						}
 						//если в вектор добавляются переменные - они нумеруются по порядку. Это необходимо в случае задания списка переменных, а так же для разрешения возможных неопределённостей при проходе по вектору определённых методов.
 						temp_pointer->var = count_var;
+						count_var++;
 					}
 					else if (temp_pointer->type == flags::funct)
 					{
@@ -4205,6 +4210,7 @@ namespace Project {
 		int math_obj::vector_size_processing(math_obj*pointer)
 		{
 			int count = 0;
+			//TODO:вылет с тремя переменными
 			if (pointer->point_right == NULL)
 			{
 				count++;

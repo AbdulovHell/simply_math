@@ -101,9 +101,10 @@ namespace GUICLR {
 				 this->textBox1->Location = System::Drawing::Point(0, 28);
 				 this->textBox1->Multiline = true;
 				 this->textBox1->Name = L"textBox1";
-				 this->textBox1->Size = System::Drawing::Size(607, 329);
+				 this->textBox1->Size = System::Drawing::Size(915, 527);
 				 this->textBox1->TabIndex = 0;
-				 this->textBox1->Text = L"f(x,y)=e^(x+pi*y)\r\na=f(-1,4)\r\nb=2^(0.5)\r\na=\r\nb=\r\na+b=";
+				 this->textBox1->Text = L"f=1000*h+100*y+10*t+z\r\nf(1,2,3,4)=\r\ng=n+10*u+100*r+1000*a+10000*d+100000*p+100000"
+					 L"0*q\r\ng(1,2,3,4,5,6,7)=";
 				 this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
 				 // 
 				 // toolStrip1
@@ -112,7 +113,7 @@ namespace GUICLR {
 				 this->toolStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) { this->ProceedBtn, this->toolStripButton1 });
 				 this->toolStrip1->Location = System::Drawing::Point(0, 0);
 				 this->toolStrip1->Name = L"toolStrip1";
-				 this->toolStrip1->Size = System::Drawing::Size(607, 25);
+				 this->toolStrip1->Size = System::Drawing::Size(915, 25);
 				 this->toolStrip1->TabIndex = 1;
 				 this->toolStrip1->Text = L"toolStrip1";
 				 // 
@@ -140,7 +141,7 @@ namespace GUICLR {
 				 // 
 				 this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 				 this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-				 this->ClientSize = System::Drawing::Size(607, 357);
+				 this->ClientSize = System::Drawing::Size(915, 555);
 				 this->Controls->Add(this->toolStrip1);
 				 this->Controls->Add(this->textBox1);
 				 this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedSingle;

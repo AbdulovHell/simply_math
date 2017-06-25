@@ -215,7 +215,7 @@ namespace Project {
 			-1 при ошибке*/
 			int var_list_copy_to_vector_processing(math_obj* pointer, math_obj* vect);
 			/*PRIVATE. Нумерация переменных по порядку.*/
-			void var_list_number(math_obj* pointer);
+			void var_list_number();
 			/*PRIVATE. Установка указателей point_collar для НЕЗАМКНУТОГО списка переменных на функцию*/
 			void var_list_collar(math_obj* pointer, math_obj*original);			
 			/*PRIVATE. Рекурсия для vector_destruct.*/
@@ -279,7 +279,10 @@ namespace Project {
 
 			wstring expression();
 
-			
+			wstring vector_to_string();
+
+			//wstring vector_to_string_procesing();
+
 
 			
 			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и очищающую память.

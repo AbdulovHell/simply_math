@@ -2008,6 +2008,7 @@ namespace Project {
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
 							{
 								high_pointer = new math_obj(high_pointer);
+								high_pointer->actn = flags::nthng;
 								//low_pointer - список переменных, переданных в high_pointer, в том числе внутри других функций
 								low_pointer = high_pointer->create_var_list(NULL);
 								convert_totaly(L"", flags::funct, flags::undef, flags::nthng, low_pointer->var, high_pointer, NULL, low_pointer->point_left);
@@ -3487,6 +3488,7 @@ namespace Project {
 				if (temp == NULL)
 				{
 					vect->vector_push_back(new math_obj(pointer));
+					vect->vector_back()->point_left = NULL;
 					pointer->point_left = vect->vector_back();
 				}
 				else

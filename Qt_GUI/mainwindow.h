@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QSwipeGesture>
+#include "../src/core.h"
 
 namespace Ui {
 class MainWindow;
@@ -29,6 +30,7 @@ private:
     bool gestureEvent(QGestureEvent *event);
     void swipeTriggered(QSwipeGesture*);
     Ui::MainWindow *ui;
+    Project::Core::data_list* all_math_data;
 };
 
 #endif // MAINWINDOW_H

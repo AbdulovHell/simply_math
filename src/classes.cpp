@@ -90,10 +90,10 @@ namespace Project {
 						else
 						{
 							//если справа находится функция с конст. аргументами или именная константа - создаётся выражение с указателем на неё. (чтобы в списке данных наименования не повторялись)
-							if (((get_type() == flags::funct) && (get_prop() == flags::arg_c))|| (get_type() == flags::cnst))
+							if (((get_type() == flags::funct) && (get_prop() == flags::arg_c)) || (get_type() == flags::cnst))
 							{
 								t_p = new math_obj(this);
-								convert_totaly(L"", flags::exprs, flags::undef, flags::solve, 0, t_p, NULL, NULL);								
+								convert_totaly(L"", flags::exprs, flags::undef, flags::solve, 0, t_p, NULL, NULL);
 								if (t_p->type == flags::vectr)
 								{
 									buf = t_p->var;
@@ -513,10 +513,10 @@ namespace Project {
 								wstring vars = t_p->vector_to_string();
 								delete t_p;
 
-								close_list();				
-								
+								close_list();
+
 								size_t place = point_up->in.find_first_of(L"=");
-								point_up->in.insert(place, vars);			
+								point_up->in.insert(place, vars);
 
 								actn = flags::write;
 							}
@@ -1154,7 +1154,7 @@ namespace Project {
 								high_pointer->point_right = temp_pointer;
 								low_pointer = high_pointer->point_right;
 							}
-							else if (get_type() == flags::funct) 
+							else if (get_type() == flags::funct)
 							{
 								if (temp_pointer->type == flags::varbl)
 								{
@@ -1385,7 +1385,7 @@ namespace Project {
 							{
 								//найденное буквосочетание - переменная, текущий элемент - функция							
 								temp_pointer = new math_obj(name_str, flags::varbl, flags::defnd, 0);
-								point_up->push_left(new math_obj(temp_pointer));								
+								point_up->push_left(new math_obj(temp_pointer));
 								//копия переменной с указателем на функцию
 								temp_pointer->point_collar = this;
 								convert_totaly(L"", flags::funct, flags::undef, flags::nthng, 1, temp_pointer, NULL, temp_pointer);
@@ -1660,89 +1660,54 @@ namespace Project {
 						//найден элемент массива мат объектов с совпадающим именем - функция
 						else if (high_pointer->type == flags::funct)
 						{
-							
-							if (temp == NULL)
+							//выделяется два случая
+							//текущий элемент - выражение
+							if (get_type() == flags::exprs)
 							{
-								copy(high_pointer);
-								actn = flags::nthng;
-								high_pointer = this;
-								low_pointer = high_pointer;
-								//данная функция может быть использована в каком-то уравнении/другой функции в качестве операнда. 
-								//может так же означать её переопределение с неизвестным количеством переменных							
-							}
-							/*в данном случае открытая скобка после названия уже определённой ф-ции (н-р f(x)) может значить:
-							--новое определение, в том числе от новых переменных
-							--передачу функции аргументов, как константных выражений, так и новых переменных. В этом случае считаем,
-								что подразумевается f(t)= - запрос на вывод выражения от t, либо участие f в уравнении с переменной t, за искл. случая с переопределением.
-							--передачу функции в качестве аргумента новую функцию g(s) - при этом получившаяся функция f(g(s)) должна всюду зависеть от s, а не от х,
-								однако должна состоять из копий оригинальных функций, исключение g(s) - неявно задана - f(5*s+2)*/
-							else if (*temp == '(')
-							{
-								temp = brackets_close(temp, endPtr);
 								if (temp == NULL)
 								{
-									return NULL;
+									copy(high_pointer);
+									actn = flags::nthng;
+									high_pointer = this;
+									low_pointer = high_pointer;
+									//данная функция может быть использована в каком-то уравнении/другой функции в качестве операнда. 
+									//может так же означать её переопределение с неизвестным количеством переменных							
 								}
-								//s_iter указывает на открывающую скобку, temp - на закрывающую
-								temp_str.assign(s_iter, temp + 1);
-								temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
+								/*в данном случае открытая скобка после названия уже определённой ф-ции (н-р f(x)) может значить:
+								--новое определение, в том числе от новых переменных
+								--передачу функции аргументов, как константных выражений, так и новых переменных. В этом случае считаем,
+									что подразумевается f(t)= - запрос на вывод выражения от t, либо участие f в уравнении с переменной t, за искл. случая с переопределением.
+								--передачу функции в качестве аргумента новую функцию g(s) - при этом получившаяся функция f(g(s)) должна всюду зависеть от s, а не от х,
+									однако должна состоять из копий оригинальных функций, исключение g(s) - неявно задана - f(5*s+2)*/
+								else if (*temp == '(')
+								{
+									temp = brackets_close(temp, endPtr);
+									if (temp == NULL)
+									{
+										return NULL;
+									}
+									//s_iter указывает на открывающую скобку, temp - на закрывающую
+									temp_str.assign(s_iter, temp + 1);
+									temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
 
-								if (temp_pointer->prop == flags::error)
-								{
-									delete temp_pointer;
-									return NULL;
-								}
-								if ((temp_pointer->type == flags::numbr) && (temp_pointer->var == 0))
-								{
-									if (temp == endPtr)
+									if (temp_pointer->prop == flags::error)
 									{
-										copy(high_pointer);
-										high_pointer = this;
-										low_pointer = high_pointer;
+										delete temp_pointer;
+										return NULL;
 									}
-									else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
-									{
-										high_pointer = new math_obj(high_pointer);
-										//low_pointer - список переменных high_pointer, в том числе внутри других функций
-										low_pointer = high_pointer->create_var_list(NULL);
-										convert_totaly(L"", flags::funct, flags::undef, flags::nthng, low_pointer->var, high_pointer, NULL, low_pointer->point_left);
-										delete low_pointer;
-										link_var_list_to_funct();
-										high_pointer = point_left;
-										low_pointer = high_pointer;
-									}
-									delete temp_pointer;
-								}
-								else if (temp_pointer->type == flags::varbl)
-								{
-									if (temp_pointer->prop == flags::undef)
-									{
-										temp_pointer->prop = flags::defnd;
-										point_up->push_left(new math_obj(temp_pointer));
-									}
-									if (high_pointer->var == 1)
+									if ((temp_pointer->type == flags::numbr) && (temp_pointer->var == 0))
 									{
 										if (temp == endPtr)
 										{
 											copy(high_pointer);
-											actn = flags::nthng;
-											prop = flags::arg_v;
-											low_pointer = new math_obj((size_t)0);
-											low_pointer->vector_push_back(temp_pointer);
-											low_pointer->prop = flags::only_arg_v;
-											point_right = low_pointer;
 											high_pointer = this;
 											low_pointer = high_pointer;
 										}
 										else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
 										{
 											high_pointer = new math_obj(high_pointer);
-											high_pointer->prop = flags::arg_v;
-											low_pointer = new math_obj((size_t)0);
-											low_pointer->vector_push_back(temp_pointer);
-											low_pointer->prop = flags::only_arg_v;
-											high_pointer->point_right = low_pointer;
-											//low_pointer - список переменных, переданных в high_pointer, в том числе внутри других функций
+											high_pointer->actn = flags::nthng;
+											//low_pointer - список переменных high_pointer, в том числе внутри других функций
 											low_pointer = high_pointer->create_var_list(NULL);
 											convert_totaly(L"", flags::funct, flags::undef, flags::nthng, low_pointer->var, high_pointer, NULL, low_pointer->point_left);
 											delete low_pointer;
@@ -1750,121 +1715,38 @@ namespace Project {
 											high_pointer = point_left;
 											low_pointer = high_pointer;
 										}
+										delete temp_pointer;
 									}
-									else
+									else if (temp_pointer->type == flags::varbl)
 									{
-										if (temp != endPtr)
+										if (temp_pointer->prop == flags::undef)
 										{
-											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
-											return NULL;
+											temp_pointer->prop = flags::defnd;
+											point_up->push_left(new math_obj(temp_pointer));
 										}
-										convert_totaly(name_str, flags::funct, flags::undef, flags::write, 1, NULL, NULL, temp_pointer);
-										//если получили запись вида f(), где f - ранее обозначенная функция - передаём ей параметр flags::write.
-										delete temp_pointer; temp_pointer = NULL;
-										link_var_list_to_funct();
-										close_list();
-										high_pointer = this;
-										low_pointer = high_pointer;
-									}
-								}
-								else if ((temp_pointer->type == flags::cnst) || ((temp_pointer->type == flags::funct) && (temp_pointer->prop == flags::arg_c)) || (temp_pointer->type == flags::exprs))
-								{
-									if (high_pointer->var == 1)
-									{
-										if (temp == endPtr)
+										if (high_pointer->var == 1)
 										{
-											copy(high_pointer);
-											actn = flags::nthng;
-											prop = flags::arg_c;
-											low_pointer = new math_obj((size_t)0);
-											low_pointer->vector_push_back(temp_pointer);
-											low_pointer->prop = flags::arg_c;
-											point_right = low_pointer;
-											high_pointer = this;
-											low_pointer = high_pointer;
-										}
-										else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
-										{
-											low_pointer = new math_obj((size_t)0);
-											low_pointer->vector_push_back(temp_pointer);
-											low_pointer->prop = flags::arg_c;
-											point_left = new math_obj(high_pointer);
-											point_left->prop = flags::arg_c;
-											point_left->point_right = low_pointer;
-											high_pointer = point_left;
-											low_pointer = high_pointer;
-										}
-									}
-									else
-									{
-										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
-										return NULL;
-									}
-								}
-								else if (temp_pointer->type == flags::funct)
-								{
-									if (temp_pointer->actn == flags::write)
-									{
-										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
-										return NULL;
-									}
-									if (temp == endPtr)
-									{
-										copy(high_pointer);
-										actn = flags::nthng;
-										prop = flags::arg_v;
-										low_pointer = new math_obj((size_t)0);
-										low_pointer->vector_push_back(temp_pointer);
-										low_pointer->prop = flags::arg_v;
-										point_right = low_pointer;
-										high_pointer = this;
-										low_pointer = high_pointer;
-									}
-									else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
-									{
-										high_pointer = new math_obj(high_pointer);
-										high_pointer->prop = flags::arg_v;
-										low_pointer = new math_obj((size_t)0);
-										low_pointer->vector_push_back(temp_pointer);
-										low_pointer->prop = flags::arg_v;
-										high_pointer->point_right = low_pointer;
-										//low_pointer - список переменных, переданных в high_pointer, в том числе внутри других функций
-										low_pointer = high_pointer->create_var_list(NULL);
-										convert_totaly(L"", flags::funct, flags::undef, flags::nthng, low_pointer->var, high_pointer, NULL, low_pointer->point_left);
-										delete low_pointer;
-										link_var_list_to_funct();
-										high_pointer = point_left;
-										low_pointer = high_pointer;
-									}
-									else
-									{
-										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
-										return NULL;
-									}
-								}
-								else if (temp_pointer->type == flags::vectr)
-								{
-									//число аргументов в скобках совпадает с числом аргументов у определённой заранее функции
-									if (high_pointer->var == temp_pointer->var)
-									{
-										//подаём полученный вектор в качестве аргументов данной функции (даже если он состоит только из переменных
-										if ((temp_pointer->prop == flags::arg_v) || (temp_pointer->prop == flags::only_arg_v))
-										{
-											//если строка заканчивается - отдаём наверх найденную функцию с параметром flags::arg_v
 											if (temp == endPtr)
 											{
 												copy(high_pointer);
 												actn = flags::nthng;
 												prop = flags::arg_v;
-												point_right = temp_pointer;
+												low_pointer = new math_obj((size_t)0);
+												low_pointer->vector_push_back(temp_pointer);
+												low_pointer->prop = flags::only_arg_v;
+												point_right = low_pointer;
 												high_pointer = this;
 												low_pointer = high_pointer;
 											}
 											else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
 											{
 												high_pointer = new math_obj(high_pointer);
-												high_pointer->point_right = temp_pointer;
+												high_pointer->actn = flags::nthng;
 												high_pointer->prop = flags::arg_v;
+												low_pointer = new math_obj((size_t)0);
+												low_pointer->vector_push_back(temp_pointer);
+												low_pointer->prop = flags::only_arg_v;
+												high_pointer->point_right = low_pointer;
 												//low_pointer - список переменных, переданных в high_pointer, в том числе внутри других функций
 												low_pointer = high_pointer->create_var_list(NULL);
 												convert_totaly(L"", flags::funct, flags::undef, flags::nthng, low_pointer->var, high_pointer, NULL, low_pointer->point_left);
@@ -1879,23 +1761,47 @@ namespace Project {
 												return NULL;
 											}
 										}
-										//все аргументы не переменные
-										else if (temp_pointer->prop == flags::arg_c)
+										else
+										{
+											if (temp != endPtr)
+											{
+												ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+												return NULL;
+											}
+											convert_totaly(name_str, flags::funct, flags::undef, flags::write, 1, NULL, NULL, temp_pointer);
+											//если получили запись вида f(), где f - ранее обозначенная функция - передаём ей параметр flags::write.
+											delete temp_pointer; temp_pointer = NULL;
+											link_var_list_to_funct();
+											close_list();
+											high_pointer = this;
+											low_pointer = high_pointer;
+										}
+									}
+									else if ((temp_pointer->type == flags::cnst) || ((temp_pointer->type == flags::funct) && (temp_pointer->prop == flags::arg_c)) || (temp_pointer->type == flags::exprs))
+									{
+										if (high_pointer->var == 1)
 										{
 											if (temp == endPtr)
 											{
 												copy(high_pointer);
 												actn = flags::nthng;
 												prop = flags::arg_c;
-												point_right = temp_pointer;
+												low_pointer = new math_obj((size_t)0);
+												low_pointer->vector_push_back(temp_pointer);
+												low_pointer->prop = flags::arg_c;
+												point_right = low_pointer;
 												high_pointer = this;
 												low_pointer = high_pointer;
 											}
 											else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
 											{
+												low_pointer = new math_obj((size_t)0);
+												low_pointer->vector_push_back(temp_pointer);
+												low_pointer->prop = flags::arg_c;
 												point_left = new math_obj(high_pointer);
 												point_left->prop = flags::arg_c;
-												point_left->point_right = temp_pointer;
+												point_left->actn = flags::nthng;
+												point_left->point_right = low_pointer;
 												high_pointer = point_left;
 												low_pointer = high_pointer;
 											}
@@ -1905,15 +1811,68 @@ namespace Project {
 												return NULL;
 											}
 										}
+										else
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
 									}
-									/*число переменных функции отличается от количества элементов вектора в скобках*/
-									else
+									else if (temp_pointer->type == flags::funct)
 									{
-										//функция одного переменного трансформируется в вектор-функцию
+										if (temp_pointer->actn == flags::write)
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
+											return NULL;
+										}
 										if (high_pointer->var == 1)
 										{
-											buf = temp_pointer->var;
-											if ((temp_pointer->prop == flags::arg_v) || (temp_pointer->prop == flags::only_arg_v) || ((temp_pointer->prop == flags::funct) && (temp_pointer->get_prop() != flags::arg_c)))
+											if (temp == endPtr)
+											{
+												copy(high_pointer);
+												actn = flags::nthng;
+												prop = flags::arg_v;
+												low_pointer = new math_obj((size_t)0);
+												low_pointer->vector_push_back(temp_pointer);
+												low_pointer->prop = flags::arg_v;
+												point_right = low_pointer;
+												high_pointer = this;
+												low_pointer = high_pointer;
+											}
+											else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
+											{
+												high_pointer = new math_obj(high_pointer);
+												high_pointer->prop = flags::arg_v;
+												low_pointer = new math_obj((size_t)0);
+												low_pointer->vector_push_back(temp_pointer);
+												low_pointer->prop = flags::arg_v;
+												high_pointer->point_right = low_pointer;
+												//low_pointer - список переменных, переданных в high_pointer, в том числе внутри других функций
+												low_pointer = high_pointer->create_var_list(NULL);
+												convert_totaly(L"", flags::funct, flags::undef, flags::nthng, low_pointer->var, high_pointer, NULL, low_pointer->point_left);
+												delete low_pointer;
+												link_var_list_to_funct();
+												high_pointer = point_left;
+												low_pointer = high_pointer;
+											}
+											else
+											{
+												ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+												return NULL;
+											}
+										}
+										else
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
+									}
+									else if (temp_pointer->type == flags::vectr)
+									{
+										//число аргументов в скобках совпадает с числом аргументов у определённой заранее функции
+										if (high_pointer->var == temp_pointer->var)
+										{
+											//подаём полученный вектор в качестве аргументов данной функции (даже если он состоит только из переменных
+											if ((temp_pointer->prop == flags::arg_v) || (temp_pointer->prop == flags::only_arg_v))
 											{
 												//если строка заканчивается - отдаём наверх найденную функцию с параметром flags::arg_v
 												if (temp == endPtr)
@@ -1928,12 +1887,12 @@ namespace Project {
 												else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
 												{
 													high_pointer = new math_obj(high_pointer);
+													high_pointer->actn = flags::nthng;
 													high_pointer->point_right = temp_pointer;
 													high_pointer->prop = flags::arg_v;
 													//low_pointer - список переменных, переданных в high_pointer, в том числе внутри других функций
 													low_pointer = high_pointer->create_var_list(NULL);
-													temp_pointer = new math_obj((int)buf, high_pointer);
-													convert_totaly(L"", flags::funct, flags::undef, flags::nthng, low_pointer->var, temp_pointer, NULL, low_pointer->point_left);
+													convert_totaly(L"", flags::funct, flags::undef, flags::nthng, low_pointer->var, high_pointer, NULL, low_pointer->point_left);
 													delete low_pointer;
 													link_var_list_to_funct();
 													high_pointer = point_left;
@@ -1946,7 +1905,7 @@ namespace Project {
 												}
 											}
 											//все аргументы не переменные
-											else //if ((temp_pointer->prop == flags::arg_c) || ((temp_pointer->prop == flags::funct) && (temp_pointer->get_prop() == flags::arg_c))|| (temp_pointer->prop == exps) || (temp_pointer->prop == flags::cnst))))
+											else if (temp_pointer->prop == flags::arg_c)
 											{
 												if (temp == endPtr)
 												{
@@ -1959,11 +1918,10 @@ namespace Project {
 												}
 												else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
 												{
-													high_pointer = new math_obj(high_pointer);
-													high_pointer->point_right = temp_pointer;
-													high_pointer->prop = flags::arg_c;
-													temp_pointer = new math_obj((int)buf, high_pointer);
-													point_left = temp_pointer;
+													point_left = new math_obj(high_pointer);
+													point_left->actn = flags::nthng;
+													point_left->prop = flags::arg_c;
+													point_left->point_right = temp_pointer;
 													high_pointer = point_left;
 													low_pointer = high_pointer;
 												}
@@ -1973,54 +1931,406 @@ namespace Project {
 													return NULL;
 												}
 											}
-											temp_pointer = new math_obj(this);
-											multiple_var = new math_obj((int)buf, temp_pointer);
-											copy(multiple_var);
-											delete multiple_var;
 										}
-										//функция нескольких переменных - подразумевается переопределение
+										/*число переменных функции отличается от количества элементов вектора в скобках*/
 										else
 										{
-											//значит после переопределяемой функции строка должна закончиться. Так же вектор должен состоять только из переменных
-											if ((temp != endPtr) || (temp_pointer->prop != flags::only_arg_v))
+											//функция одного переменного трансформируется в вектор-функцию
+											if (high_pointer->var == 1)
+											{
+												buf = temp_pointer->var;
+												if ((temp_pointer->prop == flags::arg_v) || (temp_pointer->prop == flags::only_arg_v) || ((temp_pointer->prop == flags::funct) && (temp_pointer->get_prop() != flags::arg_c)))
+												{
+													//если строка заканчивается - отдаём наверх найденную функцию с параметром flags::arg_v
+													if (temp == endPtr)
+													{
+														copy(high_pointer);
+														actn = flags::nthng;
+														prop = flags::arg_v;
+														point_right = temp_pointer;
+														high_pointer = this;
+														low_pointer = high_pointer;
+													}
+													else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
+													{
+														high_pointer = new math_obj(high_pointer);
+														high_pointer->actn = flags::nthng;
+														high_pointer->point_right = temp_pointer;
+														high_pointer->prop = flags::arg_v;
+														//low_pointer - список переменных, переданных в high_pointer, в том числе внутри других функций
+														low_pointer = high_pointer->create_var_list(NULL);
+														temp_pointer = new math_obj((int)buf, high_pointer);
+														convert_totaly(L"", flags::funct, flags::undef, flags::nthng, low_pointer->var, temp_pointer, NULL, low_pointer->point_left);
+														delete low_pointer;
+														link_var_list_to_funct();
+														high_pointer = point_left;
+														low_pointer = high_pointer;
+													}
+													else
+													{
+														ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+														return NULL;
+													}
+												}
+												//все аргументы не переменные
+												else //if ((temp_pointer->prop == flags::arg_c) || ((temp_pointer->prop == flags::funct) && (temp_pointer->get_prop() == flags::arg_c))|| (temp_pointer->prop == exps) || (temp_pointer->prop == flags::cnst))))
+												{
+													if (temp == endPtr)
+													{
+														copy(high_pointer);
+														actn = flags::nthng;
+														prop = flags::arg_c;
+														point_right = temp_pointer;
+														high_pointer = this;
+														low_pointer = high_pointer;
+													}
+													else if ((*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
+													{
+														high_pointer = new math_obj(high_pointer);
+														high_pointer->actn = flags::nthng;
+														high_pointer->point_right = temp_pointer;
+														high_pointer->prop = flags::arg_c;
+														temp_pointer = new math_obj((int)buf, high_pointer);
+														point_left = temp_pointer;
+														high_pointer = point_left;
+														low_pointer = high_pointer;
+													}
+													else
+													{
+														ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+														return NULL;
+													}
+												}
+												temp_pointer = new math_obj(this);
+												multiple_var = new math_obj((int)buf, temp_pointer);
+												copy(multiple_var);
+												delete multiple_var;
+											}
+											//функция нескольких переменных - подразумевается переопределение
+											else
+											{
+												//значит после переопределяемой функции строка должна закончиться. Так же вектор должен состоять только из переменных
+												if ((temp != endPtr) || (temp_pointer->prop != flags::only_arg_v))
+												{
+													ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+													return NULL;
+												}
+												temp_pointer->double_lincked_vector();
+												convert_totaly(name_str, flags::funct, flags::undef, flags::write, temp_pointer->var, NULL, NULL, temp_pointer->point_left);
+												//если получили запись вида f(), где f - ранее обозначенная перменная - передаём ей параметр flags::write.
+												delete temp_pointer; temp_pointer = NULL;
+												link_var_list_to_funct();
+												close_list();
+												high_pointer = this;
+												low_pointer = high_pointer;
+											}
+										}
+									}
+									s_iter = temp + 1;
+								}
+								else if (*temp == ')')
+								{
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+									return NULL;
+								}
+								else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
+								{
+									high_pointer = new math_obj(high_pointer);
+									high_pointer->actn = flags::nthng;
+									//low_pointer - список переменных, переданных в high_pointer, в том числе внутри других функций
+									low_pointer = high_pointer->create_var_list(NULL);
+									convert_totaly(L"", flags::funct, flags::undef, flags::nthng, low_pointer->var, high_pointer, NULL, low_pointer->point_left);
+									delete low_pointer;
+									link_var_list_to_funct();
+									high_pointer = point_left;
+									low_pointer = high_pointer;
+								}
+								else
+								{
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+									return NULL;
+								}
+							}
+							//текущий элемент функция (только с замкнутым списком переменных)
+							else if ((get_type() == flags::funct) && (get_pc()->point_left != NULL))
+							{
+								if ((temp == NULL) || (*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
+								{
+									if (var_list_compare(high_pointer) != 0)
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+										return NULL;
+									}
+									high_pointer = new math_obj(high_pointer);
+									high_pointer->actn = flags::nthng;
+									low_pointer = new math_obj((size_t)0);
+									low_pointer->prop = flags::servc;
+									low_pointer->point_left = get_pc();
+									low_pointer->var = var;
+									low_pointer = high_pointer->create_var_list(low_pointer);
+									convert_totaly(L"", flags::funct, flags::undef, flags::nthng, var, high_pointer, NULL, low_pointer->point_left);
+									delete low_pointer;
+									high_pointer = get_pl();
+									low_pointer = high_pointer;
+								}
+								else if (*temp == '(')
+								{
+									temp = brackets_close(temp, endPtr);
+									if (temp == NULL)
+									{
+										return NULL;
+									}
+									//s_iter указывает на открывающую скобку, temp - на закрывающую
+									temp_str.assign(s_iter, temp + 1);
+									temp_pointer = new math_obj(&temp_str[0], &temp_str[temp_str.length() - 1], NULL, point_up);
+									if (temp_pointer->prop == flags::error)
+									{
+										delete temp_pointer;
+										return NULL;
+									}
+									if ((temp != endPtr) && (*(temp + 1) != '+') && (*(temp + 1) != '-') && (*(temp + 1) != '*') && (*(temp + 1) != '/') && (*(temp + 1) != '^'))
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+										return NULL;
+									}
+									if ((temp_pointer->type == flags::numbr) && (temp_pointer->var == 0))
+									{
+										if (var_list_compare(high_pointer) != 0)
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
+										high_pointer = new math_obj(high_pointer);
+										high_pointer->actn = flags::nthng;
+										low_pointer = new math_obj((size_t)0);
+										low_pointer->prop = flags::servc;
+										low_pointer->point_left = get_pc();
+										low_pointer->var = var;
+										low_pointer = high_pointer->create_var_list(low_pointer);
+										assing_pl(high_pointer);//поскольку список переменных уже задан, снова его назначать не нужно
+										delete low_pointer;
+										high_pointer = get_pl();
+										low_pointer = high_pointer;
+										delete temp_pointer;
+									}
+									else if (temp_pointer->type == flags::varbl)
+									{
+										//на данном шаге неопределённая переменная будет ошибкой
+										if (temp_pointer->prop == flags::undef)
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
+										low_pointer = find_by_name(temp_pointer);
+										if (low_pointer == NULL)
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
+										if (high_pointer->var == 1)
+										{
+											high_pointer = new math_obj(high_pointer);
+											high_pointer->actn = flags::nthng;
+											high_pointer->prop = flags::arg_v;
+											low_pointer = new math_obj((size_t)0);
+											low_pointer->vector_push_back(temp_pointer);
+											low_pointer->prop = flags::only_arg_v;
+											high_pointer->point_right = low_pointer;
+											//
+											low_pointer = new math_obj((size_t)0);
+											low_pointer->prop = flags::servc;
+											low_pointer->point_left = get_pc();
+											low_pointer->var = var;
+											low_pointer = high_pointer->create_var_list(low_pointer);
+											assing_pl(high_pointer);
+											delete low_pointer;
+											high_pointer = get_pl();
+											low_pointer = high_pointer;
+										}
+										else
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
+									}
+									else if (temp_pointer->type == flags::funct)
+									{
+										if (temp_pointer->actn == flags::write)
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNDEFINED_FUNC);
+											return NULL;
+										}
+										if (high_pointer->var == 1)
+										{
+											if (var_list_compare(temp_pointer) != 0)//сравнивать необходимо переменные только для функции в скобках
 											{
 												ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
 												return NULL;
 											}
-											temp_pointer->double_lincked_vector();
-											convert_totaly(name_str, flags::funct, flags::undef, flags::write, temp_pointer->var, NULL, NULL, temp_pointer->point_left);
-											//если получили запись вида f(), где f - ранее обозначенная перменная - передаём ей параметр flags::write.
-											delete temp_pointer; temp_pointer = NULL;
-											link_var_list_to_funct();
-											close_list();
-											high_pointer = this;
+											high_pointer = new math_obj(high_pointer);
+											high_pointer->actn = flags::nthng;
+											high_pointer->prop = flags::arg_v;
+											low_pointer = new math_obj((size_t)0);
+											low_pointer->vector_push_back(temp_pointer);
+											low_pointer->prop = flags::arg_v;
+											high_pointer->point_right = low_pointer;
+											//хз, может в таком виде не работать
+											low_pointer = new math_obj((size_t)0);
+											low_pointer->prop = flags::servc;
+											low_pointer->point_left = get_pc();
+											low_pointer->var = var;
+											low_pointer = high_pointer->create_var_list(low_pointer);
+											//
+											assing_pl(high_pointer);
+											delete low_pointer;
+											high_pointer = get_pl();
 											low_pointer = high_pointer;
 										}
+										else
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
 									}
+									else if ((temp_pointer->type == flags::cnst) || ((temp_pointer->type == flags::funct) && (temp_pointer->prop == flags::arg_c)) || (temp_pointer->type == flags::exprs))
+									{
+										if (high_pointer->var == 1)
+										{
+											low_pointer = new math_obj((size_t)0);
+											low_pointer->vector_push_back(temp_pointer);
+											low_pointer->prop = flags::arg_c;
+											assing_pl(new math_obj(high_pointer));
+											high_pointer = get_pl();
+											high_pointer->prop = flags::arg_c;
+											high_pointer->actn = flags::nthng;
+											high_pointer->point_right = low_pointer;
+											low_pointer = high_pointer;
+										}
+										else
+										{
+											ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+											return NULL;
+										}
+									}
+									else if (temp_pointer->type == flags::vectr)
+									{
+										//число аргументов в скобках совпадает с числом аргументов у определённой заранее функции
+										if (high_pointer->var == temp_pointer->var)
+										{
+											if ((temp_pointer->prop == flags::arg_v) || (temp_pointer->prop == flags::only_arg_v))
+											{
+												if ((temp == endPtr) || (*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
+												{
+													high_pointer = new math_obj(high_pointer);
+													high_pointer->actn = flags::nthng;
+													high_pointer->point_right = temp_pointer;
+													high_pointer->prop = flags::arg_v;
+													if (var_list_compare(high_pointer) != 0)
+													{
+														ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+														return NULL;
+													}
+													low_pointer = new math_obj((size_t)0);
+													low_pointer->prop = flags::servc;
+													low_pointer->point_left = get_pc();
+													low_pointer->var = var;
+													low_pointer = high_pointer->create_var_list(low_pointer);
+													assing_pl(high_pointer);
+													delete low_pointer;
+													high_pointer = get_pl();
+													low_pointer = high_pointer;
+												}
+												else
+												{
+													ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+													return NULL;
+												}
+											}
+											else if (temp_pointer->prop == flags::arg_c)
+											{
+												if ((temp == endPtr) || (*(temp + 1) == '+') || (*(temp + 1) == '-') || (*(temp + 1) == '*') || (*(temp + 1) == '/') || (*(temp + 1) == '^'))
+												{
+													assing_pl(new math_obj(high_pointer));
+													high_pointer = get_pl();
+													high_pointer->actn = flags::nthng;
+													high_pointer->prop = flags::arg_c;
+													high_pointer->point_right = temp_pointer;
+													low_pointer = high_pointer;
+												}
+												else
+												{
+													ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+													return NULL;
+												}
+											}
+										}
+										else
+										{
+											if (high_pointer->var == 1)
+											{
+												buf = temp_pointer->var;
+												if ((temp_pointer->prop == flags::arg_v) || (temp_pointer->prop == flags::only_arg_v) || ((temp_pointer->prop == flags::funct) && (temp_pointer->get_prop() != flags::arg_c)))
+												{
+													high_pointer = new math_obj(high_pointer);
+													high_pointer->actn = flags::nthng;
+													high_pointer->point_right = temp_pointer;
+													high_pointer->prop = flags::arg_v;
+													if (var_list_compare(high_pointer) != 0)
+													{
+														ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+														return NULL;
+													}
+													//low_pointer - список переменных, переданных в high_pointer, в том числе внутри других функций
+													low_pointer = new math_obj((size_t)0);
+													low_pointer->prop = flags::servc;
+													low_pointer->point_left = get_pc();
+													low_pointer->var = var;
+													low_pointer = high_pointer->create_var_list(low_pointer);
+													temp_pointer = new math_obj((int)buf, high_pointer);
+													assing_pl(temp_pointer);
+													delete low_pointer;													
+													high_pointer = get_pl();
+													low_pointer = high_pointer;
+												}
+												else//не переменные аргументы
+												{
+													high_pointer = new math_obj(high_pointer);
+													high_pointer->actn = flags::nthng;
+													high_pointer->point_right = temp_pointer;
+													high_pointer->prop = flags::arg_c;
+													temp_pointer = new math_obj((int)buf, high_pointer);
+													assing_pl( temp_pointer);
+													high_pointer = get_pl();
+													low_pointer = high_pointer;
+												}
+												temp_pointer = new math_obj(this);
+												multiple_var = new math_obj((int)buf, temp_pointer);
+												copy(multiple_var);
+												delete multiple_var;
+											}
+											else
+											{
+												ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+												return NULL;
+											}
+										}
+									}
+									s_iter = temp + 1;
 								}
-								s_iter = temp + 1;
-							}
-							else if (*temp == ')')
-							{
-								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
-								return NULL;
-							}
-							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
-							{
-								high_pointer = new math_obj(high_pointer);
-								high_pointer->actn = flags::nthng;
-								//low_pointer - список переменных, переданных в high_pointer, в том числе внутри других функций
-								low_pointer = high_pointer->create_var_list(NULL);
-								convert_totaly(L"", flags::funct, flags::undef, flags::nthng, low_pointer->var, high_pointer, NULL, low_pointer->point_left);
-								delete low_pointer;
-								link_var_list_to_funct();
-								high_pointer = point_left;
-								low_pointer = high_pointer;
-
+								else if (*temp == ')')
+								{
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_BRACKET);
+									return NULL;
+								}
+								else
+								{
+									ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+									return NULL;
+								}
 							}
 							else
 							{
-								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_SYMBOL);
+								ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNREAL_ERROR);
 								return NULL;
 							}
 						}
@@ -2049,7 +2359,7 @@ namespace Project {
 						{
 							if ((temp == NULL) || (*temp == '+') || (*temp == '-') || (*temp == '*') || (*temp == '/') || (*temp == '^'))
 							{
-								if (get_type() == flags::funct) 
+								if (get_type() == flags::funct)
 								{
 									//если текущий элемент - функция, то очевидно найдена новая переменная в записи выражения. 
 									if (get_pc()->point_left != NULL)
@@ -2071,7 +2381,7 @@ namespace Project {
 									temp_pointer = new math_obj(name_str, flags::varbl, flags::defnd, flags::nthng, 0, NULL, NULL, NULL);
 									point_up->push_left(new math_obj(temp_pointer));
 									temp_pointer->point_collar = get_this();
-									convert_to(flags::funct, flags::undef, 1, temp_pointer);									
+									convert_to(flags::funct, flags::undef, 1, temp_pointer);
 									high_pointer->point_right = point_collar;
 									low_pointer = high_pointer->point_right;
 								}
@@ -2089,7 +2399,7 @@ namespace Project {
 						{
 							if ((temp == NULL) || (*temp == '+') || (*temp == '-') || (*temp == '*') || (*temp == '/') || (*temp == '^'))
 							{
-								if (get_type() == flags::funct) 
+								if (get_type() == flags::funct)
 								{
 									temp_pointer = find_by_name(low_pointer);
 									if (temp_pointer != NULL)
@@ -2116,7 +2426,7 @@ namespace Project {
 								else if ((type == flags::exprs) || ((type == flags::vectr) && (prop == flags::exprs)))
 								{
 									temp_pointer = new math_obj(low_pointer);
-									convert_to(flags::funct, flags::undef, 1, temp_pointer);									
+									convert_to(flags::funct, flags::undef, 1, temp_pointer);
 									link_var_list_to_funct();
 									high_pointer->point_right = temp_pointer;
 									low_pointer = high_pointer->point_right;
@@ -2598,8 +2908,8 @@ namespace Project {
 				res = point_left->math_simplify_processing(last);
 				if ((res == NULL) || (res->type != flags::numbr))
 					return false;
-				if (prop  == flags::arg_c)
-				{					
+				if (prop == flags::arg_c)
+				{
 					point_left = res;
 				}
 				else // функция не имеет константных аргументов
@@ -2610,7 +2920,7 @@ namespace Project {
 				last->pop_back();
 				delete last;
 				return true;
-				
+
 			}
 			else if (type == flags::equat)
 			{
@@ -2826,7 +3136,7 @@ namespace Project {
 				{
 					if (point_left == NULL)//конст превращается в число
 					{
-						type = flags::numbr;						
+						type = flags::numbr;
 						if (prop != flags::fundm)
 						{
 							var = 0;
@@ -3158,7 +3468,7 @@ namespace Project {
 		wstring math_obj::expression()
 		{
 			return wstring();
-		}		
+		}
 
 		wstring math_obj::expression_processing()
 		{
@@ -3180,13 +3490,13 @@ namespace Project {
 					out += iter->name;
 				}
 				if (count < var - 1)
-					out += L",";				
+					out += L",";
 			}
 			out += L")";
 			return out;
 		}
 
-		
+
 
 
 		/*Метод собирает список переменных данной функции по спискам переменных функций, участвующих в её записи*/
@@ -3254,7 +3564,7 @@ namespace Project {
 						reassing_left_pointers(point_collar);
 						close_list();
 					}
-					prop = flags::arg_v;					
+					prop = flags::arg_v;
 					place->prop = flags::only_arg_v;
 					point_right = place;
 					var_list_copy_to_vector_processing(point_right->point_left, var_list);
@@ -3298,7 +3608,7 @@ namespace Project {
 								reassing_left_pointers(iter->point_collar);
 								iter->close_list();
 							}
-							iter->prop = flags::arg_v;							
+							iter->prop = flags::arg_v;
 							place->prop = flags::only_arg_v;
 							iter->point_right = place;
 							place->var_list_copy_to_vector(var_list);
@@ -3334,7 +3644,7 @@ namespace Project {
 			}
 		}
 
-		/*Метод сравнивает список аргументов (хотя бы один из которых переменная) обхекта pointer (функции, вектора или матрицы) со списком переменных данной функции.
+		/*Метод сравнивает список аргументов (хотя бы один из которых переменная) объекта pointer (функции, вектора или матрицы) со списком переменных данной функции.
 		Метод возвращает:
 		0 - список переменных pointer полностью входит в список переменных данной функции.
 		любое другое положительное целое - число различий списков функций.
@@ -3409,6 +3719,8 @@ namespace Project {
 		/*Метод возвращаяет указатель на элемент списка переменных с данным именем*/
 		math_obj* math_obj::find_by_name(math_obj*pointer)
 		{
+			if (pointer == NULL)
+				return NULL;
 			if (type == flags::vectr)
 			{
 				if (prop == flags::funct)
@@ -3426,7 +3738,7 @@ namespace Project {
 		/*PRIVATE. Рекурсия для find_by_name*/
 		math_obj* math_obj::find_by_name_processing(math_obj*pointer, math_obj *original)
 		{
-			if (pointer == NULL)
+			if ((pointer == NULL)||(original==NULL))
 				return NULL;
 			if (original->name.compare(pointer->name) == 0)
 				return pointer;
@@ -4042,7 +4354,7 @@ namespace Project {
 						return NULL;
 					}
 					else if (temp_pointer->type == flags::varbl)
-					{						
+					{
 						if (temp_pointer->prop == flags::undef)
 						{
 							temp_pointer->prop = flags::defnd;
@@ -4175,36 +4487,47 @@ namespace Project {
 				if (index == 0)
 				{
 					place = point_left;
-					if (pointer->type == flags::funct)
+					if ((pointer->type == flags::funct) || (pointer->type == flags::exprs) || (pointer->type == flags::numbr))
 					{
 						point_left = new math_obj(L"", flags::varbl, flags::servc, flags::nthng, -1, pointer, place->point_right, place->point_collar);
 					}
-					else if ((pointer->type == flags::varbl) || (pointer->type == flags::cnst) || (pointer->type == flags::exprs) || (pointer->type == flags::vectr))
+					else if ((pointer->type == flags::cnst) || (pointer->type == flags::vectr))
 					{
 						point_left = pointer;
-						point_left->point_right = NULL;
-						point_left->point_collar = NULL;
 						point_left->point_right = place->point_right;
 						point_left->point_collar = place->point_collar;
+					}
+					else if (pointer->type == flags::varbl)
+					{
+						point_left = pointer;
+						point_left->point_right = place->point_right;
+						point_left->point_collar = place->point_collar;
+						point_left->var = 0;
 					}
 				}
 				else
 				{
 					math_obj*place_minus_1 = vector_at(index - 1);
 					place = place_minus_1->point_right;
-					if (pointer->type == flags::funct)
+					if ((pointer->type == flags::funct) || (pointer->type == flags::exprs) || (pointer->type == flags::numbr))
 					{
 						place_minus_1->point_right = new math_obj(L"", flags::varbl, flags::servc, flags::nthng, -1, pointer, place->point_right, place->point_collar);
 						place_minus_1->point_collar = place_minus_1->point_right;
 					}
-					else if ((pointer->type == flags::varbl) || (pointer->type == flags::cnst) || (pointer->type == flags::exprs) || (pointer->type == flags::vectr))
+					else if ((pointer->type == flags::varbl) || (pointer->type == flags::cnst) || (pointer->type == flags::vectr))
 					{
 						place_minus_1->point_right = pointer;
 						place_minus_1->point_collar = place_minus_1->point_right;
-						place_minus_1->point_right->point_right = NULL;
-						place_minus_1->point_right->point_collar = NULL;
 						place_minus_1->point_right->point_right = place->point_right;
 						place_minus_1->point_right->point_collar = place->point_collar;
+					}
+					else if (pointer->type == flags::varbl)
+					{
+						place_minus_1->point_right = pointer;
+						place_minus_1->point_collar = place_minus_1->point_right;
+						place_minus_1->point_right->point_right = place->point_right;
+						place_minus_1->point_right->point_collar = place->point_collar;
+						place_minus_1->point_right->var = index;
 					}
 				}
 				if ((place->prop == flags::servc) && (place->type == flags::varbl))
@@ -4295,11 +4618,11 @@ namespace Project {
 			}
 			else if (point_left == NULL)
 			{
-				if (pointer->type == flags::funct)
+				if ((pointer->type == flags::funct) || (pointer->type == flags::exprs) || (pointer->type == flags::numbr))
 				{
 					point_left = new math_obj(L"", flags::varbl, flags::servc, flags::nthng, -1, pointer, NULL, NULL);
 				}
-				else if ((pointer->type == flags::cnst) || (pointer->type == flags::exprs) || (pointer->type == flags::numbr) || (pointer->type == flags::vectr))
+				else if ((pointer->type == flags::cnst) || (pointer->type == flags::vectr))
 				{
 					point_left = pointer;
 					point_left->point_right = NULL;
@@ -4317,12 +4640,12 @@ namespace Project {
 			else
 			{
 				math_obj* place = vector_back_processing(point_left);
-				if (pointer->type == flags::funct)
+				if ((pointer->type == flags::funct) || (pointer->type == flags::exprs) || (pointer->type == flags::numbr))
 				{
 					place->point_right = new math_obj(L"", flags::varbl, flags::servc, flags::nthng, -1, pointer, NULL, NULL);
 					place->point_collar = place->point_right;
 				}
-				else if ((pointer->type == flags::cnst) || (pointer->type == flags::exprs) || (pointer->type == flags::numbr) || (pointer->type == flags::vectr))
+				else if ((pointer->type == flags::cnst) || (pointer->type == flags::vectr))
 				{
 					place->point_right = pointer;
 					place->point_collar = place->point_right;
@@ -4352,11 +4675,11 @@ namespace Project {
 			}
 			else if (point_left == NULL)
 			{
-				if (pointer->type == flags::funct)
+				if ((pointer->type == flags::funct) || (pointer->type == flags::exprs) || (pointer->type == flags::numbr))
 				{
 					point_left = new math_obj(L"", flags::varbl, flags::servc, flags::nthng, -1, pointer, NULL, NULL);
 				}
-				else if ((pointer->type == flags::cnst) || (pointer->type == flags::exprs) || (pointer->type == flags::numbr) || (pointer->type == flags::vectr))
+				else if ((pointer->type == flags::cnst) || (pointer->type == flags::vectr))
 				{
 					point_left = pointer;
 					point_left->point_right = NULL;
@@ -4374,11 +4697,11 @@ namespace Project {
 			else
 			{
 				math_obj* place = point_left;
-				if (pointer->type == flags::funct)
+				if ((pointer->type == flags::funct) || (pointer->type == flags::exprs) || (pointer->type == flags::numbr))
 				{
 					point_left = new math_obj(L"", flags::varbl, flags::servc, flags::nthng, -1, pointer, place, place);
 				}
-				else if ((pointer->type == flags::numbr) || (pointer->type == flags::cnst) || (pointer->type == flags::exprs) || (pointer->type == flags::vectr))
+				else if ((pointer->type == flags::cnst) || (pointer->type == flags::vectr))
 				{
 					point_left = pointer;
 					point_left->point_right = place;
@@ -4650,7 +4973,7 @@ namespace Project {
 			if (right != NULL)
 			{
 				return right->back_rec();
-			}			
+			}
 			return this;
 		}
 
@@ -4666,7 +4989,7 @@ namespace Project {
 			if (index == *place)
 				return this;
 			if (right != NULL)
-				return right->at_rec(place);			
+				return right->at_rec(place);
 			return nullptr;
 		}
 
@@ -4721,8 +5044,8 @@ namespace Project {
 
 		int data_list::push_back(data_list * pointer)
 		{
-			if (in.compare(L"@start#") != 0)			
-				return 0;			
+			if (in.compare(L"@start#") != 0)
+				return 0;
 			data_list*place = back();
 			if (place == nullptr)
 				return 0;
@@ -4748,10 +5071,10 @@ namespace Project {
 
 		data_list * data_list::begin()
 		{
-			if (in.compare(L"@start#") == 0)							
-				return this;			
+			if (in.compare(L"@start#") == 0)
+				return this;
 			if (index == 0)
-			{				
+			{
 				if (left->in.compare(L"@start#") == 0)
 					return left;
 			}
@@ -4819,7 +5142,7 @@ namespace Project {
 
 		math_obj * data_list::find_math_obj(wstring* name)
 		{
-			if ((math != NULL) &&(math->name.length()!=0)&& (name->compare(math->name) == 0))
+			if ((math != NULL) && (math->name.length() != 0) && (name->compare(math->name) == 0))
 				return math;
 			else if (left != NULL)
 				return left->find_math_obj(name);
@@ -4836,8 +5159,8 @@ namespace Project {
 				out = err->GetErrorWStr();
 				return 0;
 			}
-			
-			math = new math_obj(&in[0], &in[in.length() - 1], NULL, this);			
+
+			math = new math_obj(&in[0], &in[in.length() - 1], NULL, this);
 			if (math->prop == flags::error)
 			{
 				delete math;
@@ -4847,7 +5170,7 @@ namespace Project {
 				out = err->GetErrorWStr();
 				math = NULL;
 				return 0;
-			}			
+			}
 			/*if ((math->actn == flags::write)&&(math->type!=flags::funct))
 				math->actn = flags::nthng;*/
 			return 1;
@@ -4858,7 +5181,7 @@ namespace Project {
 			if (in.compare(L"@start#") != 0)
 				return -1;
 			int out = 0;
-			bool flag = true;			
+			bool flag = true;
 			if (right != NULL)
 			{
 				out += right->size_rec(&flag);
@@ -4873,7 +5196,7 @@ namespace Project {
 			if (in.compare(L"@start#") != 0)
 				return -1;
 			int out = 0;
-			bool flag;			
+			bool flag;
 			if (right != NULL)
 			{
 				flag = true;
@@ -4886,16 +5209,16 @@ namespace Project {
 				flag = false;
 				out += left->size_rec(&flag);
 			}
-			return out+1;//так же считается элемент start
+			return out + 1;//так же считается элемент start
 		}
-		/*Метод удаляет все элементы списка данных начиная с позиции from. Позиция from не удаляется. 
+		/*Метод удаляет все элементы списка данных начиная с позиции from. Позиция from не удаляется.
 		В случае вызова для позиции from = -1 - удаляются все элементы справа от start (включая нулевой)
 		-1 в случае ошибки. */
 		int data_list::delete_starting_at(int from)
 		{
 			if (in.compare(L"@start#") != 0)
 				return -1;
-			index = from + 1;			
+			index = from + 1;
 			if (from > -1)
 			{
 				data_list* temp = at(from + 1);

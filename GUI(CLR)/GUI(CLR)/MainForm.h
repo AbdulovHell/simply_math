@@ -103,7 +103,7 @@ namespace GUICLR {
 				 this->textBox1->Name = L"textBox1";
 				 this->textBox1->Size = System::Drawing::Size(915, 527);
 				 this->textBox1->TabIndex = 0;
-				 this->textBox1->Text = L"f=1000*h+100*y+10*t+z\r\nf(1,2,3,4)=\r\ng=f*x\r\ng(1,2,3,4,5)=";
+				 this->textBox1->Text = L"f=1000*h+100*y+10*t+z\r\nf(1,2,3,4)=\r\ng=f*x\r\ng(1,2,3,4,5)=\r\ns=f(x,0,x,1)\r\ns(2)=";
 				 this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
 				 // 
 				 // toolStrip1

@@ -6,6 +6,7 @@
 #include "../src/IO.h"
 #include "../src/filters.h"
 #include "../src/core.h"
+#include "../src/html_addon.h"
 #include <QFile>
 #include <QLoggingCategory>
 QLoggingCategory category("default");
@@ -68,7 +69,13 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::Calc() {
-    QString html=ui->inputText->toHtml();
+    wstring str = L"biboran";
+    str = Project::HTML::ApplyEffects(str, Project::HTML::Actions::BOLD, Project::HTML::Actions::ITALIC, Project::HTML::Actions::SUPER);
+    str = Project::HTML::ChangeTextColor(str, Project::HTML::HTMLColors::RED);
+    str = Project::HTML::AddHeader(str,14);
+    QString qstr=QString::fromWCharArray(str.c_str());
+    ui->inputText->setHtml(qstr);
+    return;
 	//поле ввода в строку
 	QString inputTxt = ui->inputText->toPlainText();
 	int StrCount = 0;
@@ -184,7 +191,7 @@ void MainWindow::Calc() {
 	QString OUT = "";
     for (int i = 0; i < inputStrsCount*2; i++) {
 		if (i) OUT += '\n';
-		OUT += QString::fromWCharArray(Strs[i]);
+        OUT += QString::fromWCharArray(Strs[i]);
 	}
 
 	ui->inputText->setText(OUT);

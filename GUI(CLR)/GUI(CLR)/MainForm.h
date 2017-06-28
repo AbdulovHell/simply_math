@@ -101,9 +101,9 @@ namespace GUICLR {
 				 this->textBox1->Location = System::Drawing::Point(0, 28);
 				 this->textBox1->Multiline = true;
 				 this->textBox1->Name = L"textBox1";
-				 this->textBox1->Size = System::Drawing::Size(607, 329);
+				 this->textBox1->Size = System::Drawing::Size(915, 527);
 				 this->textBox1->TabIndex = 0;
-				 this->textBox1->Text = L"f(x)=(e+pi)*x\r\nf(2)=";
+				 this->textBox1->Text = L"f=1000*h+100*y+10*t+z\r\nf(1,2,3,4)=\r\ng=f*x\r\ng(1,2,3,4,5)=";
 				 this->textBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::verify);
 				 // 
 				 // toolStrip1
@@ -112,7 +112,7 @@ namespace GUICLR {
 				 this->toolStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) { this->ProceedBtn, this->toolStripButton1 });
 				 this->toolStrip1->Location = System::Drawing::Point(0, 0);
 				 this->toolStrip1->Name = L"toolStrip1";
-				 this->toolStrip1->Size = System::Drawing::Size(607, 25);
+				 this->toolStrip1->Size = System::Drawing::Size(915, 25);
 				 this->toolStrip1->TabIndex = 1;
 				 this->toolStrip1->Text = L"toolStrip1";
 				 // 
@@ -140,7 +140,7 @@ namespace GUICLR {
 				 // 
 				 this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 				 this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-				 this->ClientSize = System::Drawing::Size(607, 357);
+				 this->ClientSize = System::Drawing::Size(915, 555);
 				 this->Controls->Add(this->toolStrip1);
 				 this->Controls->Add(this->textBox1);
 				 this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedSingle;
@@ -242,7 +242,7 @@ namespace GUICLR {
 
 				in_str = new wstring((wchar_t*)(void*)System::Runtime::InteropServices::Marshal::StringToHGlobalAuto(strs[i]));
 
-				place = all_math_data->at(i - out_strings + 1);
+				place = all_math_data->at(i - out_strings);
 				if (place != NULL) {
 					if ((place->compare_in(in_str)) || (needReCalc)) {//если строчки не совпадают
 						place->in = *in_str;
@@ -266,8 +266,8 @@ namespace GUICLR {
 		}
 		if (size - out_strings < len)
 		{
-			//если количество введённых строк (с учётом вывода в предыду оказалось меньше числа злементов в списке данных - удаляем лишнее
-			all_math_data->delete_starting_at(size - out_strings);
+			//если количество введённых строк (с учётом вывода в предыдущее выполнение программы) оказалось меньше числа злементов в списке данных - удаляем лишнее
+			all_math_data->delete_starting_at(size - out_strings-1);//нумерация теперь с нуля
 		}
 
 		if (!input_to_analize(all_math_data))
@@ -276,13 +276,13 @@ namespace GUICLR {
 			//err
 		}
 		//далее all_math_data уже обработана в ядре		
-		len = all_math_data->size_s();//количество элементов. Нумерация с 1.	
+		len = all_math_data->size_s();//количество элементов. Нумерация с 0.	
 		cli::array<String^>^ out = gcnew cli::array<String^>(len * 2);	//резервируем возможный максимум
 		String^ outstr;
 		for (int i = 0, k = 0; i < len; i++)
 		{
-			out[k++] = gcnew String(all_math_data->at(i + 1)->in.c_str());
-			outstr = gcnew String(all_math_data->at(i + 1)->out.c_str());
+			out[k++] = gcnew String(all_math_data->at(i)->in.c_str());
+			outstr = gcnew String(all_math_data->at(i)->out.c_str());
 			if (!String::IsNullOrEmpty(outstr))
 				out[k++] = ">>> " + outstr;
 		}

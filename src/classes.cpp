@@ -58,6 +58,7 @@ namespace Project {
 				//смотрим на то что слева от равно. При этом проиходит заполнение текущего элемента в данном конструкторе.
 				wstring str_left;
 				str_left.assign(strPtr, temp);
+				double buf;
 				math_obj* left = build_tree(&str_left[0], &str_left[str_left.length() - 1]);
 				if (left == NULL)
 				{
@@ -88,6 +89,20 @@ namespace Project {
 						- type == vectr - рассматривается аналогично для поля prop.*/
 						else
 						{
+							//если справа находится функция с конст. аргументами или именная константа - создаётся выражение с указателем на неё. (чтобы в списке данных наименования не повторялись)
+							if (((get_type() == flags::funct) && (get_prop() == flags::arg_c))|| (get_type() == flags::cnst))
+							{
+								t_p = new math_obj(this);
+								convert_totaly(L"", flags::exprs, flags::undef, flags::solve, 0, t_p, NULL, NULL);								
+								if (t_p->type == flags::vectr)
+								{
+									buf = t_p->var;
+									t_p = new math_obj(this);
+									t_p = new math_obj((int)buf, t_p);
+									copy(t_p);
+									delete t_p;
+								}
+							}
 							actn = flags::solve;
 						}
 					}
@@ -98,8 +113,7 @@ namespace Project {
 						wstring str_right;
 						str_right.assign(temp + 1, endPtr + 1);
 						math_obj* right = new math_obj(&str_right[0], &str_right[str_right.length() - 1], t_p, point_up);
-						//отсеяли ошибочный элемент
-						double buf;
+						//отсеяли ошибочный элемент						
 						if (right->prop == flags::error)
 						{
 							prop = flags::error;
@@ -491,7 +505,19 @@ namespace Project {
 								}
 								//тут всегда будет необходимо устанавливать указатели переменных на созданную функцию.
 								link_var_list_to_funct();
-								close_list();
+
+								t_p = new math_obj((size_t)0);
+								t_p->var = var;
+								t_p->point_left = get_pc();
+								t_p->prop = flags::only_arg_v;
+								wstring vars = t_p->vector_to_string();
+								delete t_p;
+
+								close_list();				
+								
+								size_t place = point_up->in.find_first_of(L"=");
+								point_up->in.insert(place, vars);			
+
 								actn = flags::write;
 							}
 							//слева уже используемая ранее переменная
@@ -555,7 +581,17 @@ namespace Project {
 									}
 									//тут всегда будет необходимо устанавливать указатели переменных на созданную функцию.
 									link_var_list_to_funct();
+									t_p = new math_obj((size_t)0);
+									t_p->var = var;
+									t_p->point_left = get_pc();
+									t_p->prop = flags::only_arg_v;
+									wstring vars = t_p->vector_to_string();
+									delete t_p;
+
 									close_list();
+									size_t place = point_up->in.find_first_of(L"=");
+									point_up->in.insert(place, vars);
+
 								}
 								actn = flags::write;
 							}
@@ -744,7 +780,7 @@ namespace Project {
 						if ((high_pointer == NULL) && (low_pointer == NULL))
 						{
 							//и закрывается в конце
-							if ((temp + 1) == NULL)
+							if (*(temp + 1) == NULL)
 							{
 								copy(temp_pointer);
 								//наверх выдаётся сам созданный вектор, без проверки что в нём
@@ -1118,7 +1154,7 @@ namespace Project {
 								high_pointer->point_right = temp_pointer;
 								low_pointer = high_pointer->point_right;
 							}
-							else if ((type == flags::funct) || ((type == flags::vectr) && (prop == flags::funct)))
+							else if (get_type() == flags::funct) 
 							{
 								if (temp_pointer->type == flags::varbl)
 								{
@@ -1163,7 +1199,7 @@ namespace Project {
 										}
 										//должно сработать в любом случае
 										low_pointer = new math_obj((size_t)0);
-										low_pointer->point_left = get_pl();
+										low_pointer->point_left = get_pc();
 										low_pointer->prop = flags::servc;
 										low_pointer->var = get_var();
 										low_pointer = temp_pointer->create_var_list(low_pointer);
@@ -1194,7 +1230,7 @@ namespace Project {
 											return NULL;
 										}
 										low_pointer = new math_obj((size_t)0);
-										low_pointer->point_left = get_pl();
+										low_pointer->point_left = get_pc();
 										low_pointer->prop = flags::servc;
 										low_pointer->var = get_var();
 										low_pointer = temp_pointer->create_var_list(low_pointer);
@@ -1348,9 +1384,8 @@ namespace Project {
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
 							{
 								//найденное буквосочетание - переменная, текущий элемент - функция							
-								temp_pointer = new math_obj(name, flags::varbl, flags::defnd, 0);
-								point_up->push_left(new math_obj(temp_pointer));
-								//general_var_const->push_back(new math_obj(name, flags::varbl, flags::defnd, 0));
+								temp_pointer = new math_obj(name_str, flags::varbl, flags::defnd, 0);
+								point_up->push_left(new math_obj(temp_pointer));								
 								//копия переменной с указателем на функцию
 								temp_pointer->point_collar = this;
 								convert_totaly(L"", flags::funct, flags::undef, flags::nthng, 1, temp_pointer, NULL, temp_pointer);
@@ -1377,6 +1412,7 @@ namespace Project {
 							if (temp == NULL)
 							{
 								copy(high_pointer);
+								actn = flags::nthng;
 								high_pointer = this;
 								low_pointer = high_pointer;
 							}
@@ -1458,6 +1494,7 @@ namespace Project {
 										//вылезло что угодно другое - this -> копия найденной константы
 										//TODO: временно игнорируется возможность с(...) = с*(...). доработать.
 										copy(high_pointer);
+										actn = flags::nthng;
 									}
 									high_pointer = this;
 									low_pointer = high_pointer;
@@ -1474,6 +1511,7 @@ namespace Project {
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
 							{
 								point_left = new math_obj(high_pointer);
+								point_left->actn = flags::nthng;
 								high_pointer = point_left;
 								low_pointer = high_pointer;
 							}
@@ -1488,6 +1526,7 @@ namespace Project {
 						{
 							if (temp == NULL)
 							{
+								//случай для простейшей функции
 								if ((type == flags::funct) && (point_collar != NULL))
 								{
 									if ((var != 1) || (point_collar->name.compare(high_pointer->name) != 0))
@@ -1500,6 +1539,7 @@ namespace Project {
 								else
 								{
 									copy(high_pointer);
+									actn = flags::nthng;
 									high_pointer = this;
 									low_pointer = high_pointer;
 								}
@@ -1589,12 +1629,27 @@ namespace Project {
 							//текущий элемент становится функцией от найденной переменной
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
 							{
-								//найденное буквосочетание - переменная, текущий элемент - функция							
-								temp_pointer = new math_obj(high_pointer);
-								temp_pointer->point_collar = this;
-								convert_totaly(L"", flags::funct, flags::undef, flags::nthng, 1, temp_pointer, NULL, temp_pointer);
-								high_pointer = get_pl();
-								low_pointer = high_pointer;
+								if ((type == flags::funct) && (point_collar != NULL))
+								{
+									temp_pointer = find_by_name(high_pointer);
+									if (temp_pointer == NULL)
+									{
+										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
+										return NULL;
+									}
+									assing_pl(temp_pointer);
+									high_pointer = get_pl();
+									low_pointer = high_pointer;
+								}
+								else
+								{
+									//найденное буквосочетание - переменная, текущий элемент - функция							
+									temp_pointer = new math_obj(high_pointer);
+									temp_pointer->point_collar = this;
+									convert_totaly(L"", flags::funct, flags::undef, flags::nthng, 1, temp_pointer, NULL, temp_pointer);
+									high_pointer = get_pl();
+									low_pointer = high_pointer;
+								}
 							}
 							else
 							{
@@ -1609,6 +1664,7 @@ namespace Project {
 							if (temp == NULL)
 							{
 								copy(high_pointer);
+								actn = flags::nthng;
 								high_pointer = this;
 								low_pointer = high_pointer;
 								//данная функция может быть использована в каком-то уравнении/другой функции в качестве операнда. 
@@ -1669,7 +1725,7 @@ namespace Project {
 										if (temp == endPtr)
 										{
 											copy(high_pointer);
-
+											actn = flags::nthng;
 											prop = flags::arg_v;
 											low_pointer = new math_obj((size_t)0);
 											low_pointer->vector_push_back(temp_pointer);
@@ -1755,6 +1811,7 @@ namespace Project {
 									if (temp == endPtr)
 									{
 										copy(high_pointer);
+										actn = flags::nthng;
 										prop = flags::arg_v;
 										low_pointer = new math_obj((size_t)0);
 										low_pointer->vector_push_back(temp_pointer);
@@ -1797,6 +1854,7 @@ namespace Project {
 											if (temp == endPtr)
 											{
 												copy(high_pointer);
+												actn = flags::nthng;
 												prop = flags::arg_v;
 												point_right = temp_pointer;
 												high_pointer = this;
@@ -1827,6 +1885,7 @@ namespace Project {
 											if (temp == endPtr)
 											{
 												copy(high_pointer);
+												actn = flags::nthng;
 												prop = flags::arg_c;
 												point_right = temp_pointer;
 												high_pointer = this;
@@ -1860,6 +1919,7 @@ namespace Project {
 												if (temp == endPtr)
 												{
 													copy(high_pointer);
+													actn = flags::nthng;
 													prop = flags::arg_v;
 													point_right = temp_pointer;
 													high_pointer = this;
@@ -1891,6 +1951,7 @@ namespace Project {
 												if (temp == endPtr)
 												{
 													copy(high_pointer);
+													actn = flags::nthng;
 													prop = flags::arg_c;
 													point_right = temp_pointer;
 													high_pointer = this;
@@ -1947,6 +2008,7 @@ namespace Project {
 							else if ((*temp == '+') || (*temp == '*') || (*temp == '/') || (*temp == '^') || (*temp == '-'))
 							{
 								high_pointer = new math_obj(high_pointer);
+								high_pointer->actn = flags::nthng;
 								//low_pointer - список переменных, переданных в high_pointer, в том числе внутри других функций
 								low_pointer = high_pointer->create_var_list(NULL);
 								convert_totaly(L"", flags::funct, flags::undef, flags::nthng, low_pointer->var, high_pointer, NULL, low_pointer->point_left);
@@ -1980,14 +2042,14 @@ namespace Project {
 							name_str.assign(s_iter, temp);
 							s_iter = temp;
 						}
-						low_pointer = point_up->find_math_obj(&name_str);
+						low_pointer = point_up->left->find_math_obj(&name_str);
 						//далее всегда может быть только два варианта - текщуий элемент либо функция(вектор-функция), либо выражение (векторное), причём всегда flags::undef.
 						//если не найден ни один элемент массива с таким именем
 						if (low_pointer == NULL)
 						{
 							if ((temp == NULL) || (*temp == '+') || (*temp == '-') || (*temp == '*') || (*temp == '/') || (*temp == '^'))
 							{
-								if ((type == flags::funct) || ((type == flags::vectr) && (prop == flags::funct)))
+								if (get_type() == flags::funct) 
 								{
 									//если текущий элемент - функция, то очевидно найдена новая переменная в записи выражения. 
 									if (get_pc()->point_left != NULL)
@@ -1996,7 +2058,7 @@ namespace Project {
 										ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEQUAL_NUM_OF_VAR);
 										return NULL;
 									}
-									temp_pointer = new math_obj(name, flags::varbl, flags::defnd, 0);
+									temp_pointer = new math_obj(name_str, flags::varbl, flags::defnd, 0);
 									point_up->push_left(new math_obj(temp_pointer));
 									var_list_push_back(temp_pointer);
 									//поскольку символ не в начале строки - значит стоит после какой-либо операции. 
@@ -2004,12 +2066,12 @@ namespace Project {
 									low_pointer = high_pointer->point_right;
 									temp_pointer = NULL;
 								}
-								else if ((type == flags::exprs) || ((type == flags::vectr) && (prop == flags::exprs)))
+								else if (get_type() == flags::exprs)
 								{
-									temp_pointer = new math_obj(name, flags::varbl, flags::defnd, flags::nthng, 0, NULL, NULL, NULL);
+									temp_pointer = new math_obj(name_str, flags::varbl, flags::defnd, flags::nthng, 0, NULL, NULL, NULL);
 									point_up->push_left(new math_obj(temp_pointer));
-									temp_pointer->point_collar = this;
-									convert_totaly(L"", flags::funct, flags::undef, flags::nthng, 1, temp_pointer, NULL, temp_pointer);
+									temp_pointer->point_collar = get_this();
+									convert_to(flags::funct, flags::undef, 1, temp_pointer);									
 									high_pointer->point_right = point_collar;
 									low_pointer = high_pointer->point_right;
 								}
@@ -2027,7 +2089,7 @@ namespace Project {
 						{
 							if ((temp == NULL) || (*temp == '+') || (*temp == '-') || (*temp == '*') || (*temp == '/') || (*temp == '^'))
 							{
-								if ((type == flags::funct) || ((type == flags::vectr) && (prop == flags::funct)))
+								if (get_type() == flags::funct) 
 								{
 									temp_pointer = find_by_name(low_pointer);
 									if (temp_pointer != NULL)
@@ -2054,7 +2116,7 @@ namespace Project {
 								else if ((type == flags::exprs) || ((type == flags::vectr) && (prop == flags::exprs)))
 								{
 									temp_pointer = new math_obj(low_pointer);
-									convert_totaly(L"", flags::funct, flags::undef, flags::nthng, 1, temp_pointer, NULL, temp_pointer);
+									convert_to(flags::funct, flags::undef, 1, temp_pointer);									
 									link_var_list_to_funct();
 									high_pointer->point_right = temp_pointer;
 									low_pointer = high_pointer->point_right;
@@ -2644,6 +2706,8 @@ namespace Project {
 				}
 				last_funct->push_back(this);//добавляется новый указатель к списку функций в дереве операций
 				out = point_left->math_simplify_processing(last_funct);
+				if (out == NULL)
+					return NULL;
 				if ((prop == flags::arg_c) && (out->type == flags::numbr))
 				{
 					type = flags::numbr;
@@ -2661,6 +2725,8 @@ namespace Project {
 				last_funct->pop_back();//последний указатель удаляется
 				if (last_funct->size() == 0)
 					delete last_funct;
+				if ((prop == flags::arg_v) || (prop == flags::undef) || (prop == flags::defnd))
+					return out;
 				return this;
 				break;
 			}
@@ -2717,7 +2783,8 @@ namespace Project {
 				//для выражений, констант, чисел и функций с конст аргументами
 				else if ((out == iter) || (out->type == flags::numbr))
 				{
-					return out;
+					//out берётся из вектора аргументов. Чтобы не использовать сам аргуемнт в качестве буфера - лучше его скопировать
+					return new math_obj(out);
 				}
 				//для функций с переменными аргументами и без аргументов
 				else if (out != iter)
@@ -2817,7 +2884,7 @@ namespace Project {
 					}
 					else if ((point_left != left) && (point_right != right))
 					{
-						left->var += right->var;//простое сложение
+						left->var += right->var;//простое сложение						
 						delete right;
 						return left;
 					}
@@ -3091,13 +3158,35 @@ namespace Project {
 		wstring math_obj::expression()
 		{
 			return wstring();
-		}
+		}		
 
 		wstring math_obj::expression_processing()
 		{
 			return wstring();
 		}
 
+		wstring math_obj::vector_to_string()
+		{
+			if (type != flags::vectr)
+				return wstring();
+			//TODO:переделать в рекурсию. Это временное решение
+			math_obj* iter;
+			wstring out = L"(";
+			for (int count = 0; count < var; count++)
+			{
+				iter = vector_at(count);
+				if (iter->type == flags::varbl)
+				{
+					out += iter->name;
+				}
+				if (count < var - 1)
+					out += L",";				
+			}
+			out += L")";
+			return out;
+		}
+
+		
 
 
 		/*Метод собирает список переменных данной функции по спискам переменных функций, участвующих в её записи*/
@@ -3160,15 +3249,15 @@ namespace Project {
 				{
 					place = new math_obj((size_t)0);
 					var_list_copy_to_vector_processing(point_collar, place);
-					prop = flags::arg_v;
 					if (prop == flags::undef)
 					{
 						reassing_left_pointers(point_collar);
 						close_list();
 					}
+					prop = flags::arg_v;					
 					place->prop = flags::only_arg_v;
 					point_right = place;
-					var_list_copy_to_vector_processing(point_left, var_list);
+					var_list_copy_to_vector_processing(point_right->point_left, var_list);
 				}
 			}
 			else if (type == flags::vectr)
@@ -3204,12 +3293,12 @@ namespace Project {
 						{
 							place = new math_obj((size_t)0);
 							iter->var_list_copy_to_vector(place);
-							iter->prop = flags::arg_v;
 							if (iter->prop == flags::undef)
 							{
 								reassing_left_pointers(iter->point_collar);
 								iter->close_list();
 							}
+							iter->prop = flags::arg_v;							
 							place->prop = flags::only_arg_v;
 							iter->point_right = place;
 							place->var_list_copy_to_vector(var_list);
@@ -3399,6 +3488,7 @@ namespace Project {
 				if (temp == NULL)
 				{
 					vect->vector_push_back(new math_obj(pointer));
+					vect->vector_back()->point_left = NULL;
 					pointer->point_left = vect->vector_back();
 				}
 				else
@@ -3952,15 +4042,15 @@ namespace Project {
 						return NULL;
 					}
 					else if (temp_pointer->type == flags::varbl)
-					{
-						count_var++;
+					{						
 						if (temp_pointer->prop == flags::undef)
 						{
 							temp_pointer->prop = flags::defnd;
-							//general_var_const->push_back(temp_pointer);
+							point_up->push_left(new math_obj(temp_pointer));
 						}
 						//если в вектор добавляются переменные - они нумеруются по порядку. Это необходимо в случае задания списка переменных, а так же для разрешения возможных неопределённостей при проходе по вектору определённых методов.
 						temp_pointer->var = count_var;
+						count_var++;
 					}
 					else if (temp_pointer->type == flags::funct)
 					{
@@ -4182,6 +4272,7 @@ namespace Project {
 		int math_obj::vector_size_processing(math_obj*pointer)
 		{
 			int count = 0;
+			//TODO:вылет с тремя переменными
 			if (pointer->point_right == NULL)
 			{
 				count++;
@@ -4477,7 +4568,7 @@ namespace Project {
 					sorting.push(temp);
 				}
 			}
-			if (sorting.size() > 1)
+			if (sorting.size() >= 1)
 			{
 				temp = sorting.top();
 				sorting.pop();
@@ -4489,7 +4580,7 @@ namespace Project {
 				}
 				temp->var = 0;
 				reassing_left_pointers(temp);
-				var_list_number(temp);
+				temp->var_list_number();
 				return temp;
 			}
 			else
@@ -4535,12 +4626,12 @@ namespace Project {
 			return merged;
 		}
 		/*PRIVATE. Нумерация переменных по порядку.*/
-		void  math_obj::var_list_number(math_obj* pointer)
+		void  math_obj::var_list_number()
 		{
-			if (pointer->point_right != NULL)
+			if (point_right != NULL)
 			{
-				pointer->point_right->var = pointer->var + 1;
-				reassing_left_pointers(pointer->point_right);
+				point_right->var = var + 1;
+				point_right->var_list_number();
 			}
 		}
 
@@ -4554,14 +4645,13 @@ namespace Project {
 
 		//DATA_LIST
 
-		data_list * data_list::back_rec(data_list * pointer)
+		data_list * data_list::back_rec()
 		{
-			if (pointer->right != NULL)
+			if (right != NULL)
 			{
-				return back_rec(pointer->right);
-			}
-			else
-				return pointer;
+				return right->back_rec();
+			}			
+			return this;
 		}
 
 		void data_list::index_plus_one()
@@ -4571,32 +4661,31 @@ namespace Project {
 				right->index_plus_one();
 		}
 
-		data_list * data_list::at_rec(int* place, data_list * pointer)
+		data_list * data_list::at_rec(int* place)
 		{
-			if (pointer->index == *place)
-				return pointer;
-			else if (pointer->right != NULL)
-				return at_rec(place, pointer->right);
-			else
-				return nullptr;
+			if (index == *place)
+				return this;
+			if (right != NULL)
+				return right->at_rec(place);			
+			return nullptr;
 		}
 
-		int data_list::size_rec(data_list * pointer, bool* flag)
+		int data_list::size_rec(bool* flag)
 		{
-			if (*flag) //если 1
+			if (*flag) //если true
 			{
-				if (pointer->right != NULL)
+				if (right != NULL)
 				{
-					return (1 + size_rec(pointer->right, flag));
+					return (1 + right->size_rec(flag));
 				}
 				else
 					return 1;
 			}
 			else
 			{
-				if (pointer->left != NULL)
+				if (left != NULL)
 				{
-					return (1 + size_rec(pointer->left, flag));
+					return (1 + left->size_rec(flag));
 				}
 				else
 					return 1;
@@ -4632,14 +4721,15 @@ namespace Project {
 
 		int data_list::push_back(data_list * pointer)
 		{
-			if (index != 0)
-			{
-				return 0;
-			}
+			if (in.compare(L"@start#") != 0)			
+				return 0;			
 			data_list*place = back();
+			if (place == nullptr)
+				return 0;
 			place->right = pointer;
 			place->right->left = place;
-			place->right->index = place->index + 1;
+			place->right->index = index;
+			index++;
 			return 1;
 		}
 
@@ -4658,8 +4748,13 @@ namespace Project {
 
 		data_list * data_list::begin()
 		{
+			if (in.compare(L"@start#") == 0)							
+				return this;			
 			if (index == 0)
-				return this;
+			{				
+				if (left->in.compare(L"@start#") == 0)
+					return left;
+			}
 			if ((index > 0) && (left != NULL))
 				return left->begin();
 			return nullptr;
@@ -4667,6 +4762,8 @@ namespace Project {
 
 		int data_list::implace(int place, data_list * pointer)
 		{
+			if (in.compare(L"@start#") != 0)
+				return 0;
 			data_list* temp = at(place);
 			if (temp == NULL)
 				return 0;
@@ -4680,29 +4777,29 @@ namespace Project {
 				temp_plus_one->left = pointer;
 				temp_plus_one->index_plus_one();
 			}
+			index++;
 			return 1;
 		}
 
 		data_list * data_list::at(int place)
 		{
-			if (index != 0)
+			if (in.compare(L"@start#") != 0)
 				return nullptr;
-			else if ((right != NULL) && (place > 0))
-				return at_rec(&place, right);
-			else if (place == 0)
-				return this;
-			else
-				return NULL;
+			if (index < place)//дополнительно размер массива записывается в поле index стартового элемента
+				return nullptr;
+			if ((right != NULL) && (place >= 0))
+				return right->at_rec(&place);
+			return NULL;
 
 		}
 
 		data_list * data_list::back()
 		{
-			if (index != 0)
+			if (in.compare(L"@start#") != 0)
 				return nullptr;
 			else if (right != NULL)
 			{
-				return back_rec(right);
+				return right->back_rec();
 			}
 			else
 			{
@@ -4722,7 +4819,7 @@ namespace Project {
 
 		math_obj * data_list::find_math_obj(wstring* name)
 		{
-			if ((math != NULL) && (name->compare(math->name) == 0))
+			if ((math != NULL) &&(math->name.length()!=0)&& (name->compare(math->name) == 0))
 				return math;
 			else if (left != NULL)
 				return left->find_math_obj(name);
@@ -4758,40 +4855,62 @@ namespace Project {
 
 		int data_list::size_s()
 		{
-			int out = 0;
-			bool flag = true;
-			if (index != 0)
+			if (in.compare(L"@start#") != 0)
 				return -1;
+			int out = 0;
+			bool flag = true;			
 			if (right != NULL)
 			{
-				out += size_rec(right, &flag);
-
+				out += right->size_rec(&flag);
 			}
+			if (index != out)//доп. проверка для записанного в поле index стартового элемента размера массива данных
+				index = out;
 			return out;
 		}
 
 		int data_list::size_all()
 		{
-			int out = 0;
-			bool flag;
-			if (index != 0)
+			if (in.compare(L"@start#") != 0)
 				return -1;
+			int out = 0;
+			bool flag;			
 			if (right != NULL)
 			{
 				flag = true;
-				out += size_rec(right, &flag);
+				out += right->size_rec(&flag);
 			}
+			if (index != out)//доп. проверка для записанного в поле index стартового элемента размера массива данных
+				index = out;
 			if (left != NULL)
 			{
 				flag = false;
-				out += size_rec(right, &flag);
+				out += left->size_rec(&flag);
 			}
-			return out;
+			return out+1;//так же считается элемент start
 		}
-		/*Метод удаляет все элементы списка данных начиная с позиции start. Позиция start не удаляется*/
-		int data_list::delete_starting_at(int start)
+		/*Метод удаляет все элементы списка данных начиная с позиции from. Позиция from не удаляется. 
+		В случае вызова для позиции from = -1 - удаляются все элементы справа от start (включая нулевой)
+		-1 в случае ошибки. */
+		int data_list::delete_starting_at(int from)
 		{
-			return at(start)->delete_starting_at_rec();
+			if (in.compare(L"@start#") != 0)
+				return -1;
+			index = from + 1;			
+			if (from > -1)
+			{
+				data_list* temp = at(from + 1);
+				int k = temp->delete_starting_at_rec();
+				delete temp;
+				return k;
+			}
+			else if (from == -1)
+			{
+				data_list* temp = at(0);
+				int k = temp->delete_starting_at_rec();
+				delete temp;
+				return k;
+			}
+			else return -1;
 		}
 		/*Рекурсия для delete_starting_at*/
 		int data_list::delete_starting_at_rec()
@@ -4803,7 +4922,7 @@ namespace Project {
 				delete right;
 				right = NULL;
 			}
-			//math->~math_obj();//TODO: деструктор math_obj должен удалять всё полностью без разбора (деревья и т.д.) для выбранного экземпляра класса.
+			//math->~math_obj();//TODO: деструктор math_obj должен удалять всё полностью без разбора (деревья и т.д.) для выбранного экземпляра класса math_obj.
 			delete math;
 			return k;
 		}

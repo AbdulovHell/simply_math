@@ -63,16 +63,16 @@ namespace Project {
 		private:
 
 			//Рекурсия для back
-			data_list*back_rec(data_list*pointer);
+			data_list*back_rec();
 
 			//Метод рекурсивно сдвигает индексы элементов вправо, начиная с текущего.
 			void index_plus_one();
 
 			//Рекурсия для метода at
-			data_list*at_rec(int* place, data_list*pointer);
+			data_list*at_rec(int* place);
 
 			//Рекурсия для методов size
-			int size_rec(data_list*pointer, bool* flag);
+			int size_rec(bool* flag);
 
 			/*Рекурсия для delete_starting_at*/
 			int delete_starting_at_rec();
@@ -113,8 +113,7 @@ namespace Project {
 			1 - в случае успешного выполнения*/
 			int implace(int place, data_list*pointer);
 
-			/*Метод возвращает указатель на элемент списка с номером place. 
-			Нумерация значащих элементов (со строками) начинается с 1 (не по православному, но так проще список хранить).
+			/*Метод возвращает указатель на элемент списка с номером place. 			
 			NULL - номера place нет в списке или он меньше нуля, и в случае вызова не для начального (нулевого) элемента*/
 			data_list* at(int place);
 
@@ -159,7 +158,7 @@ namespace Project {
 			*/
 			int size_all();
 			/*Метод удаляет все элементы списка данных начиная с позиции start. Позиция start не удаляется*/
-			int delete_starting_at(int start);
+			int delete_starting_at(int from);
 			
 
 		};
@@ -216,7 +215,7 @@ namespace Project {
 			-1 при ошибке*/
 			int var_list_copy_to_vector_processing(math_obj* pointer, math_obj* vect);
 			/*PRIVATE. Нумерация переменных по порядку.*/
-			void var_list_number(math_obj* pointer);
+			void var_list_number();
 			/*PRIVATE. Установка указателей point_collar для НЕЗАМКНУТОГО списка переменных на функцию*/
 			void var_list_collar(math_obj* pointer, math_obj*original);			
 			/*PRIVATE. Рекурсия для vector_destruct.*/
@@ -280,7 +279,10 @@ namespace Project {
 
 			wstring expression();
 
-			
+			wstring vector_to_string();
+
+			//wstring vector_to_string_procesing();
+
 
 			
 			/*Метод вызывает рекурсивную функцию, проходящую по дереву операций и очищающую память.

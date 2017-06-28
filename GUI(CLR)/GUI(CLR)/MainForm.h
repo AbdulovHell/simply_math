@@ -6,6 +6,7 @@
 #include "../../src/IO.h"
 #include "../../src/filters.h"
 #include "../../src/core.h"
+#include "../../src/html_addon.h"
 
 namespace GUICLR {
 
@@ -51,6 +52,7 @@ namespace GUICLR {
 	private: System::Windows::Forms::ToolStrip^  toolStrip1;
 	private: System::Windows::Forms::ToolStripButton^  ProceedBtn;
 	private: System::Windows::Forms::Timer^  timer1;
+	private: System::Windows::Forms::ToolStripButton^  toolStripButton2;
 
 	private: System::Windows::Forms::ToolStripButton^  toolStripButton1;
 
@@ -90,6 +92,7 @@ namespace GUICLR {
 				 this->ProceedBtn = (gcnew System::Windows::Forms::ToolStripButton());
 				 this->toolStripButton1 = (gcnew System::Windows::Forms::ToolStripButton());
 				 this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
+				 this->toolStripButton2 = (gcnew System::Windows::Forms::ToolStripButton());
 				 this->toolStrip1->SuspendLayout();
 				 this->SuspendLayout();
 				 // 
@@ -109,7 +112,10 @@ namespace GUICLR {
 				 // toolStrip1
 				 // 
 				 this->toolStrip1->GripStyle = System::Windows::Forms::ToolStripGripStyle::Hidden;
-				 this->toolStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) { this->ProceedBtn, this->toolStripButton1 });
+				 this->toolStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(3) {
+					 this->ProceedBtn, this->toolStripButton1,
+						 this->toolStripButton2
+				 });
 				 this->toolStrip1->Location = System::Drawing::Point(0, 0);
 				 this->toolStrip1->Name = L"toolStrip1";
 				 this->toolStrip1->Size = System::Drawing::Size(915, 25);
@@ -135,6 +141,16 @@ namespace GUICLR {
 				 this->toolStripButton1->Size = System::Drawing::Size(23, 22);
 				 this->toolStripButton1->Text = L"Clear";
 				 this->toolStripButton1->Click += gcnew System::EventHandler(this, &MainForm::clr_rst);
+				 // 
+				 // toolStripButton2
+				 // 
+				 this->toolStripButton2->DisplayStyle = System::Windows::Forms::ToolStripItemDisplayStyle::Image;
+				 this->toolStripButton2->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"toolStripButton2.Image")));
+				 this->toolStripButton2->ImageTransparentColor = System::Drawing::Color::Magenta;
+				 this->toolStripButton2->Name = L"toolStripButton2";
+				 this->toolStripButton2->Size = System::Drawing::Size(23, 22);
+				 this->toolStripButton2->Text = L"toolStripButton2";
+				 this->toolStripButton2->Click += gcnew System::EventHandler(this, &MainForm::toolStripButton2_Click);
 				 // 
 				 // MainForm
 				 // 
@@ -267,7 +283,7 @@ namespace GUICLR {
 		if (size - out_strings < len)
 		{
 			//если количество введённых строк (с учётом вывода в предыдущее выполнение программы) оказалось меньше числа злементов в списке данных - удаляем лишнее
-			all_math_data->delete_starting_at(size - out_strings-1);//нумерация теперь с нуля
+			all_math_data->delete_starting_at(size - out_strings - 1);//нумерация теперь с нуля
 		}
 
 		if (!input_to_analize(all_math_data))
@@ -286,7 +302,7 @@ namespace GUICLR {
 			if (!String::IsNullOrEmpty(outstr))
 				out[k++] = ">>> " + outstr;
 		}
-		
+
 		int a = textBox1->SelectionStart;
 
 		this->textBox1->TextChanged -= gcnew System::EventHandler(this, &MainForm::verify);
@@ -302,6 +318,12 @@ namespace GUICLR {
 		textBox1->Clear();
 		//Project::Core::ClearGeneral();
 		//Project::Core::Init();
+	}
+	private: System::Void toolStripButton2_Click(System::Object^  sender, System::EventArgs^  e) {
+		wstring str = L"biboran";
+		str = Project::HTML::ApplyEffects(str, Project::HTML::Actions::BOLD, Project::HTML::Actions::ITALIC, Project::HTML::Actions::SUPER);
+		str = Project::HTML::ChangeTextColor(str, Project::HTML::HTMLColors::RED);
+		str = Project::HTML::RemoveLastEffect(str);
 	}
 	};
 }

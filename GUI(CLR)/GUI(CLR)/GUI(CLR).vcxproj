@@ -142,6 +142,7 @@
     <ClCompile Include="..\..\src\core.cpp" />
     <ClCompile Include="..\..\src\error.cpp" />
     <ClCompile Include="..\..\src\filters.cpp" />
+    <ClCompile Include="..\..\src\html_addon.cpp" />
     <ClCompile Include="..\..\src\IO.cpp" />
     <ClCompile Include="MainForm.cpp" />
   </ItemGroup>
@@ -150,6 +151,7 @@
     <ClInclude Include="..\..\src\core.h" />
     <ClInclude Include="..\..\src\error.h" />
     <ClInclude Include="..\..\src\filters.h" />
+    <ClInclude Include="..\..\src\html_addon.h" />
     <ClInclude Include="..\..\src\IO.h" />
     <ClInclude Include="MainForm.h">
       <FileType>CppForm</FileType>

@@ -68,6 +68,7 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::Calc() {
+    QString html=ui->inputText->toHtml();
 	//поле ввода в строку
 	QString inputTxt = ui->inputText->toPlainText();
 	int StrCount = 0;
@@ -120,7 +121,7 @@ void MainWindow::Calc() {
 
             in_str = new wstring(inputStrs[i]);
 
-			place = all_math_data->at(i - out_strings + 1);
+            place = all_math_data->at(i - out_strings);
 			if (place != NULL) {
 				if ((place->compare_in(in_str)) || (needReCalc)) {//если строчки не совпадают
 					place->in = *in_str;
@@ -154,7 +155,7 @@ void MainWindow::Calc() {
 		//err
 	}
 	//далее all_math_data уже обработана в ядре
-	len = all_math_data->size_s();//количество элементов. Нумерация с 1.
+    len = all_math_data->size_s();//количество элементов.
 
 	//резервируем массив под строки ввода и вывода
 	wchar_t** Strs = new wchar_t*[inputStrsCount * 2];
@@ -162,8 +163,8 @@ void MainWindow::Calc() {
     wchar_t* outstr=NULL;
 
     for (int i = 0, k = 0; i < len; i++){
-                wstring tIn=all_math_data->at(i + 1)->in;
-                wstring tOut=all_math_data->at(i + 1)->out;
+                wstring tIn=all_math_data->at(i)->in;
+                wstring tOut=all_math_data->at(i)->out;
 
                 Strs[k] = new wchar_t[wcslen(tIn.c_str())+1];
                 wcscpy(Strs[k++],tIn.c_str());

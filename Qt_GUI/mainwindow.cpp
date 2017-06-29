@@ -71,8 +71,8 @@ MainWindow::~MainWindow()
 void MainWindow::Calc() {
     wstring str = L"biboran";
     str = Project::HTML::ApplyEffects(str, Project::HTML::Actions::BOLD, Project::HTML::Actions::ITALIC, Project::HTML::Actions::SUPER);
-    str = Project::HTML::ChangeTextColor(str, Project::HTML::HTMLColors::RED);
-    str = Project::HTML::AddHeader(str,14);
+    str = Project::HTML::ChangeTextColor(str, Project::HTML::HTMLColors::BLUE);
+    str = Project::HTML::AddHeader(str,24);
     QString qstr=QString::fromWCharArray(str.c_str());
     ui->inputText->setHtml(qstr);
     return;

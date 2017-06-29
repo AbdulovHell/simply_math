@@ -29,14 +29,16 @@ SOURCES += main.cpp\
     ../src/core.cpp \
     ../src/error.cpp \
     ../src/filters.cpp \
-    ../src/IO.cpp
+    ../src/IO.cpp \
+    ../src/html_addon.cpp
 
 HEADERS  += mainwindow.h \
     ../src/core.h \
     ../src/IO.h \
     ../src/error.h \
     ../src/classes.h \
-    ../src/filters.h
+    ../src/filters.h \
+    ../src/html_addon.h
 
 FORMS    += mainwindow.ui
 

@@ -65,9 +65,11 @@ wstring Project::HTML::ChangeTextColor(wstring str, uint32_t Color)
 	wstring mid;
 
 	wchar_t* buf = new wchar_t[9];
-	for (int i = 0; i < 9; i++) buf[i] = 0;
-	swprintf(buf, 9, L"%x", Color);
-	wstring ColorStr = buf;
+    swprintf(buf, 9, L"%6x", Color);
+    for (int i = 0; i < 9; i++)
+        if(buf[i]==' ')
+            buf[i] = '0';
+    wstring ColorStr = buf;
 	delete[] buf;
 
 	sta = L"<span style = \"color:#";
@@ -91,9 +93,11 @@ wstring Project::HTML::ChangeTextColor(wstring str, HTMLColors Color)
 	wstring mid;
 
 	wchar_t* buf = new wchar_t[9];
-	for (int i = 0; i < 9; i++) buf[i] = 0;
-	swprintf(buf, 9, L"%x", (uint32_t)Color);
-	wstring ColorStr = buf;
+    swprintf(buf, 9, L"%6x", (uint32_t)Color);
+    for (int i = 0; i < 9; i++)
+        if(buf[i]==' ')
+            buf[i] = '0';
+    wstring ColorStr = buf;
 	delete[] buf;
 
 	sta = L"<span style = \"color:#";
@@ -184,7 +188,7 @@ wstring Project::HTML::RemoveLastEffect(wstring str)
 
 	wchar_t *start;
 	
-	for (int i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++) {
 		if (tempStr[i] == '>') {
 			start = &tempStr[i] + 1;
 			break;

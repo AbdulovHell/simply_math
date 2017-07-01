@@ -174,9 +174,9 @@ void MainWindow::Calc() {
                 //out
                 if(!all_math_data->at(i)->out.empty()){
                     wstring tOut=L">>> "+all_math_data->at(i)->out;
-                    tOut=Project::HTML::ApplyEffects(tOut, Project::HTML::Actions::BOLD);
+                    //tOut=Project::HTML::ApplyEffects(tOut, Project::HTML::Actions::BOLD);
                     if(all_math_data->at(i)->math==NULL)
-                        tOut=Project::HTML::ChangeTextColor(tOut, Project::HTML::HTMLColors::RED);
+                        tOut=Project::HTML::ChangeTextColor(tOut, Project::HTML::HTMLColors::MAROON);
                     else
                         tOut=Project::HTML::ChangeTextColor(tOut, Project::HTML::HTMLColors::GREEN);
                     tOut=Project::HTML::NewString(tOut);
@@ -184,14 +184,24 @@ void MainWindow::Calc() {
                     wcscpy(Strs[k++],tOut.c_str());
                 }
     }
-
+#define DEFAULT_BACKGROUND
+#ifdef DEFAULT_BACKGROUND
 	QString OUT = "";
     for (int i = 0; i < inputStrsCount*2; i++) {
         if(Strs[i]!=NULL)
             OUT += QString::fromWCharArray(Strs[i]);
 	}
-
-	ui->inputText->setText(OUT);
+    ui->inputText->setText(OUT);
+#else
+    wstring ALL_Strs=L"";
+    for (int i = 0; i < inputStrsCount*2; i++) {
+        if(Strs[i]!=NULL)
+            ALL_Strs += Strs[i];
+    }
+    ALL_Strs=Project::HTML::AddHeader(ALL_Strs,14,Project::HTML::HTMLColors::GAINSBORO);
+    QString OUT = QString::fromWCharArray(ALL_Strs.c_str());
+    ui->inputText->setHtml(OUT);
+#endif
 	delete input;
 	for (int i = 0; i < StrCount; i++)
 		if (inputStrs[i] != NULL)

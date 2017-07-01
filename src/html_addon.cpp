@@ -5,7 +5,7 @@
 
 using namespace std;
 
-wstring Project::HTML::AddHeader(wstring str, int GlobalFontSize)
+wstring Project::HTML::AddHeader(wstring str, int GlobalFontSize, uint32_t Color)
 {
 	wstring sta;
 	wstring end;
@@ -19,7 +19,10 @@ wstring Project::HTML::AddHeader(wstring str, int GlobalFontSize)
 	sta = L"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\
 <html><head><meta name = \"qrichtext\" content = \"1\" / ><style type = \"text/css\">\
 p, li{ white - space: pre - wrap; }\
-</style></head><body style = \" font-family:'Verdana'; font-size:";
+</style></head><body ";
+	sta += L"bgcolor=#";
+	sta += Uint32ToWString(Color);
+	sta += L" style = \" font-family:'Verdana'; font-size:";
 	sta += FontSizeStr;
 	sta += L"pt; font-weight:400; font-style:normal;\">";
 	end = L"</body></html>";
@@ -29,6 +32,36 @@ p, li{ white - space: pre - wrap; }\
 	str += mid;
 	str += end;
 	
+	return str;
+}
+
+wstring Project::HTML::AddHeader(wstring str, int GlobalFontSize, HTMLColors Color)
+{
+	wstring sta;
+	wstring end;
+	wstring mid;
+
+	wchar_t* buf = new wchar_t[4];
+	swprintf(buf, 4, L"%d", GlobalFontSize);
+	wstring FontSizeStr = buf;
+	delete[] buf;
+	//...<body bgcolor=#FFFFFF style=...
+	sta = L"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\
+<html><head><meta name = \"qrichtext\" content = \"1\" / ><style type = \"text/css\">\
+p, li{ white - space: pre - wrap; }\
+</style></head><body ";
+	sta += L"bgcolor=#";
+	sta += Uint32ToWString((uint32_t)Color);
+	sta += L" style = \" font-family:'Verdana'; font-size:";
+	sta += FontSizeStr;
+	sta += L"pt; font-weight:400; font-style:normal;\">";
+	end = L"</body></html>";
+	mid = str;
+
+	str = sta;
+	str += mid;
+	str += end;
+
 	return str;
 }
 
@@ -80,16 +113,8 @@ wstring Project::HTML::ChangeTextColor(wstring str, uint32_t Color)
 	wstring end;
 	wstring mid;
 
-	wchar_t* buf = new wchar_t[9];
-    swprintf(buf, 9, L"%6x", Color);
-    for (int i = 0; i < 9; i++)
-        if(buf[i]==' ')
-            buf[i] = '0';
-    wstring ColorStr = buf;
-	delete[] buf;
-
 	sta = L"<span style = \"color:#";
-	sta += ColorStr;
+	sta += Uint32ToWString(Color);
 	sta += L";\">";
 
 	end = L"</span>";
@@ -108,16 +133,8 @@ wstring Project::HTML::ChangeTextColor(wstring str, HTMLColors Color)
 	wstring end;
 	wstring mid;
 
-	wchar_t* buf = new wchar_t[9];
-    swprintf(buf, 9, L"%6x", (uint32_t)Color);
-    for (int i = 0; i < 9; i++)
-        if(buf[i]==' ')
-            buf[i] = '0';
-    wstring ColorStr = buf;
-	delete[] buf;
-
 	sta = L"<span style = \"color:#";
-	sta += ColorStr;
+	sta += Uint32ToWString((uint32_t)Color);
 	sta += L";\">";
 
 	end = L"</span>";
@@ -221,4 +238,16 @@ wstring Project::HTML::RemoveLastEffect(wstring str)
 
 	delete[] tempStr;
 	return str;
+}
+
+wstring Project::HTML::Uint32ToWString(uint32_t Color)
+{
+	wchar_t* buf = new wchar_t[9];
+	swprintf(buf, 9, L"%6x", Color);
+	for (int i = 0; i < 9; i++)
+		if (buf[i] == ' ')
+			buf[i] = '0';
+	wstring ColorStr = buf;
+	delete[] buf;
+	return ColorStr;
 }

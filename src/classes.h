@@ -187,7 +187,7 @@ namespace Project {
 			int priority(flags *op_type);
 
 
-
+			double wstr_to_double(wchar_t* str, wchar_t** remap);
 
 			math_obj * math_simplify_processing(vector<math_obj*>* last_funct);
 

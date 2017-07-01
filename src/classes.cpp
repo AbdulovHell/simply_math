@@ -621,13 +621,13 @@ namespace Project {
 			//math_obj* current_element = this;
 			while (s_iter <= endPtr)
 			{
-				if ((*s_iter == '1') || (*s_iter == '2') || (*s_iter == '3') || (*s_iter == '4') || (*s_iter == '5') || (*s_iter == '6') || (*s_iter == '7') || (*s_iter == '8') || (*s_iter == '9') || (*s_iter == '0'))
+				if ((*s_iter == '1') || (*s_iter == '2') || (*s_iter == '3') || (*s_iter == '4') || (*s_iter == '5') || (*s_iter == '6') || (*s_iter == '7') || (*s_iter == '8') || (*s_iter == '9') || (*s_iter == '0') || (*s_iter == '.'))
 				{
 					// если данное число первое в записи выражения
 					if ((high_pointer == NULL) && (low_pointer == NULL))
 					{
 						//создание элемента класса и запись числа, воротник -> константу
-						point_left = new math_obj(flags::numbr, flags::real, wcstod(s_iter, &s_iter), NULL);
+						point_left = new math_obj(flags::numbr, flags::real, wstr_to_double(s_iter, &s_iter), NULL);
 						//оба указателя -> на число, тебуется для проверки условия при записи операции
 						low_pointer = point_left;
 						high_pointer = low_pointer;
@@ -636,7 +636,7 @@ namespace Project {
 					else
 					{
 						//создание элемента класса и запись числа, воротник -> пред операцию 
-						high_pointer->point_right = new math_obj(flags::numbr, flags::real, wcstod(s_iter, &s_iter), NULL);
+						high_pointer->point_right = new math_obj(flags::numbr, flags::real, wstr_to_double(s_iter, &s_iter), NULL);
 						low_pointer = high_pointer->point_right;
 					}
 				}
@@ -2938,6 +2938,61 @@ namespace Project {
 				//res = point_left->math_simplify_processing();
 			}
 			return false;
+		}
+
+		double math_obj::wstr_to_double(wchar_t * str, wchar_t ** remap)
+		{
+			//числа без знака			
+			if (str == NULL) {
+				//error
+				//throw (-1);
+				return 0.0;
+			}
+			wchar_t * check = wcspbrk(str, L".0123456789");//TODO:Проверить будет ли работать для str==NULL
+			if ((check == NULL)||(check !=str))	{
+				//error - подумать над реализацией.
+				//throw (-1);
+				return 0.0;
+			}
+			wchar_t* decimal = wcschr(check, L'.');
+			
+			//wchar_t* iter;
+			double buf = 0.0;
+			while (check){
+				if (check == decimal) { buf += 0; check++; }
+				else if ((decimal == NULL)||(check < decimal)){
+					switch (*check) {
+					case L'1': { buf = buf * 10 + 1; check++; break; }
+					case L'2': { buf = buf * 10 + 2; check++; break; }
+					case L'3': { buf = buf * 10 + 3; check++; break; }
+					case L'4': { buf = buf * 10 + 4; check++; break; }
+					case L'5': { buf = buf * 10 + 5; check++; break; }
+					case L'6': { buf = buf * 10 + 6; check++; break; }
+					case L'7': { buf = buf * 10 + 7; check++; break; }
+					case L'8': { buf = buf * 10 + 8; check++; break; }
+					case L'9': { buf = buf * 10 + 9; check++; break; }
+					case L'0': { buf = buf * 10; check++; break; }
+					default: {*remap = check;  check = NULL; break; }
+					}
+				}
+				else if (check > decimal) {
+					switch (*check) {
+					case L'1': { buf = buf + 1*pow(10,(int)(decimal -check)); check++; break; }
+					case L'2': { buf = buf + 2 * pow(10, (int)(decimal - check)); check++; break; }
+					case L'3': { buf = buf + 3 * pow(10, (int)(decimal - check)); check++; break; }
+					case L'4': { buf = buf + 4 * pow(10, (int)(decimal - check)); check++; break; }
+					case L'5': { buf = buf + 5 * pow(10, (int)(decimal - check)); check++; break; }
+					case L'6': { buf = buf + 6 * pow(10, (int)(decimal - check)); check++; break; }
+					case L'7': { buf = buf + 7 * pow(10, (int)(decimal - check)); check++; break; }
+					case L'8': { buf = buf + 8 * pow(10, (int)(decimal - check)); check++; break; }
+					case L'9': { buf = buf + 9 * pow(10, (int)(decimal - check)); check++; break; }
+					case L'0': { check++; break; }
+					default: {*remap = check; check = NULL; break; }
+					}
+				}
+				
+			}
+			return buf;
 		}
 
 		math_obj * math_obj::math_simplify_processing(vector<math_obj*>* last_funct)

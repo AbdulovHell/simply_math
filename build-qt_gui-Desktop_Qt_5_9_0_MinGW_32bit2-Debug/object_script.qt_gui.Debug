@@ -1,0 +1,12 @@
+INPUT(
+./debug\main.o
+./debug\mainwindow.o
+./debug\classes.o
+./debug\core.o
+./debug\error.o
+./debug\filters.o
+./debug\IO.o
+./debug\html_addon.o
+./debug\qrc_resources.o
+./debug\moc_mainwindow.o
+);

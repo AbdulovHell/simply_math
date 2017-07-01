@@ -103,7 +103,7 @@ namespace Project {
 		//возвращает строку с var, представленную как type, с количеством знаков после запятой decimals
 		wstring to_string(double var, var_type type, int decimals) {
 			wstring sOut;
-			wchar_t buf[BUF_SIZE2];
+			wchar_t *buf=new wchar_t[BUF_SIZE2];
 			int temp;
 			double frac;
 			wchar_t outFormat[] = L"%.3f";
@@ -151,6 +151,7 @@ namespace Project {
 				sOut = buf;
 				break;
 			}
+			delete[] buf;
 			return sOut;
 		}
 		//наверное, устрело, см. to_string

@@ -167,7 +167,7 @@ void MainWindow::Calc() {
                 //in
                 wstring tIn=all_math_data->at(i)->in;
                 tIn=Project::HTML::ApplyEffects(tIn, Project::HTML::Actions::ITALIC);
-                tIn=Project::HTML::ChangeTextColor(tIn, Project::HTML::HTMLColors::MEDIUMBLUE);
+                //tIn=Project::HTML::ChangeTextColor(tIn, Project::HTML::HTMLColors::MEDIUMBLUE);
                 tIn=Project::HTML::NewString(tIn);
                 Strs[k] = new wchar_t[wcslen(tIn.c_str())+1];
                 wcscpy(Strs[k++],tIn.c_str());
@@ -178,7 +178,7 @@ void MainWindow::Calc() {
                     if(all_math_data->at(i)->math==NULL)
                         tOut=Project::HTML::ChangeTextColor(tOut, Project::HTML::HTMLColors::MAROON);
                     else
-                        tOut=Project::HTML::ChangeTextColor(tOut, Project::HTML::HTMLColors::GREEN);
+                        tOut=Project::HTML::ChangeTextColor(tOut, Project::HTML::HTMLColors::GRAY);
                     tOut=Project::HTML::NewString(tOut);
                     Strs[k] = new wchar_t[wcslen(tOut.c_str())+1];
                     wcscpy(Strs[k++],tOut.c_str());

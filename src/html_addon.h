@@ -40,6 +40,8 @@ namespace Project {
 		};
 		//добавление главного заголовка HTML, с указанием размера шрифта
 		wstring AddHeader(wstring str, int GlobalFontSize);
+		//вызывать дл€ каждой новой строки
+		wstring NewString(wstring str);
 		//изменение размера шрифта дл€ отдельного куска текста
 		wstring ChangeFontSize(wstring str, int FontSize);
 		//изменение цвета куска текста, использу€ числовой код цвета

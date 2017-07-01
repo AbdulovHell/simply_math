@@ -15,15 +15,31 @@ wstring Project::HTML::AddHeader(wstring str, int GlobalFontSize)
 	swprintf(buf, 4, L"%d", GlobalFontSize);
 	wstring FontSizeStr = buf;
 	delete[] buf;
-
-	sta = L"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">						\
-			<html><head><meta name = \"qrichtext\" content = \"1\" / ><style type = \"text/css\">									\
-			 p, li{ white - space: pre - wrap; }																					\
-			</style></head><body style = \" font-family:'Verdana'; font-size:";
+	//...<body bgcolor=#FFFFFF style=...
+	sta = L"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\
+<html><head><meta name = \"qrichtext\" content = \"1\" / ><style type = \"text/css\">\
+p, li{ white - space: pre - wrap; }\
+</style></head><body style = \" font-family:'Verdana'; font-size:";
 	sta += FontSizeStr;
-	sta += L"pt; font-weight:400; font-style:normal;\">		\
-			<p style = \" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">";
-	end = L"</p></body></html>";
+	sta += L"pt; font-weight:400; font-style:normal;\">";
+	end = L"</body></html>";
+	mid = str;
+
+	str = sta;
+	str += mid;
+	str += end;
+	
+	return str;
+}
+
+wstring Project::HTML::NewString(wstring str)
+{
+	wstring sta;
+	wstring end;
+	wstring mid;
+
+	sta = L"<p style = \" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">";
+	end = L"</p>";
 	mid = str;
 
 	str = sta;

@@ -70,8 +70,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::Calc() {
     //wstring str = L"biboran";
-    //str = Project::HTML::ApplyEffects(str, Project::HTML::Actions::BOLD, Project::HTML::Actions::ITALIC, Project::HTML::Actions::SUPER);
-    //str = Project::HTML::ChangeTextColor(str, Project::HTML::HTMLColors::BLUE);
+    //str = Project::HTML::ApplyEffects(str, Project::HTML::Actions::BOLD, Project::HTML::Actions::ITALIC);
+    //str = Project::HTML::ChangeTextColor(str, Project::HTML::HTMLColors::RED);
     //str = Project::HTML::AddHeader(str,24);
     //QString qstr=QString::fromWCharArray(str.c_str());
     //ui->inputText->setHtml(qstr);
@@ -158,35 +158,37 @@ void MainWindow::Calc() {
 	}
 	//далее all_math_data уже обработана в ядре
     len = all_math_data->size_s();//количество элементов.
-
+    inputStrsCount-=out_strings;
 	//резервируем массив под строки ввода и вывода
-	wchar_t** Strs = new wchar_t*[inputStrsCount * 2];
+    wchar_t** Strs = new wchar_t*[inputStrsCount * 2];
     for (int i = 0; i < inputStrsCount*2; i++) Strs[i] = NULL;  //указатели в никуда, пусть уж лучше на NULL
-    wchar_t* outstr=NULL;
 
     for (int i = 0, k = 0; i < len; i++){
+                //in
                 wstring tIn=all_math_data->at(i)->in;
-                wstring tOut=all_math_data->at(i)->out;
-
+                tIn=Project::HTML::ApplyEffects(tIn, Project::HTML::Actions::ITALIC);
+                tIn=Project::HTML::ChangeTextColor(tIn, Project::HTML::HTMLColors::MEDIUMBLUE);
+                tIn=Project::HTML::NewString(tIn);
                 Strs[k] = new wchar_t[wcslen(tIn.c_str())+1];
                 wcscpy(Strs[k++],tIn.c_str());
-
-                outstr = new wchar_t[wcslen(tOut .c_str())+1];
-                wcscpy(outstr,tOut.c_str());
-
-                if (wcscmp(outstr,L"")){
-                    Strs[k] = new wchar_t[wcslen(tOut.c_str())+5];
-                    wcscpy(Strs[k],L">>> ");
-                    wcscat(Strs[k++],tOut.c_str());
+                //out
+                if(!all_math_data->at(i)->out.empty()){
+                    wstring tOut=L">>> "+all_math_data->at(i)->out;
+                    tOut=Project::HTML::ApplyEffects(tOut, Project::HTML::Actions::BOLD);
+                    if(all_math_data->at(i)->math==NULL)
+                        tOut=Project::HTML::ChangeTextColor(tOut, Project::HTML::HTMLColors::RED);
+                    else
+                        tOut=Project::HTML::ChangeTextColor(tOut, Project::HTML::HTMLColors::GREEN);
+                    tOut=Project::HTML::NewString(tOut);
+                    Strs[k] = new wchar_t[wcslen(tOut.c_str())+1];
+                    wcscpy(Strs[k++],tOut.c_str());
                 }
-
-                delete[] outstr;
     }
 
 	QString OUT = "";
     for (int i = 0; i < inputStrsCount*2; i++) {
-		if (i) OUT += '\n';
-        OUT += QString::fromWCharArray(Strs[i]);
+        if(Strs[i]!=NULL)
+            OUT += QString::fromWCharArray(Strs[i]);
 	}
 
 	ui->inputText->setText(OUT);

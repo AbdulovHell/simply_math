@@ -69,13 +69,13 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::Calc() {
-    wstring str = L"biboran";
-    str = Project::HTML::ApplyEffects(str, Project::HTML::Actions::BOLD, Project::HTML::Actions::ITALIC, Project::HTML::Actions::SUPER);
-    str = Project::HTML::ChangeTextColor(str, Project::HTML::HTMLColors::BLUE);
-    str = Project::HTML::AddHeader(str,24);
-    QString qstr=QString::fromWCharArray(str.c_str());
-    ui->inputText->setHtml(qstr);
-    return;
+    //wstring str = L"biboran";
+    //str = Project::HTML::ApplyEffects(str, Project::HTML::Actions::BOLD, Project::HTML::Actions::ITALIC, Project::HTML::Actions::SUPER);
+    //str = Project::HTML::ChangeTextColor(str, Project::HTML::HTMLColors::BLUE);
+    //str = Project::HTML::AddHeader(str,24);
+    //QString qstr=QString::fromWCharArray(str.c_str());
+    //ui->inputText->setHtml(qstr);
+    //return;
 	//поле ввода в строку
 	QString inputTxt = ui->inputText->toPlainText();
 	int StrCount = 0;
@@ -98,17 +98,12 @@ void MainWindow::Calc() {
 	int index = 0;
 	for (int i = 0, k = 0; i < inputSize; i++) {   //по всей длинне общей строки
 		if ((input[i] == '\n') || (input[i] == 0)) {    //если встречаем разделитель
-			//if(!isOutOrEmpty(input+index,wcslen(input+index))){ //и строка не является выводом
-			input[i] = '\0';  //отделяем для копирки
+            input[i] = '\0';  //отделяем для копирки
 			inputStrs[k] = new wchar_t[i - index + 1];    //выделяем место
 			wcscpy(inputStrs[k], input + index);   //копируем
 			inputStrs[k][i] = 0;  //добавляем в конец строки \0
 			index = i + 1;  //начало следующей строки
 			k++;    //количество строк
-		/*}else{
-			input[i]='\0';  //отделяем для копирки
-			index=i+1;  //начало следующей строки
-		}*/
 		}
 	}
 	//пересчитаем, сколько вышло на самом деле

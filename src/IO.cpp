@@ -145,7 +145,7 @@ namespace Project {
                 for(int i=0;i<20;i++)
                     tempbuf[i]=0;
 				swprintf(tempbuf, 20, L"---\n");
-				wcscat(buf, tempbuf);
+				wcscat_s(buf, BUF_SIZE2, tempbuf);
 				swprintf(tempbuf, 20, L"%d\n", d);
 				wcscat(buf, tempbuf);
 				sOut = buf;

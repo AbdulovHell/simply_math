@@ -187,7 +187,6 @@ namespace Project {
 			int priority(flags *op_type);
 
 
-			double wstr_to_double(wchar_t* str, wchar_t** remap);
 
 			math_obj * math_simplify_processing(vector<math_obj*>* last_funct);
 
@@ -254,6 +253,7 @@ namespace Project {
 			ƒополнительный параметр _pc присваиваетс€ полю point_collar (дл€ получени€ дерева операций дл€ функций с заранее обозначенным списком переменных).*/
 			math_obj(wchar_t* strPtr, wchar_t* ePtr, math_obj* _pc, data_list* data);
 
+            double wstr_to_double(wchar_t* str, wchar_t** remap);
 
 			// онструктор матрицы
 			//math_obj(int size_n, int size_m);

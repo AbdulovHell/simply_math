@@ -69,13 +69,18 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::Calc() {
+    //Project::Core::math_obj* a=new Project::Core::math_obj();
+    //wchar_t* str=new wchar_t[30];
+    //wcscpy(str,L"123.456");
+    //double b = a->wstr_to_double(str,&str);
+    wstring str = Project::IO::to_string(16.4163,Project::IO::var_type::FRACTIONAL,4);
     //wstring str = L"biboran";
     //str = Project::HTML::ApplyEffects(str, Project::HTML::Actions::BOLD, Project::HTML::Actions::ITALIC);
     //str = Project::HTML::ChangeTextColor(str, Project::HTML::HTMLColors::RED);
     //str = Project::HTML::AddHeader(str,24);
     //QString qstr=QString::fromWCharArray(str.c_str());
     //ui->inputText->setHtml(qstr);
-    //return;
+    return;
 	//поле ввода в строку
 	QString inputTxt = ui->inputText->toPlainText();
 	int StrCount = 0;

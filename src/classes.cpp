@@ -2961,7 +2961,14 @@ namespace Project {
 			while (check){
 				if (check == decimal) { buf += 0; check++; }
 				else if ((decimal == NULL)||(check < decimal)){
-					switch (*check) {
+                    if(*check>=48 && *check<=57){
+                         buf = buf * 10 + (*check-48);
+                         check++;
+                    }else{
+                        *remap = check;
+                        check = NULL;
+                    }
+                    /*switch (*check) {
 					case L'1': { buf = buf * 10 + 1; check++; break; }
 					case L'2': { buf = buf * 10 + 2; check++; break; }
 					case L'3': { buf = buf * 10 + 3; check++; break; }
@@ -2973,10 +2980,17 @@ namespace Project {
 					case L'9': { buf = buf * 10 + 9; check++; break; }
 					case L'0': { buf = buf * 10; check++; break; }
 					default: {*remap = check;  check = NULL; break; }
-					}
+                    }*/
 				}
 				else if (check > decimal) {
-					switch (*check) {
+                    if(*check>=48 && *check<=57){
+                         buf = buf + (*check-48) * pow(10, (int)(decimal - check));
+                         check++;
+                    }else{
+                        *remap = check;
+                        check = NULL;
+                    }
+                    /*switch (*check) {
 					case L'1': { buf = buf + 1*pow(10,(int)(decimal -check)); check++; break; }
 					case L'2': { buf = buf + 2 * pow(10, (int)(decimal - check)); check++; break; }
 					case L'3': { buf = buf + 3 * pow(10, (int)(decimal - check)); check++; break; }
@@ -2988,7 +3002,7 @@ namespace Project {
 					case L'9': { buf = buf + 9 * pow(10, (int)(decimal - check)); check++; break; }
 					case L'0': { check++; break; }
 					default: {*remap = check; check = NULL; break; }
-					}
+                    }*/
 				}
 				
 			}

@@ -3,6 +3,8 @@
 #define IO_H
 #include <iostream>
 #include <math.h>
+#include <stdio.h>
+#include <wchar.h>
 #include "classes.h"
 #include "error.h"
 ///Macros

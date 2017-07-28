@@ -66,7 +66,7 @@ namespace Project {
 			case ErrorCode::USING_VAR_AS_CONST:
 				return L"Присвоение переменной константного выражения";
 			case ErrorCode::UNREAL_ERROR:
-				return L"Невозможная ошибка!";
+				return L"Не удалось создать математический объект по строке ввода.";
 			default:
 				return L"Unresolved error";
 			}

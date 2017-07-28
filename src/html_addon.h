@@ -2,7 +2,7 @@
 #ifndef HTML_ADDON_H
 #define HTML_ADDON_H
 
-#include <iostream>
+#include "common.h"
 
 namespace Project {
 	namespace HTML {

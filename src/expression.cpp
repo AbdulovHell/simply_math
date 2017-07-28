@@ -13,10 +13,9 @@ namespace Project {
 			point_left = _pl;
 		}
 
-		expression::expression(math_obj * _pl, data_list * _pu)
+		expression::expression(math_obj * _pl)
 		{
-			point_left = _pl;
-			point_up = _pu;
+			point_left = _pl;			
 		}
 
 		expression::~expression()
@@ -33,6 +32,25 @@ namespace Project {
 			return this;
 		}
 
+		wstring expression::get_name()
+		{
+			return wstring();
+		}
+
+		void expression::assing_name(wstring _name)
+		{
+
+		}
+
+		long double expression::get_num()
+		{
+			return NAN;
+		}
+
+		void expression::assing_num(long double _num)
+		{
+		}
+
 		math_obj * expression::get_pl()
 		{
 			return point_left;
@@ -41,6 +59,24 @@ namespace Project {
 		void expression::assing_pl(math_obj * _pointer)
 		{
 			point_left = _pointer;
+		}
+
+		math_obj * expression::get_pr()
+		{
+			return nullptr;
+		}
+
+		void expression::assing_pr(math_obj * _pointer)
+		{
+		}
+
+		math_obj * expression::get_pc()
+		{
+			return nullptr;
+		}
+
+		void expression::assing_pc(math_obj * _pointer)
+		{
 		}
 
 

@@ -41,8 +41,17 @@ namespace Project {
 		{
 			return point_right;
 		}
+
+		wstring math_dummy::get_name()
+		{
+			return wstring();
+		}
+
+		void math_dummy::assing_name(wstring _name)
+		{
+		}
 		
-		double math_dummy::get_num()
+		long double math_dummy::get_num()
 		{
 			return (double)num_var;
 		}

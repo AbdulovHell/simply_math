@@ -17,8 +17,7 @@ namespace Project {
 
 		operations::operations(math_obj * _pl, math_obj * _pr)
 		{
-			point_left = _pl;
-			point_right = _pr;
+						
 		}
 
 		operations::~operations()
@@ -45,9 +44,41 @@ namespace Project {
 			point_right = _pointer;
 		}
 
+		math_obj * operations::get_pc()
+		{
+			return nullptr;
+		}
+
+		void operations::assing_pc(math_obj * _pointer)
+		{
+		}
+
 		flags operations::get_class_type()
 		{
 			return flags::operation;
+		}
+
+		math_obj * operations::get_this()
+		{
+			return nullptr;
+		}
+
+		wstring operations::get_name()
+		{
+			return wstring();
+		}
+
+		void operations::assing_name(wstring _name)
+		{
+		}
+
+		long double operations::get_num()
+		{
+			return 0;
+		}
+
+		void operations::assing_num(long double _num)
+		{
 		}
 
 		math_obj * operations::get_result()
@@ -71,14 +102,19 @@ namespace Project {
 		{
 		}		
 
-		flags addition::get_class_type()
+		/*flags addition::get_class_type()
 		{
 			return flags::addit;
-		}
+		}*/
 
 		math_obj * addition::get_this()
 		{
 			return this;
+		}
+
+		wstring addition::get_name()
+		{
+			return L"+";
 		}
 
 
@@ -99,14 +135,19 @@ namespace Project {
 		{
 		}		
 
-		flags subtraction::get_class_type()
+		/*flags subtraction::get_class_type()
 		{
 			return flags::minus;
-		}
+		}*/
 
 		math_obj * subtraction::get_this()
 		{
 			return this;
+		}
+
+		wstring subtraction::get_name()
+		{
+			return L"-";
 		}
 		
 
@@ -126,14 +167,19 @@ namespace Project {
 		{
 		}		
 
-		flags multiplication::get_class_type()
+		/*flags multiplication::get_class_type()
 		{
 			return flags::mltpl;
-		}
+		}*/
 
 		math_obj * multiplication::get_this()
 		{
 			return this;
+		}
+
+		wstring multiplication::get_name()
+		{
+			return L"*";
 		}
 
 		division::division() :operations()
@@ -152,14 +198,19 @@ namespace Project {
 		{
 		}
 		
-		flags division::get_class_type()
+		/*flags division::get_class_type()
 		{
 			return flags::divis;
-		}
+		}*/
 
 		math_obj * division::get_this()
 		{
 			return this;
+		}
+
+		wstring division::get_name()
+		{
+			return L"/";
 		}
 
 		power::power() :operations()
@@ -178,15 +229,20 @@ namespace Project {
 		{
 		}				
 
-		flags power::get_class_type()
+		/*flags power::get_class_type()
 		{
 			return flags::power;
-		}
+		}*/
 
 		math_obj * power::get_this()
 		{
 			return this;
-		}	
+		}
+
+		wstring power::get_name()
+		{
+			return L"^";
+		}
 
 	}
 }

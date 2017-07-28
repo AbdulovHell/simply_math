@@ -15,7 +15,7 @@ namespace Project {
 		{
 			return flags::function;
 		}
-		double function::get_num()
+		long double function::get_num()
 		{
 			return (double)num_var;
 		}

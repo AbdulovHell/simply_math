@@ -6,15 +6,13 @@
 #define GET_INTGR(var) ((int)var)
 ///
 
-#include <iostream>
-#include <string>
-
+#include "common.h"
 
 #include "error.h"
 #include "IO.h"
 #include "filters.h"
 
-#include "classes.h"
+#include "math_builder.h"
 
 namespace Project {
 	namespace Core {

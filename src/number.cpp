@@ -18,7 +18,7 @@ namespace Project {
 		{
 		}
 
-		double number::get_num()
+		long double number::get_num()
 		{
 			return num;
 		}
@@ -26,6 +26,33 @@ namespace Project {
 		void number::assing_num(long double _num)
 		{
 			num = _num;
+		}
+
+		math_obj * number::get_pl()
+		{
+			return nullptr;
+		}
+
+		void number::assing_pl(math_obj * _pointer)
+		{
+		}
+
+		math_obj * number::get_pr()
+		{
+			return nullptr;
+		}
+
+		void number::assing_pr(math_obj * _pointer)
+		{
+		}
+
+		math_obj * number::get_pc()
+		{
+			return nullptr;
+		}
+
+		void number::assing_pc(math_obj * _pointer)
+		{
 		}
 				
 
@@ -37,6 +64,15 @@ namespace Project {
 		math_obj * number::get_this()
 		{
 			return this;
+		}
+
+		wstring number::get_name()
+		{
+			return wstring();
+		}
+
+		void number::assing_name(wstring _name)
+		{
 		}
 		
 	}

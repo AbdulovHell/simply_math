@@ -1,7 +1,7 @@
 #pragma once
 #ifndef MATH_DUNNY_H
 #define MATH_DUNNY_H
-#include "classes.h"
+#include "math_obj.h"
 namespace Project {
 	namespace Core {
 		using namespace std;
@@ -25,17 +25,21 @@ namespace Project {
 
 			//Метод get. ЭЛЕМЕНТ
 			virtual math_obj* get_this();
-			
+
+			//Метод get. ИМЯ
+			virtual wstring get_name();
+			//Метод assing. ИМЯ
+			virtual void assing_name(wstring _name);
+
 			//Метод get. ЧИСЛО
-			virtual double get_num();
+			virtual long double get_num();
 			//Метод assing. ЧИСЛО
 			virtual void assing_num(long double _num);
 
 			//Метод get. Поправка для перечисляемых элементов
-			virtual unsigned int get_num_var();
+			unsigned int get_num_var();
 			//Метод assing. Поправка для перечисляемых элементов
-			virtual void assing_num_var(unsigned int _num);
-
+			void assing_num_var(unsigned int _num);
 
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
 			virtual math_obj* get_pl();

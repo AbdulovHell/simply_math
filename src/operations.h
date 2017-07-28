@@ -1,7 +1,7 @@
 #pragma once
 #ifndef OPERATIONS_H
 #define OPERATIONS_H
-#include "classes.h"
+#include "math_obj.h"
 namespace Project {
 	namespace Core {
 		using namespace std;
@@ -15,20 +15,41 @@ namespace Project {
 			
 			operations();	
 			operations(math_obj* _pl);
-			operations(math_obj* _pl, math_obj* _pr);
+			operations(math_obj* _high, math_obj* _low);
 			virtual ~operations();
 			
+			//Метод get. ТИП
+			flags get_class_type();
+
+			//Метод get. ЭЛЕМЕНТ
+			virtual math_obj* get_this();
+
+			//Метод get. ИМЯ
+			virtual wstring get_name();
+			//Метод assing. ИМЯ
+			virtual void assing_name(wstring _name);
+
+			//Метод get. ЧИСЛО
+			virtual long double get_num();
+			//Метод assing. ЧИСЛО
+			virtual void assing_num(long double _num);
+
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
-			math_obj* get_pl();
+			virtual math_obj* get_pl();
 			//Метод assing. УКАЗАТЕЛЬ "левый рукав"
-			void assing_pl(math_obj* _pointer);
+			virtual void assing_pl(math_obj* _pointer);
+
 
 			//Метод get. УКАЗАТЕЛЬ "правый рукав"
-			math_obj* get_pr();
+			virtual math_obj* get_pr();
 			//Метод assing. УКАЗАТЕЛЬ "правый рукав"
-			void assing_pr(math_obj* _pointer);
+			virtual void assing_pr(math_obj* _pointer);
 
-			virtual flags get_class_type();			
+
+			//Метод get. УКАЗАТЕЛЬ "воротник"
+			virtual math_obj* get_pc();
+			//Метод assing. УКАЗАТЕЛЬ "воротник"
+			virtual void assing_pc(math_obj* _pointer);
 			
 			//Возвращает результат выполнения операции в ввиде мат. объекта. Nullptr при вызове непосредственно для этого класса
 			virtual math_obj* get_result();
@@ -43,13 +64,16 @@ namespace Project {
 		public:
 			addition();
 			addition(math_obj* _pl);
-			addition(math_obj* _pl, math_obj* _pr);
+			addition(math_obj* _high, math_obj* _low);
 			~addition();
 			
-			flags get_class_type();
+			//flags get_class_type(); //С точки зрения построения дерева операций не имеет значения какая именно операция находится в узле, только сам факт того, что это операция
 
 			//Метод get. ЭЛЕМЕНТ
-			virtual math_obj* get_this();
+			math_obj* get_this();
+
+			//Метод get. ИМЯ (символ операции)
+			wstring get_name();
 
 			math_obj* get_result();
 		};
@@ -64,13 +88,16 @@ namespace Project {
 		public:
 			subtraction();
 			subtraction(math_obj* _pl);
-			subtraction(math_obj* _pl, math_obj* _pr);
+			subtraction(math_obj* _high, math_obj* _low);
 			~subtraction();
 
-			flags get_class_type();
+			//flags get_class_type();
 
 			//Метод get. ЭЛЕМЕНТ
 			virtual math_obj* get_this();
+
+			//Метод get. ИМЯ (символ операции)
+			wstring get_name();
 
 			math_obj* get_result();
 		};
@@ -84,13 +111,16 @@ namespace Project {
 		public:
 			multiplication();
 			multiplication(math_obj* _pl);
-			multiplication(math_obj* _pl, math_obj* _pr);
+			multiplication(math_obj* _high, math_obj* _low);
 			~multiplication();
 						
-			flags get_class_type();
+			//flags get_class_type();
 
 			//Метод get. ЭЛЕМЕНТ
 			virtual math_obj* get_this();
+
+			//Метод get. ИМЯ (символ операции)
+			wstring get_name();
 
 			math_obj* get_result();
 		};		
@@ -104,13 +134,16 @@ namespace Project {
 		public:
 			division();
 			division(math_obj* _pl);
-			division(math_obj* _pl, math_obj* _pr);
+			division(math_obj* _high, math_obj* _low);
 			~division();
 			
-			flags get_class_type();
+			//flags get_class_type();
 
 			//Метод get. ЭЛЕМЕНТ
 			virtual math_obj* get_this();
+
+			//Метод get. ИМЯ (символ операции)
+			wstring get_name();
 
 			math_obj* get_result();
 		};	
@@ -124,13 +157,16 @@ namespace Project {
 		public:
 			power();
 			power(math_obj* _pl);
-			power(math_obj* _pl, math_obj* _pr);
+			power(math_obj* _high, math_obj* _low);
 			~power();
 			
-			flags get_class_type();
+			//flags get_class_type();
 
 			//Метод get. ЭЛЕМЕНТ
 			virtual math_obj* get_this();
+
+			//Метод get. ИМЯ (символ операции)
+			wstring get_name();
 
 			math_obj* get_result();
 		};

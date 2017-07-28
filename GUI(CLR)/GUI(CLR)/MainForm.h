@@ -1,13 +1,14 @@
 #pragma once
-#include <iostream>
+
 #include <vcclr.h>
 #include <Windows.h>
+#include "../../src/common.h"
 #include "../../src/error.h"
 #include "../../src/IO.h"
 #include "../../src/filters.h"
 #include "../../src/core.h"
 #include "../../src/html_addon.h"
-
+#include "../../src/math_builder.h"
 namespace GUICLR {
 
 	using namespace System;

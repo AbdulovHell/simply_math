@@ -1,11 +1,9 @@
 #pragma once
 #ifndef IO_H
 #define IO_H
-#include <iostream>
-#include <math.h>
-#include <stdio.h>
-#include <wchar.h>
-#include "classes.h"
+
+#include "common.h"
+#include "math_obj.h"
 #include "error.h"
 ///Macros
 #define GET_FRAC(var) ((double)((double)var-(int)var))

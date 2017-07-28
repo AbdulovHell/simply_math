@@ -1,7 +1,7 @@
 ﻿#pragma once
 #ifndef ERROR_H
 #define ERROR_H
-#include <string>
+#include "common.h"
 
 namespace Project {
 	using namespace std;

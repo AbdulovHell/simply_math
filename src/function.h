@@ -21,7 +21,7 @@ namespace Project {
 			virtual flags get_class_type();
 
 			//Метод get. ЧИСЛО
-			double get_num();
+			long double get_num();
 			//Метод assing. ЧИСЛО
 			void assing_num(long double _num);
 

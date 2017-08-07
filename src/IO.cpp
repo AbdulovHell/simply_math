@@ -93,7 +93,7 @@ namespace Project {
 				return false;
 			}
 			if (ravno != 1) {
-                if (ravno == 0) ProjectError::SetProjectLastError(ProjectError::ErrorCode::EQUALY_MISSING);
+                if (ravno == 0) ProjectError::SetProjectLastError(ProjectError::ErrorCode::SING_OF_EQUALITY_MISSING);
 				else ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_EQUALY);
 				return false;
 			}

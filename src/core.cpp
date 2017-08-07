@@ -28,7 +28,7 @@ namespace Project {
 				temp->double_lincked_vector();				
 				data->push_left(new math_obj(L"root", flags::funct, flags::fundm, flags::nthng, 2, NULL, NULL, temp->point_left));
 				delete temp;
-				temp = data->left->math;				
+				temp = data->left->object;				
 				temp->link_var_list_to_funct();		
 				temp->close_list();
 				temp->point_left = new math_obj(L"^", flags::power, flags::nthng, flags::nthng, 0, temp->point_collar, new math_obj(L"/", flags::divis, flags::nthng, flags::nthng, 0, new math_obj(L"0", flags::numbr, flags::real, 1), temp->point_collar->point_right, NULL), temp);
@@ -40,9 +40,9 @@ namespace Project {
 				temp=new math_obj(temp_var);
 				temp_var->prop = flags::servc;				
 				data->push_left(new math_obj(L"abs", flags::funct, flags::servc, flags::nthng, 1,NULL,NULL, temp));
-				temp = data->left->math;
+				temp = data->left->object;
 				temp->close_list();				
-				temp->point_left = new math_obj(data->left->left->math);				
+				temp->point_left = new math_obj(data->left->left->object);				
 			}
 			//знак
 			{
@@ -213,9 +213,9 @@ namespace Project {
 			while (iter->right!= NULL)
 			{
 				iter = iter->right;
-				if (iter->math != NULL)
+				if (iter->object != NULL)
 				{
-					temp = analizer(iter->math);
+					temp = analizer(iter->object);
 					if (temp.length() != 0)
 						iter->out = temp;
 				}

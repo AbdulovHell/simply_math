@@ -28,17 +28,17 @@ namespace Project {
 			UNREAL_ERROR = 0,
 
 			//Строка начинается с '='
-			EQUALY_FIRST = 1,
+			SING_OF_EQUALITY_FIRST = 1,
 			//В выражении отсутствует знак '='
-			EQUALY_MISSING = 2,
+			SING_OF_EQUALITY_MISSING = 2,
 			//Не закрыта открывающая скобка
 			LBRACKET_NOT_CLOSED = 3,
 			//Неопределенная функция
 			UNDEFINED_FUNC = 4,
 			//Использование переменной в качестве функции
 			USING_VAR_AS_FUNC = 5,
-			//Имя переменной/функции не может начинаться с цифры
-			BAD_NAME = 6,
+			//Конструктор операции завершился ошибкой
+			OPERATIONS_CONSTRUCT_FAILED = 6,
 			//Неожиданное положение скобки в выражении
 			UNEXPECTED_BRACKET = 7,
 			//Неопределенная переменная
@@ -88,6 +88,7 @@ namespace Project {
 			wstring GetErrorWStr();
 			//Копирование
 			void copy(_ErrorPresent* orig);
+			ErrorCode get_code();
 		};
 
 		//Передает в класс последнюю ошибку программы

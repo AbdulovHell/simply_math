@@ -147,7 +147,6 @@
     <ClCompile Include="..\..\src\function.cpp" />
     <ClCompile Include="..\..\src\html_addon.cpp" />
     <ClCompile Include="..\..\src\IO.cpp" />
-    <ClCompile Include="..\..\src\math_builder.cpp" />
     <ClCompile Include="..\..\src\math_dummy.cpp" />
     <ClCompile Include="..\..\src\math_vector.cpp" />
     <ClCompile Include="..\..\src\number.cpp" />
@@ -167,7 +166,6 @@
     <ClInclude Include="..\..\src\function.h" />
     <ClInclude Include="..\..\src\html_addon.h" />
     <ClInclude Include="..\..\src\IO.h" />
-    <ClInclude Include="..\..\src\math_builder.h" />
     <ClInclude Include="..\..\src\math_dummy.h" />
     <ClInclude Include="..\..\src\math_vector.h" />
     <ClInclude Include="..\..\src\number.h" />

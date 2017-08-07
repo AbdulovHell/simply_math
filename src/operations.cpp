@@ -7,18 +7,23 @@ namespace Project {
 		{
 			point_left = nullptr;
 			point_right = nullptr;
+			point_collar = nullptr;
 		}
 
 		operations::operations(math_obj * _pl)
 		{
 			point_left = _pl;
 			point_right = nullptr;
+			point_collar = nullptr;
 		}
 
 		operations::operations(math_obj * _pl, math_obj * _pr)
 		{
-						
+			point_left = _pl;
+			point_right = _pr;
+			point_collar = nullptr;
 		}
+			
 
 		operations::~operations()
 		{
@@ -46,11 +51,85 @@ namespace Project {
 
 		math_obj * operations::get_pc()
 		{
-			return nullptr;
+			return point_collar;
 		}
 
 		void operations::assing_pc(math_obj * _pointer)
 		{
+			point_collar = _pointer;
+		}
+
+		bool operations::define_operation(operations * _high, math_obj * _low, math_obj * _obj)
+		{
+			if ((_high == nullptr) && (_high == nullptr)) {
+				//err
+				return false;
+			}
+			//если это первая операция в выражении
+			else if (_high != nullptr&&_low == nullptr) {
+				point_left = _low;
+				point_collar = _obj;
+				_obj->assing_pl(this);				
+			}
+			//если была какая-либо операция до этого
+			else {
+				//если приоритет предыдущей обработанной операции !МЕНЬШЕ! приоритету текущей
+				if (_high->get_priority() < this->get_priority()) {
+					point_left = _low;
+					_high->assing_pr(this);
+					point_collar = _high;
+				}
+				else {
+					operations* top;
+					math_obj * temp = _obj->get_pl();
+					flags type = temp->get_class_type();
+					if (type != flags::addit&&type != flags::minus&&type != flags::mltpl&&type != flags::divis&&type != flags::power)
+						return false; //err
+					top = (operations*)temp;
+					if (top->get_priority() >= this->get_priority()) {
+						point_left = top;//много преобразований указателей. Проверить правильность работы
+						point_collar = _obj;
+						_obj->assing_pl(this);
+						top->assing_pr(this);
+					}
+					else {
+						top = _high->prioritize(this->get_priority());//операция с нужным приоритетом
+						if (!top) {
+							return false;
+						}
+						point_left = top->get_pr();
+						point_collar = top;
+						point_collar->assing_pr(this);
+						point_left->assing_pc(this);
+					}
+				}
+			}
+			return true;
+		}
+
+		operations * operations::prioritize(int _priority)
+		{
+			flags type = point_collar->get_class_type();
+			if (type != flags::addit&&type != flags::minus&&type != flags::mltpl&&type != flags::divis&&type != flags::power)
+				return nullptr; //err
+			operations* next = (operations*)point_collar;			
+			return next->prioritize_rec(&_priority);
+		}
+
+		operations * operations::prioritize_rec(int * _p)
+		{
+			//если приоритет проверяемой операции !БОЛЬШЕ! текущей операции
+			if (this->get_priority() > *_p) {
+				flags type = point_collar->get_class_type();
+				if (type != flags::addit&&type != flags::minus&&type != flags::mltpl&&type != flags::divis&&type != flags::power)
+					return nullptr; //err
+				operations* next = (operations*)point_collar;
+				return next->prioritize_rec(_p);
+			}
+			else{
+				return this;
+			}
+			return nullptr;
 		}
 
 		flags operations::get_class_type()
@@ -80,11 +159,8 @@ namespace Project {
 		void operations::assing_num(long double _num)
 		{
 		}
-
-		math_obj * operations::get_result()
-		{
-			return nullptr;
-		}
+		
+			
 
 		addition::addition() :operations()
 		{
@@ -98,14 +174,21 @@ namespace Project {
 		{
 		}
 
+		addition::addition(operations * _high, math_obj * _low, math_obj * _obj): operations()
+		{
+			if (!define_operation(_high, _low, _obj)) {
+				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
+			}
+		}
+
 		addition::~addition()
 		{
 		}		
 
-		/*flags addition::get_class_type()
+		flags addition::get_class_type()
 		{
 			return flags::addit;
-		}*/
+		}
 
 		math_obj * addition::get_this()
 		{
@@ -115,6 +198,12 @@ namespace Project {
 		wstring addition::get_name()
 		{
 			return L"+";
+		}
+				
+
+		int addition::get_priority()
+		{
+			return 1;
 		}
 
 
@@ -131,14 +220,26 @@ namespace Project {
 		{
 		}
 
+		subtraction::subtraction(operations * _high, math_obj * _low, math_obj * _obj): operations()
+		{
+			if (_high == nullptr&&_low == nullptr) {//если в начале строки находится минус
+				point_left = new number();//для конструктора вычитания (и только для него) требуется подключать number.h с реализацией класса number. Возможно имеет смысл такую проверку делать в builder
+				point_collar = _obj;
+				_obj->assing_pl(this);
+			}
+			else if (!define_operation(_high, _low, _obj)) {
+				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
+			}
+		}
+
 		subtraction::~subtraction()
 		{
 		}		
 
-		/*flags subtraction::get_class_type()
+		flags subtraction::get_class_type()
 		{
 			return flags::minus;
-		}*/
+		}
 
 		math_obj * subtraction::get_this()
 		{
@@ -148,6 +249,11 @@ namespace Project {
 		wstring subtraction::get_name()
 		{
 			return L"-";
+		}		
+
+		int subtraction::get_priority()
+		{
+			return 1;
 		}
 		
 
@@ -163,14 +269,21 @@ namespace Project {
 		{
 		}
 
+		multiplication::multiplication(operations * _high, math_obj * _low, math_obj * _obj): operations()
+		{
+			if (!define_operation(_high, _low, _obj)) {
+				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
+			}
+		}
+
 		multiplication::~multiplication()
 		{
 		}		
 
-		/*flags multiplication::get_class_type()
+		flags multiplication::get_class_type()
 		{
 			return flags::mltpl;
-		}*/
+		}
 
 		math_obj * multiplication::get_this()
 		{
@@ -180,6 +293,11 @@ namespace Project {
 		wstring multiplication::get_name()
 		{
 			return L"*";
+		}
+
+		int multiplication::get_priority()
+		{
+			return 2;
 		}
 
 		division::division() :operations()
@@ -194,14 +312,21 @@ namespace Project {
 		{
 		}
 
+		division::division(operations * _high, math_obj * _low, math_obj * _obj): operations()
+		{
+			if (!define_operation(_high, _low, _obj)) {
+				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
+			}
+		}
+
 		division::~division()
 		{
 		}
 		
-		/*flags division::get_class_type()
+		flags division::get_class_type()
 		{
 			return flags::divis;
-		}*/
+		}
 
 		math_obj * division::get_this()
 		{
@@ -211,6 +336,11 @@ namespace Project {
 		wstring division::get_name()
 		{
 			return L"/";
+		}
+
+		int division::get_priority()
+		{
+			return 2;
 		}
 
 		power::power() :operations()
@@ -225,14 +355,21 @@ namespace Project {
 		{
 		}
 
+		power::power(operations * _high, math_obj * _low, math_obj * _obj) : operations()
+		{
+			if (!define_operation(_high, _low, _obj)) {
+				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
+			}
+		}
+
 		power::~power()
 		{
 		}				
 
-		/*flags power::get_class_type()
+		flags power::get_class_type()
 		{
 			return flags::power;
-		}*/
+		}
 
 		math_obj * power::get_this()
 		{
@@ -242,6 +379,11 @@ namespace Project {
 		wstring power::get_name()
 		{
 			return L"^";
+		}
+
+		int power::get_priority()
+		{
+			return 3;
 		}
 
 	}

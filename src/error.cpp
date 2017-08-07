@@ -25,16 +25,16 @@ namespace Project {
 				return L"Неверный указатель";
 			case ErrorCode::EMTY_BRACKETS:
 				return L"Пустые скобки ()";
-			case ErrorCode::EQUALY_FIRST:
+			case ErrorCode::SING_OF_EQUALITY_FIRST:
 				return L"Строка начинается с '='";
-			case ErrorCode::EQUALY_MISSING:
+			case ErrorCode::SING_OF_EQUALITY_MISSING:
 				return L"В выражении отсутствует знак '='";
 			case ErrorCode::LBRACKET_NOT_CLOSED:
 				return L"Не закрыта открывающая скобка";
 			case ErrorCode::USING_VAR_AS_FUNC:
 				return L"Использование переменной в качестве функции";
-			case ErrorCode::BAD_NAME:
-				return L"Имя переменной/функции не может начинаться с цифры";
+			case ErrorCode::OPERATIONS_CONSTRUCT_FAILED:
+				return L"Конструктор операции завершился ошибкой";
 			case ErrorCode::UNEXPECTED_BRACKET:
 				return L"Неожиданное положение скобки в выражении";
 			case ErrorCode::UNDEFINED_VARIABLE:
@@ -99,6 +99,11 @@ namespace Project {
 		void _ErrorPresent::copy(_ErrorPresent* orig) {
 			_code = orig->_code;
 			_textPresent = orig->_textPresent;
+		}
+
+		ErrorCode _ErrorPresent::get_code()
+		{
+			return _code;
 		}
 
 		//Передает в класс последнюю ошибку программы

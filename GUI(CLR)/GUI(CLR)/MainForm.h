@@ -8,7 +8,7 @@
 #include "../../src/filters.h"
 #include "../../src/core.h"
 #include "../../src/html_addon.h"
-#include "../../src/math_builder.h"
+#include "../../src/data_list.h"
 namespace GUICLR {
 
 	using namespace System;
@@ -250,7 +250,8 @@ namespace GUICLR {
 		int size = strs->Length;	//количество линий в поле		
 		int len = all_math_data->size_s();	//количество линий в мат векторе
 		int out_strings = 0;
-		data_list* place;
+		//data_list* place_pp;
+		data_list::iterator place = all_math_data->front();//новый data_list, теперь и с итераторами.
 		wstring *in_str;
 		bool needReCalc = false;
 
@@ -258,12 +259,16 @@ namespace GUICLR {
 			if (!isOutOrEmpty(strs[i])) {
 
 				in_str = new wstring((wchar_t*)(void*)System::Runtime::InteropServices::Marshal::StringToHGlobalAuto(strs[i]));
-
-				place = all_math_data->at(i - out_strings);
-				if (place != NULL) {
-					if ((place->compare_in(in_str)) || (needReCalc)) {//если строчки не совпадают
-						place->in = *in_str;
-						place->run_string();
+				place++;//при итерации происходит сдвиг указателя по списку, если список кончился - указателю будет присвоен nullptr, что проверяется далее
+				//place_pp = all_math_data->at(i - out_strings);
+				if (place != nullptr) {//при первичном заполнении списка данных итератор на каждом шаге будет указывать на ноль.
+					if ((place.compare_in(in_str)) || (needReCalc)) {//если строчки не совпадают
+						place.assing_in(*in_str);
+						if (!place.build()) {
+							ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+							ProjectError::GetProjectLastError(err);
+							place.assing_out(err->GetErrorWStr());
+						}
 						needReCalc = true;
 					}
 					else {
@@ -271,22 +276,24 @@ namespace GUICLR {
 					}
 				}
 				else {
-					place = new data_list(in_str);
-					all_math_data->push_back(place);
+					place = new data_list(in_str, all_math_data);//конструктор элемента списка теперь сразу добавляет его в список					
 					//в run_string текст ошибки сразу записывается в поле вывода.
-					place->run_string();
-				}
+					//place_pp->run_string();
+				}				
 			}	//if (!isOutOrEmpty(strs[i]))
 			else {
 				out_strings++;//посчитать количество строк вывода из предыдущих выполнений программы
 			}
 		}
+		
 		if (size - out_strings < len)
 		{
 			//если количество введённых строк (с учётом вывода в предыдущее выполнение программы) оказалось меньше числа злементов в списке данных - удаляем лишнее
 			all_math_data->delete_starting_at(size - out_strings - 1);//нумерация теперь с нуля
 		}
-
+		//данное условие можно заменить записью через итератор:
+		//place.delete_after_this();
+		
 		if (!input_to_analize(all_math_data))
 		{
 			//очень глобальная ошибка. пока что она не предусмотрена нигде.

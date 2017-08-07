@@ -9,8 +9,7 @@ namespace Project {
 			virtual public math_obj
 		{
 		protected:
-			math_obj* point_left;//указатель на дерево операций для выражения.
-			//data_list* point_up;  //наследуется (math_obj)
+			math_obj* point_left;//указатель на дерево операций для выражения.			
 		public:
 			expression();
 			expression(math_obj* _pl);

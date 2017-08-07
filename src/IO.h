@@ -3,7 +3,7 @@
 #define IO_H
 
 #include "common.h"
-#include "math_obj.h"
+//#include "math_obj.h"
 #include "error.h"
 ///Macros
 #define GET_FRAC(var) ((double)((double)var-(int)var))

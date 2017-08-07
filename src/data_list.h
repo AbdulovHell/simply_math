@@ -3,23 +3,27 @@
 #define DATA_LIST_H
 
 #include "common.h"
-#include "math_obj.h"
 #include "IO.h"
 #include "error.h"
 
+#include "function.h"
+#include "constant.h"
+#include "variable.h"
+#include "number.h"
+#include "operations.h"
+#include "math_vector.h"
+
+
 namespace Project {
-	
+	//namespace Core{
 	class data_list {
 	private:
-
-		//Рекурсия для back
+		friend struct Project::data_list::iterator;
+		//Рекурсия для end
 		data_list*back_rec();
-
-		//Метод рекурсивно сдвигает индексы элементов вправо, начиная с текущего.
-		void index_plus_one();
-
+		
 		//Рекурсия для метода at
-		data_list*at_rec(int* place);
+		data_list*at_rec(int* place, int * count);
 
 		//Рекурсия для методов size
 		int size_rec(bool* flag);
@@ -27,41 +31,90 @@ namespace Project {
 		/*Рекурсия для delete_starting_at*/
 		int delete_starting_at_rec();
 
-	public:
-		int index;
+		bool implace_p(data_list* _obj);
+
+		Core::math_obj* build_iternal( wchar_t * _str, wchar_t * _end);
+
+		Core::math_obj* build_tree(wchar_t* _str, wchar_t* _end);
+
+	public:		
 		wstring in;
 		wstring out;
 		data_list* left;
 		data_list* right;
-		Core::math_obj* math;
+		Core::math_obj* object;
+
+		typedef struct iterator {
+		private:
+			friend class data_list;
+			data_list * letter;			
+		public:
+			iterator();
+			//дублируется часть методов data_list  с перенаправлением вызова через внутренний указатель letter
+			bool implace_after_this(data_list*pointer);
+			int compare_in(wstring *original);
+			int compare_out(wstring *original);
+			Core::math_obj* find_math_obj(wstring* name);
+			int delete_after_this();
+			bool build();
+
+			wstring get_in();
+			wstring get_out();
+			Core::math_obj * get_obj();
+			void assing_in(wstring & _in);
+			void assing_out(wstring & _in);
+			void assing_obj(Core::math_obj * _obj);
+
+			iterator &operator= (const iterator _left);
+			iterator &operator= (data_list* _left);
+			//постфиксный
+			iterator &operator++ (int);
+			//префиксный
+			iterator &operator++ ();
+			//постфиксный
+			iterator &operator-- (int);
+			//префиксный
+			iterator &operator-- ();
+			bool operator== (const iterator _left);
+			bool operator== (const data_list* _left);
+			bool operator!= (const iterator _left);
+			bool operator!= (const data_list* _left);
+
+			operator data_list * () const;
+		};
 
 		//Нулевой конструктор
 		data_list();
 		//Коструктор для строкой ввода in
 		data_list(wstring* _in);
-		//Коструктор для строкой ввода in, мат. объекта math
+		data_list(wstring* _in, data_list* _start);
+		//Коструктор для строкой ввода in, мат. объекта object
 		data_list(wstring _in, Core::math_obj* _math);
 
 		/*Метод вставляет элемент pointer в конец списока данных.
 		0 - в случае ошибки (номера place не существует)
 		1 - в случае успешного выполнения*/
-		int push_back(data_list* pointer);
+		bool push_back(data_list* pointer);
 
 		/*Метод вставляет элемент pointer в список данных до нулевого элемента. Индекс присваивается равным -1.
 		Метод возвращает:
 		0 - в случае ошибки
 		1 - в случае успешного выполнения*/
-		int push_left(Core::math_obj* pointer);
+		bool push_left(Core::math_obj* pointer);
 
-		/*Метод возвращает указатель на нулевой элемент списка данных.
+		/*Метод возвращает указатель на "стартовый" элемент списка данных.
 		NULL - в случае ошибки (например, попытки поиска слева от нуля*/
 		data_list*begin();
+
+		iterator &front();
+
+		iterator &back();
 
 		/*Метод вставляет элемент pointer в список данных после номера place. Индексы следующих элементов списка сдвигаются на 1.
 		Метод возвращает:
 		0 - в случае ошибки (номера place не существует)
 		1 - в случае успешного выполнения*/
-		int implace(int place, data_list*pointer);
+		bool implace(int place, data_list*pointer);
 
 		/*Метод возвращает указатель на элемент списка с номером place.
 		NULL - номера place нет в списке или он меньше нуля, и в случае вызова не для начального (нулевого) элемента*/
@@ -69,7 +122,7 @@ namespace Project {
 
 		/*Метод возвращает указатель на последний элемент списка данных. Если ничего не было записано - указатель на нулевой элемент.
 		NULL - в случае вызова не для начального (нулевого) элемента*/
-		data_list* back();
+		data_list* end();
 
 		/*Метод сравнения строки in (ввод) с заданной строкой. Аналогичен методу compare класса wstring
 		Метод возвращает:
@@ -93,7 +146,7 @@ namespace Project {
 		Метод возвращает:
 		0 - в случае ошибки, как при заполнении, так и при проверке ввода (текст ошибки в поле out).
 		1 - в случае успешного выполнения*/
-		int run_string();
+		bool run_string();
 
 		/*Метод возвращает количество записанных элементов (строк) в списке данных.
 		Нумерация значащих элементов (со строками) начинается с 1 (не по православному, но так проще список хранить).
@@ -107,11 +160,16 @@ namespace Project {
 		-1 - ошибка - обращение к элементу имеющему ненулевой индекс.
 		*/
 		int size_all();
+
 		/*Метод удаляет все элементы списка данных начиная с позиции start. Позиция start не удаляется*/
 		int delete_starting_at(int from);
 
+		bool build();
+
+		
+
 
 	};
-
+//} //end namespace Core
 }
 #endif //DATA_LIST_H

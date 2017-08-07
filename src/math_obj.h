@@ -4,8 +4,6 @@
 
 #include "common.h"
 
-
-
 namespace Project {
 	namespace Core {
 		using namespace std;
@@ -56,6 +54,8 @@ namespace Project {
 			virtual math_obj* get_pc() = 0;
 			//Метод assing. УКАЗАТЕЛЬ "воротник"
 			virtual void assing_pc(math_obj* _pointer) = 0;
+
+			
 			
 		};
 				

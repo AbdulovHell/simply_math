@@ -33,9 +33,6 @@
     <ClCompile Include="..\..\src\html_addon.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\math_builder.cpp">
-      <Filter>Файлы исходного кода</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\operations.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
@@ -81,9 +78,6 @@
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\html_addon.h">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\math_builder.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\operations.h">

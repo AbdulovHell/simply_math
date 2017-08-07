@@ -2,6 +2,8 @@
 #ifndef OPERATIONS_H
 #define OPERATIONS_H
 #include "math_obj.h"
+#include "number.h"
+#include "error.h"
 namespace Project {
 	namespace Core {
 		using namespace std;
@@ -10,16 +12,21 @@ namespace Project {
 		protected:
 			math_obj* point_left;	//левый операнд
 			math_obj* point_right;	//правый операнд
-			//data_list* point_up;  //наследуется (math_obj), по умолчанию не используется.
+			math_obj* point_collar; //указатель на предыдущую операцию	
+
+			operations* prioritize_rec(int* _p);
+
+
+
 		public:		
 			
 			operations();	
 			operations(math_obj* _pl);
-			operations(math_obj* _high, math_obj* _low);
+			operations(math_obj * _pl, math_obj * _pr);			
 			virtual ~operations();
 			
 			//Метод get. ТИП
-			flags get_class_type();
+			virtual flags get_class_type();
 
 			//Метод get. ЭЛЕМЕНТ
 			virtual math_obj* get_this();
@@ -51,8 +58,15 @@ namespace Project {
 			//Метод assing. УКАЗАТЕЛЬ "воротник"
 			virtual void assing_pc(math_obj* _pointer);
 			
-			//Возвращает результат выполнения операции в ввиде мат. объекта. Nullptr при вызове непосредственно для этого класса
-			virtual math_obj* get_result();
+			//Возвращает результат выполнения операции в виде мат. объекта. 
+			virtual math_obj* get_result()=0;
+
+			
+			bool define_operation(operations* _high, math_obj* _low, math_obj* _obj);
+
+			operations* prioritize(int _priority);			
+
+			virtual int get_priority() = 0;
 		};
 
 		class addition :
@@ -60,14 +74,16 @@ namespace Project {
 		protected:
 			//math_obj* point_left;		//наследуется (operations), левый операнд
 			//math_obj* point_right;	//наследуется (operations), правый операнд
-			//data_list* point_up;		//наследуется (math_obj), по умолчанию не используется.
+			//math_obj* point_collar;	//наследуется (operations), указатель на предыдущую операцию
 		public:
 			addition();
 			addition(math_obj* _pl);
-			addition(math_obj* _high, math_obj* _low);
+			addition(math_obj * _pl, math_obj * _pr);
+			addition(operations * _high, math_obj * _low, math_obj * _obj) throw (ProjectError::ErrorCode);
+
 			~addition();
 			
-			//flags get_class_type(); //С точки зрения построения дерева операций не имеет значения какая именно операция находится в узле, только сам факт того, что это операция
+			flags get_class_type(); 
 
 			//Метод get. ЭЛЕМЕНТ
 			math_obj* get_this();
@@ -75,7 +91,10 @@ namespace Project {
 			//Метод get. ИМЯ (символ операции)
 			wstring get_name();
 
-			math_obj* get_result();
+			math_obj* get_result();			
+
+			int get_priority();
+
 		};
 
 		class subtraction :
@@ -83,15 +102,16 @@ namespace Project {
 		protected:
 			//math_obj* point_left;		//наследуется (operations), левый операнд
 			//math_obj* point_right;	//наследуется (operations), правый операнд
-			//data_list* point_up;		//наследуется (math_obj), по умолчанию не используется.
+			//math_obj* point_collar;	//наследуется (operations), указатель на предыдущую операцию
 
 		public:
 			subtraction();
 			subtraction(math_obj* _pl);
-			subtraction(math_obj* _high, math_obj* _low);
+			subtraction(math_obj * _pl, math_obj * _pr);
+			subtraction(operations * _high, math_obj * _low, math_obj * _obj)throw (ProjectError::ErrorCode);
 			~subtraction();
 
-			//flags get_class_type();
+			flags get_class_type();
 
 			//Метод get. ЭЛЕМЕНТ
 			virtual math_obj* get_this();
@@ -99,7 +119,9 @@ namespace Project {
 			//Метод get. ИМЯ (символ операции)
 			wstring get_name();
 
-			math_obj* get_result();
+			math_obj* get_result();			
+
+			int get_priority();
 		};
 
 		class multiplication :
@@ -107,14 +129,15 @@ namespace Project {
 		protected:
 			//math_obj* point_left;		//наследуется (operations), левый операнд
 			//math_obj* point_right;	//наследуется (operations), правый операнд
-			//data_list* point_up;		//наследуется (math_obj), по умолчанию не используется.
+			//math_obj* point_collar;	//наследуется (operations), указатель на предыдущую операцию
 		public:
 			multiplication();
 			multiplication(math_obj* _pl);
-			multiplication(math_obj* _high, math_obj* _low);
+			multiplication(math_obj * _pl, math_obj * _pr);
+			multiplication(operations * _high, math_obj * _low, math_obj * _obj)throw (ProjectError::ErrorCode);
 			~multiplication();
 						
-			//flags get_class_type();
+			flags get_class_type();
 
 			//Метод get. ЭЛЕМЕНТ
 			virtual math_obj* get_this();
@@ -123,6 +146,8 @@ namespace Project {
 			wstring get_name();
 
 			math_obj* get_result();
+
+			int get_priority();
 		};		
 
 		class division :
@@ -130,14 +155,15 @@ namespace Project {
 		protected:
 			//math_obj* point_left;		//наследуется (operations), левый операнд
 			//math_obj* point_right;	//наследуется (operations), правый операнд
-			//data_list* point_up;		//наследуется (math_obj), по умолчанию не используется.
+			//math_obj* point_collar;	//наследуется (operations), указатель на предыдущую операцию
 		public:
 			division();
 			division(math_obj* _pl);
-			division(math_obj* _high, math_obj* _low);
+			division(math_obj * _pl, math_obj * _pr);
+			division(operations * _high, math_obj * _low, math_obj * _obj)throw (ProjectError::ErrorCode);
 			~division();
 			
-			//flags get_class_type();
+			flags get_class_type();
 
 			//Метод get. ЭЛЕМЕНТ
 			virtual math_obj* get_this();
@@ -146,6 +172,8 @@ namespace Project {
 			wstring get_name();
 
 			math_obj* get_result();
+
+			int get_priority();
 		};	
 
 		class power :
@@ -153,14 +181,15 @@ namespace Project {
 		protected:
 			//math_obj* point_left;		//наследуется (operations), левый операнд
 			//math_obj* point_right;	//наследуется (operations), правый операнд
-			//data_list* point_up;		//наследуется (math_obj), по умолчанию не используется.
+			//math_obj* point_collar;	//наследуется (operations), указатель на предыдущую операцию
 		public:
 			power();
 			power(math_obj* _pl);
-			power(math_obj* _high, math_obj* _low);
+			power(math_obj * _pl, math_obj * _pr);
+			power(operations * _high, math_obj * _low, math_obj * _obj)throw (ProjectError::ErrorCode);
 			~power();
 			
-			//flags get_class_type();
+			flags get_class_type();
 
 			//Метод get. ЭЛЕМЕНТ
 			virtual math_obj* get_this();
@@ -169,6 +198,8 @@ namespace Project {
 			wstring get_name();
 
 			math_obj* get_result();
+
+			int get_priority();
 		};
 	}
 }

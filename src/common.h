@@ -11,12 +11,15 @@
 #include <wchar.h>
 #include <stdio.h>
 #include <math.h>
-
+#include <cstdint>
+#include <cstdlib>
+#include <Windows.h>
+#include <forward_list>
 
 
 namespace Project {
 	namespace Core {
-		using namespace std;
+		//using namespace std;
 		enum class flags : int16_t
 		{
 			//типы мат. объектов
@@ -42,16 +45,16 @@ namespace Project {
 
 			equation = 30,
 
-			vector = 40,
+			math_vector = 40,
 
-			matrix = 50,
+			math_matrix = 50,
 
 			operation = 60,
 
-			addit = 61,
-			minus = 62,
-			mltpl = 63,
-			divis = 64,
+			addition = 61,
+			subtraction = 62,
+			multiplication = 63,
+			division = 64,
 			power = 65,
 		};
 	}

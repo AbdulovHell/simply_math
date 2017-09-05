@@ -10,26 +10,29 @@ namespace Project {
 		class operations :
 			public math_obj	{
 		protected:
-			math_obj* point_left;	//левый операнд
-			math_obj* point_right;	//правый операнд
-			math_obj* point_collar; //указатель на предыдущую операцию	
+			leaf_ptr point_left;	//левый операнд
+			leaf_ptr point_right;	//правый операнд
+			leaf_ptr point_collar; //указатель на предыдущую операцию	
 
-			operations* prioritize_rec(int* _p);
+			leaf_ptr prioritize_rec(int* _p);
 
 
 
 		public:		
 			
 			operations();	
-			operations(math_obj* _pl);
-			operations(math_obj * _pl, math_obj * _pr);			
+			operations(leaf_ptr _pl);
+			operations(leaf_ptr _pl, leaf_ptr _pr);
 			virtual ~operations();
 			
 			//ћетод get. “»ѕ
 			virtual flags get_class_type();
 
+			//ћетод get. –ј«ћ≈–
+			virtual size_t get_sizeof();
+
 			//ћетод get. ЁЋ≈ћ≈Ќ“
-			virtual math_obj* get_this();
+			virtual void* get_this();
 
 			//ћетод get. »ћя
 			virtual wstring get_name();
@@ -42,51 +45,52 @@ namespace Project {
 			virtual void assing_num(long double _num);
 
 			//ћетод get. ” ј«ј“≈Ћ№ "левый рукав"
-			virtual math_obj* get_pl();
+			virtual leaf_ptr get_pl();
 			//ћетод assing. ” ј«ј“≈Ћ№ "левый рукав"
-			virtual void assing_pl(math_obj* _pointer);
+			virtual void assing_pl(leaf_ptr& _pointer);
 
 
 			//ћетод get. ” ј«ј“≈Ћ№ "правый рукав"
-			virtual math_obj* get_pr();
+			virtual leaf_ptr get_pr();
 			//ћетод assing. ” ј«ј“≈Ћ№ "правый рукав"
-			virtual void assing_pr(math_obj* _pointer);
+			virtual void assing_pr(leaf_ptr _pointer);
 
 
 			//ћетод get. ” ј«ј“≈Ћ№ "воротник"
-			virtual math_obj* get_pc();
+			virtual leaf_ptr get_pc();
 			//ћетод assing. ” ј«ј“≈Ћ№ "воротник"
-			virtual void assing_pc(math_obj* _pointer);
+			virtual void assing_pc(leaf_ptr _pointer);
 			
 			//¬озвращает результат выполнени€ операции в виде мат. объекта. 
 			virtual math_obj* get_result()=0;
 
 			
-			bool define_operation(operations* _high, math_obj* _low, math_obj* _obj);
+			bool define_operation(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this);
 
-			operations* prioritize(int _priority);			
+			leaf_ptr prioritize(int _priority);
 
 			virtual int get_priority() = 0;
+			
 		};
 
 		class addition :
 			public operations {
 		protected:
-			//math_obj* point_left;		//наследуетс€ (operations), левый операнд
-			//math_obj* point_right;	//наследуетс€ (operations), правый операнд
-			//math_obj* point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
+			//uint32_t point_left;		//наследуетс€ (operations), левый операнд
+			//uint32_t point_right;	//наследуетс€ (operations), правый операнд
+			//uint32_t point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
 		public:
 			addition();
-			addition(math_obj* _pl);
-			addition(math_obj * _pl, math_obj * _pr);
-			addition(operations * _high, math_obj * _low, math_obj * _obj) throw (ProjectError::ErrorCode);
+			addition(leaf_ptr _pl);
+			addition(leaf_ptr _pl, leaf_ptr _pr);
+			addition(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this) throw (...);
 
 			~addition();
 			
 			flags get_class_type(); 
 
 			//ћетод get. ЁЋ≈ћ≈Ќ“
-			math_obj* get_this();
+			//math_obj* get_this();
 
 			//ћетод get. »ћя (символ операции)
 			wstring get_name();
@@ -94,27 +98,32 @@ namespace Project {
 			math_obj* get_result();			
 
 			int get_priority();
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
 
 		};
 
 		class subtraction :
 			public operations {
 		protected:
-			//math_obj* point_left;		//наследуетс€ (operations), левый операнд
-			//math_obj* point_right;	//наследуетс€ (operations), правый операнд
-			//math_obj* point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
+			//uint32_t point_left;		//наследуетс€ (operations), левый операнд
+			//uint32_t point_right;	//наследуетс€ (operations), правый операнд
+			//uint32_t point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
 
 		public:
 			subtraction();
-			subtraction(math_obj* _pl);
-			subtraction(math_obj * _pl, math_obj * _pr);
-			subtraction(operations * _high, math_obj * _low, math_obj * _obj)throw (ProjectError::ErrorCode);
+			subtraction(leaf_ptr _pl);
+			subtraction(leaf_ptr _pl, leaf_ptr _pr);
+			subtraction(leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
+			subtraction(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this)throw (...);
 			~subtraction();
 
 			flags get_class_type();
 
 			//ћетод get. ЁЋ≈ћ≈Ќ“
-			virtual math_obj* get_this();
+			//virtual math_obj* get_this();
 
 			//ћетод get. »ћя (символ операции)
 			wstring get_name();
@@ -122,25 +131,29 @@ namespace Project {
 			math_obj* get_result();			
 
 			int get_priority();
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
 		};
 
 		class multiplication :
 			public operations {
 		protected:
-			//math_obj* point_left;		//наследуетс€ (operations), левый операнд
-			//math_obj* point_right;	//наследуетс€ (operations), правый операнд
-			//math_obj* point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
+			//uint32_t point_left;		//наследуетс€ (operations), левый операнд
+			//uint32_t point_right;	//наследуетс€ (operations), правый операнд
+			//uint32_t point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
 		public:
 			multiplication();
-			multiplication(math_obj* _pl);
-			multiplication(math_obj * _pl, math_obj * _pr);
-			multiplication(operations * _high, math_obj * _low, math_obj * _obj)throw (ProjectError::ErrorCode);
+			multiplication(leaf_ptr _pl);
+			multiplication(leaf_ptr _pl, leaf_ptr _pr);
+			multiplication(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this)throw (...);
 			~multiplication();
 						
 			flags get_class_type();
 
 			//ћетод get. ЁЋ≈ћ≈Ќ“
-			virtual math_obj* get_this();
+			//virtual math_obj* get_this();
 
 			//ћетод get. »ћя (символ операции)
 			wstring get_name();
@@ -148,25 +161,29 @@ namespace Project {
 			math_obj* get_result();
 
 			int get_priority();
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
 		};		
 
 		class division :
 			public operations {
 		protected:
-			//math_obj* point_left;		//наследуетс€ (operations), левый операнд
-			//math_obj* point_right;	//наследуетс€ (operations), правый операнд
-			//math_obj* point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
+			//uint32_t point_left;		//наследуетс€ (operations), левый операнд
+			//uint32_t point_right;	//наследуетс€ (operations), правый операнд
+			//uint32_t point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
 		public:
 			division();
-			division(math_obj* _pl);
-			division(math_obj * _pl, math_obj * _pr);
-			division(operations * _high, math_obj * _low, math_obj * _obj)throw (ProjectError::ErrorCode);
+			division(leaf_ptr _pl);
+			division(leaf_ptr _pl, leaf_ptr _pr);
+			division(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this)throw (...);
 			~division();
 			
 			flags get_class_type();
 
 			//ћетод get. ЁЋ≈ћ≈Ќ“
-			virtual math_obj* get_this();
+			//virtual math_obj* get_this();
 
 			//ћетод get. »ћя (символ операции)
 			wstring get_name();
@@ -174,25 +191,29 @@ namespace Project {
 			math_obj* get_result();
 
 			int get_priority();
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
 		};	
 
 		class power :
 			public operations {
 		protected:
-			//math_obj* point_left;		//наследуетс€ (operations), левый операнд
-			//math_obj* point_right;	//наследуетс€ (operations), правый операнд
-			//math_obj* point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
+			//uint32_t point_left;		//наследуетс€ (operations), левый операнд
+			//uint32_t point_right;	//наследуетс€ (operations), правый операнд
+			//uint32_t point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
 		public:
 			power();
-			power(math_obj* _pl);
-			power(math_obj * _pl, math_obj * _pr);
-			power(operations * _high, math_obj * _low, math_obj * _obj)throw (ProjectError::ErrorCode);
+			power(leaf_ptr _pl);
+			power(leaf_ptr _pl, leaf_ptr _pr);
+			power(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this) throw (...);
 			~power();
 			
 			flags get_class_type();
 
 			//ћетод get. ЁЋ≈ћ≈Ќ“
-			virtual math_obj* get_this();
+			//virtual math_obj* get_this();
 
 			//ћетод get. »ћя (символ операции)
 			wstring get_name();
@@ -200,6 +221,10 @@ namespace Project {
 			math_obj* get_result();
 
 			int get_priority();
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
 		};
 	}
 }

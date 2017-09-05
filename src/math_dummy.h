@@ -9,22 +9,25 @@ namespace Project {
 			public math_obj
 		{
 		protected:			
-			unsigned int num_var;	//номер элемента в списке (векторе)
-			math_obj* point_left;	//Указатель на "левый" элемент списка
-			math_obj* point_right;	//Указатель на "правый" элемент списка
-			math_obj* point_collar; //Указатель "наверх"
-			//data_list* point_up;  //наследуется (math_obj).
+			uint32_t num_var;	//номер элемента в списке (векторе)
+			leaf_ptr point_left;	//Указатель на "левый" элемент списка
+			leaf_ptr point_right;	//Указатель на "правый" элемент списка
+			leaf_ptr point_collar; //Указатель "наверх"
+			
 		public:
 			math_dummy();
-			math_dummy(math_obj* _pl, math_obj* _pr, math_obj* _pc);
-			math_dummy(unsigned int _num, math_obj* _pl, math_obj* _pr, math_obj* _pc);
+			math_dummy(leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
+			math_dummy(uint32_t _num, leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
 			virtual ~math_dummy();
 
 			//Метод get. ТИП
 			virtual flags get_class_type();
 
+			//Метод get. РАЗМЕР
+			virtual size_t get_sizeof();
+
 			//Метод get. ЭЛЕМЕНТ
-			virtual math_obj* get_this();
+			virtual void* get_this();
 
 			//Метод get. ИМЯ
 			virtual wstring get_name();
@@ -37,26 +40,32 @@ namespace Project {
 			virtual void assing_num(long double _num);
 
 			//Метод get. Поправка для перечисляемых элементов
-			unsigned int get_num_var();
+			uint32_t get_num_var();
 			//Метод assing. Поправка для перечисляемых элементов
 			void assing_num_var(unsigned int _num);
 
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
-			virtual math_obj* get_pl();
+			virtual leaf_ptr get_pl();
 			//Метод assing. УКАЗАТЕЛЬ "левый рукав"
-			virtual void assing_pl(math_obj* _pointer);
+			virtual void assing_pl(leaf_ptr& _pointer);
 
 
 			//Метод get. УКАЗАТЕЛЬ "правый рукав"
-			virtual math_obj* get_pr();
+			virtual leaf_ptr get_pr();
 			//Метод assing. УКАЗАТЕЛЬ "правый рукав"
-			virtual void assing_pr(math_obj* _pointer);
+			virtual void assing_pr(leaf_ptr _pointer);
 
 
 			//Метод get. УКАЗАТЕЛЬ "воротник"
-			virtual math_obj* get_pc();
+			virtual leaf_ptr get_pc();
 			//Метод assing. УКАЗАТЕЛЬ "воротник"
-			virtual void assing_pc(math_obj* _pointer);
+			virtual void assing_pc(leaf_ptr _pointer);
+
+			virtual int get_priority();
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
 		};
 	}
 }

@@ -10,7 +10,7 @@ namespace Project {
 		}
 		return this;
 	}
-		
+
 
 	data_list * data_list::at_rec(int* place, int * count)
 	{
@@ -19,7 +19,7 @@ namespace Project {
 		if (right != NULL) {
 			(*count)++;
 			return right->at_rec(place, count);
-		}			
+		}
 		return nullptr;
 	}
 
@@ -48,49 +48,55 @@ namespace Project {
 	data_list::data_list()
 	{
 		in = wstring();
-		out = wstring();		
+		out = wstring();
 		left = nullptr;
 		right = nullptr;
-		object = nullptr;
+		object = tree_ptr();
 	}
 
 	data_list::data_list(wstring * _in)
 	{
 		in = *_in;
-		out = wstring();		
+		out = wstring();
 		left = nullptr;
 		right = nullptr;
-		object = nullptr;		
+		object = tree_ptr();
 	}
 
 	data_list::data_list(wstring* _in, data_list* _start)
 	{
-		in = *_in;	
-		out = wstring();		
+		in = *_in;
+		out = wstring();
 		left = nullptr;
 		right = nullptr;
-		object = nullptr;
 		_start->push_back(this);
 		//проверка ввода. Текст ошибки записывается в поле out
-		if (!Project::IO::VerifyInput(&in[0])) {
+		if (!IO::VerifyInput(&in[0])) {
 			ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
 			ProjectError::GetProjectLastError(err);
 			out.append(err->GetErrorWStr());
 		}
-		else{
-			object = new expression();
-			//построение мат. объекта. В случае ошибки, текст ошибки записывается в поле out
-			if (!build()) {
+		else {
+			expression temp = expression();
+			object = tree_ptr(&temp, 10);
+			try {
+				this->build_iternal(&in[0], &in[in.length()] - 1);
+			}
+			catch (ProjectError::ErrorCode error_caught) {
+				ProjectError::SetProjectLastError(error_caught);
 				ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
 				ProjectError::GetProjectLastError(err);
 				out.append(err->GetErrorWStr());
 			}
+			catch (...) {
+				out.append(L"Unresolved error.");
+			}
 		}
 	}
 
-	data_list::data_list(wstring _in, Core::math_obj * _math)
+	data_list::data_list(wstring _in, Core::tree_ptr _math)
 	{
-		in = _in;		
+		in = _in;
 		left = nullptr;
 		right = nullptr;
 		object = _math;
@@ -104,11 +110,11 @@ namespace Project {
 		if (place == nullptr)
 			return 0;
 		place->right = pointer;
-		place->right->left = place;		
+		place->right->left = place;
 		return 1;
 	}
 
-	bool data_list::push_left(Core::math_obj * pointer)
+	bool data_list::push_left(Core::tree_ptr pointer)
 	{
 		data_list * zero = begin();
 		if (zero == NULL)
@@ -125,27 +131,27 @@ namespace Project {
 	data_list * data_list::begin()
 	{
 		if (in.compare(L"@start#") == 0)
-			return this;		
+			return this;
 		if ((left != NULL))
 			return left->begin();
 		return nullptr;
 	}
 
-	data_list::iterator &data_list::front()
+	data_list::__iterator data_list::front()
 	{
-		iterator out;//0
+		__iterator out;//0
 		out.letter = this->begin();
 		return out;
 	}
 
-	data_list::iterator & data_list::back()
+	data_list::__iterator data_list::back()
 	{
-		iterator out;
+		__iterator out;
 		if (!in.compare(L"@start#"))
 			out.letter = this->end();
-		else if (this->right != NULL)		
-			out.letter = this->right->back_rec();		
-		else		
+		else if (this->right != NULL)
+			out.letter = this->right->back_rec();
+		else
 			out.letter = this;
 		return out;
 	}
@@ -158,14 +164,14 @@ namespace Project {
 		if (temp == NULL)
 			return 0;
 		if (!temp->implace_p(pointer))
-			return 0;				
+			return 0;
 		return 1;
 	}
 
 	data_list * data_list::at(int place)
 	{
 		if (in.compare(L"@start#") != 0)
-			return nullptr;		
+			return nullptr;
 		if ((right != NULL) && (place >= 0)) {
 			int c = 0;
 			return right->at_rec(&place, &c);
@@ -198,7 +204,7 @@ namespace Project {
 		return out.compare(*original);
 	}
 
-	math_obj * data_list::find_math_obj(wstring* name)
+	Core::tree_ptr data_list::find_math_obj(wstring* name)
 	{
 		/*if ((object != NULL) && (object->name.length() != 0) && (name->compare(object->name) == 0))
 		return object;
@@ -211,7 +217,7 @@ namespace Project {
 	bool data_list::run_string()
 	{
 		//проверка ввода
-		
+
 
 		//object = new Core::math_obj(&in[0], &in[in.length() - 1], this);
 		//if (object->prop == flags::error)
@@ -238,7 +244,7 @@ namespace Project {
 		if (right != NULL)
 		{
 			out += right->size_rec(&flag);
-		}		
+		}
 		return out;
 	}
 
@@ -252,7 +258,7 @@ namespace Project {
 		{
 			flag = true;
 			out += right->size_rec(&flag);
-		}		
+		}
 		if (left != NULL)
 		{
 			flag = false;
@@ -266,14 +272,14 @@ namespace Project {
 	int data_list::delete_starting_at(int from)
 	{
 		if (in.compare(L"@start#") != 0)
-			return -1;		
+			return -1;
 		if (from >= -1)
 		{
 			data_list* temp = at(from + 1);
 			int k = temp->delete_starting_at_rec();
 			delete temp;
 			return k;
-		}		
+		}
 		else return -1;
 	}
 	/*Рекурсия для delete_starting_at*/
@@ -287,7 +293,7 @@ namespace Project {
 			right = NULL;
 		}
 		//object->~math_obj();//TODO: деструктор math_obj должен удалять всё полностью без разбора (деревья и т.д.) для выбранного экземпляра класса math_obj.
-		delete object;
+		object.~tree_ptr();
 		return k;
 	}
 
@@ -297,8 +303,8 @@ namespace Project {
 		this->right = _obj;
 		this->right->left = this;
 		this->right->right = temp_plus_one;
-		if (temp_plus_one != NULL)	{
-			temp_plus_one->left = _obj;			
+		if (temp_plus_one != NULL) {
+			temp_plus_one->left = _obj;
 		}
 		return 1;
 	}
@@ -308,57 +314,75 @@ namespace Project {
 		if (!in.length())
 			return false;
 		wchar_t * in_str = &in[0];
-		wchar_t * in_end = &in[in.length() - 1];		
-		object = build_iternal(in_str, in_end);
-		if (!object)
+		wchar_t * in_end = &in[in.length() - 1];
+		expression temp = expression();
+		out = wstring();
+		if (object.is_null_ptr())
+			object = tree_ptr(&temp, 10);
+		else
+			object.~tree_ptr();
+		try {
+			this->build_iternal(&in[0], &in[in.length() - 1]);
+		}
+		catch (ProjectError::ErrorCode error_caught) {
+			ProjectError::SetProjectLastError(error_caught);
+			ProjectError::_ErrorPresent* err = new ProjectError::_ErrorPresent();
+			ProjectError::GetProjectLastError(err);
+			out.append(err->GetErrorWStr());
 			return false;
+		}
+		catch (...) {
+			out.append(L"Unresolved error.");
+		}
 		return true;
 	}
 	//Внутренний билдер
-	math_obj * data_list::build_iternal(wchar_t * _str, wchar_t * _end)
+	leaf_ptr data_list::build_iternal(wchar_t * _str, wchar_t * _end)
 	{
 		wchar_t* temp = wcschr(_str, L'=');
-		
+		leaf_ptr temp_ptr;
 		if (temp == nullptr) {//если не найдено знака равно в строке - оконечный случай - то что будет построено по заданному куску строки должно уйти наверх.
-			return build_tree(_str, _end);
+			expression temp = expression();
+			temp_ptr = object.push_obj(&temp);
+			return build_tree(_str, _end, temp_ptr);
 		}
 
-		math_obj* left = nullptr;//указатель на левую часть выражения
-		math_obj* right = nullptr;//указатель на правую часть выражения
-		math_obj* temp_ptp = nullptr;
+		leaf_ptr left;//указатель на левую часть выражения
+		leaf_ptr right;//указатель на правую часть выражения		
 		wstring str_left;
 		str_left.assign(_str, temp);
-		left = build_tree(&str_left[0], &str_left[str_left.length() - 1]);
-		if (!left) return nullptr;
+		left = build_tree(&str_left[0], &str_left[str_left.length() - 1], (leaf_ptr)object);
+
 
 		if (left->get_class_type() == flags::function) {
 			//TODO:подумать.
 		}
 
-		if (temp == _end){
+		if (temp == _end) {
 			//отсеивание ошибочных (невычисляемых) элементов
 			return left;//тут есть доп условия
 		}
 
 		wstring str_right;
 		str_right.assign(temp + 1, _end + 1);
-		right = build_tree(&str_right[0], &str_right[str_right.length() - 1]);
-		if (!right) return nullptr;
+		//	right = build_tree(&str_right[0], &str_right[str_right.length() - 1]);
 
-		//TODO:далее самое веселье)
+
+			//TODO:далее самое веселье)
+		return leaf_ptr();
 	}
 
-	
-	math_obj* data_list::build_tree( wchar_t * _str, wchar_t * _end)
+
+	Core::leaf_ptr& data_list::build_tree(wchar_t * _str, wchar_t * _end, leaf_ptr  _current_obj)
 	{
 		unsigned int count, comma, iter;
 		int count_var;
-		math_obj *obj = new expression(); //по заданной строке, не содержащей равно, создастся объект и уйдёт наверх 
 
-		operations* last_op = nullptr;//последняя записанная операция
-		math_obj *last_obj = nullptr; //последняя записанная константа/переменная/ф-ция/выражение
-		math_obj *temp_pointer = nullptr;
-		math_obj *multiple_var = nullptr;
+
+		leaf_ptr last_op;//последняя записанная операция
+		leaf_ptr last_obj; //последняя записанная константа/переменная/ф-ция/выражение
+		leaf_ptr temp_pointer;
+		leaf_ptr multiple_var;
 
 		wchar_t* temp/*, *temp_2*/;
 		wstring temp_str, name_str;
@@ -368,110 +392,75 @@ namespace Project {
 
 			if (*s_iter >= '0'&& *s_iter <= '9' || *s_iter == '.') {
 				// если данное число первое в записи выражения
-				if ((last_op == nullptr) && (last_obj == nullptr)) {
+				if (last_op.is_null_ptr() && last_obj.is_null_ptr()) {
 					//создание элемента класса и запись числа
-					obj->assing_pl(new number(wcstod(s_iter, &s_iter)/*wstr_to_double(s_iter, &s_iter)*/));
+					_current_obj->assing_pl(object.push_obj(&number(wcstod(s_iter, &s_iter))));
 					//оба указателя -> на число, тебуется для проверки условия при записи операции
 					last_obj = object->get_pl();
 				}
 				// если данное число не первое в записи (была какая-либо операция)
 				else {
 					//создание элемента класса и запись числа
-					last_op->assing_pr(new number(wcstod(s_iter, &s_iter)/*wstr_to_double(s_iter, &s_iter)*/));
+
+					last_op->assing_pr(object.push_obj(&number(wcstod(s_iter, &s_iter))));
 					last_obj = last_op->get_pr();
 				}
 				//temp = wcspbrk(s_iter, L",");
 				temp = wcspbrk(s_iter, L"(");//если сразу после числа стоит открывающая скобка
 				if (s_iter == temp)
 				{//добавляется умножение
-					try {
-						last_op = new multiplication(last_op, last_obj, object);
-					}
-					catch (ProjectError::ErrorCode error_caught) {
-						ProjectError::SetProjectLastError(error_caught);
-						return nullptr;
-					}
+					temp_pointer = leaf_ptr(object, &multiplication());
+					temp_pointer->copy(&multiplication(last_op, last_obj, _current_obj, temp_pointer));
 				}
 			}
 			else if (*s_iter == '+') {
-				try {
-					last_op = new addition(last_op, last_obj, obj);
-				}
-				catch (ProjectError::ErrorCode error_caught) {
-					ProjectError::SetProjectLastError(error_caught);
-					return nullptr;
-				}
+				temp_pointer = leaf_ptr(object, &addition());
+				temp_pointer->copy(&addition(last_op, last_obj, _current_obj, temp_pointer));
 				s_iter++;
 				temp = wcspbrk(s_iter, L")+-*^/=,");
-				if (s_iter == temp)
-				{
-					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
-					return nullptr;
+				if (s_iter == temp) {
+					throw ProjectError::ErrorCode::UNEXPECTED_OPERATION;
 				}
 			}
 			else if (*s_iter == '-') {
-				try {
-					last_op = new subtraction(last_op, last_obj, obj);
+				if (last_op.is_null_ptr() && last_obj.is_null_ptr()) {//если в начале строки находится минус
+					temp_pointer = leaf_ptr(object, &subtraction(leaf_ptr(object, &number()), leaf_ptr(), _current_obj));
+					_current_obj->assing_pl(temp_pointer);
 				}
-				catch (ProjectError::ErrorCode error_caught) {
-					ProjectError::SetProjectLastError(error_caught);
-					return nullptr;
+				else	{
+					temp_pointer = leaf_ptr(object, &subtraction());
+					temp_pointer->copy(&subtraction(last_op, last_obj, _current_obj, temp_pointer));					
 				}
+
 				s_iter++;
 				temp = wcspbrk(s_iter, L")+-*^/=,");
-				if (s_iter == temp)
-				{
-					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
-					return nullptr;
+				if (s_iter == temp)	{
+					throw ProjectError::ErrorCode::UNEXPECTED_OPERATION;
 				}
 			}
 			else if (*s_iter == '*') {
-				try {
-					last_op = new multiplication(last_op, last_obj, obj);
-				}
-				catch (ProjectError::ErrorCode error_caught) {
-					ProjectError::SetProjectLastError(error_caught);
-					return nullptr;
-				}
+				temp_pointer = leaf_ptr(object, &multiplication());
+				temp_pointer->copy(&multiplication(last_op, last_obj, _current_obj, temp_pointer));
 				s_iter++;
 				temp = wcspbrk(s_iter, L")+-*^/=,");
-				if (s_iter == temp)
-				{
-					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
-					return nullptr;
-				}
+				if (s_iter == temp) {
+					throw ProjectError::ErrorCode::UNEXPECTED_OPERATION;
+				}			
 			}
 			else if (*s_iter == '/') {
-				try {
-					last_op = new division(last_op, last_obj, obj);
-				}
-				catch (ProjectError::ErrorCode error_caught) {
-					ProjectError::SetProjectLastError(error_caught);
-					return nullptr;
-				}
+				temp_pointer = leaf_ptr(object, &division());
+				temp_pointer->copy(&division(last_op, last_obj, _current_obj, temp_pointer));
 				s_iter++;
 				temp = wcspbrk(s_iter, L")+-*^/=,");
-				if (s_iter == temp)
-				{
-					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
-					return nullptr;
-				}
+				if (s_iter == temp) {
+					throw ProjectError::ErrorCode::UNEXPECTED_OPERATION;
+				}				
 			}
 			else if (*s_iter == '^') {
-				try {
-					last_op = new power(last_op, last_obj, obj);
-				}
-				catch (ProjectError::ErrorCode error_caught) {
-					ProjectError::SetProjectLastError(error_caught);
-					return nullptr;
-				}
+				temp_pointer = leaf_ptr(object, &power());
+				temp_pointer->copy(&power(last_op, last_obj, _current_obj, temp_pointer));
 				s_iter++;
-				temp = wcspbrk(s_iter, L")+-*^/=,");
-				if (s_iter == temp)
-				{
-					ProjectError::SetProjectLastError(ProjectError::ErrorCode::UNEXPECTED_OPERATION);
-					return nullptr;
-				}
+				temp = wcspbrk(s_iter, L")+-*^/=,");				
 			}
 			else if (*s_iter == '(') {
 
@@ -483,32 +472,32 @@ namespace Project {
 
 			}
 		}
-	
-		return obj;
+
+		return _current_obj;
 	}
 
 
-	data_list::iterator::iterator() {
+	data_list::__iterator::__iterator() {
 		letter = nullptr;
 	}
 
-	bool data_list::iterator::implace_after_this(data_list * pointer)
+	bool data_list::__iterator::implace_after_this(data_list * pointer)
 	{
 		return letter->implace_p(pointer);
 	}
-	int data_list::iterator::compare_in(wstring * original)
+	int data_list::__iterator::compare_in(wstring * original)
 	{
 		return letter->compare_in(original);
 	}
-	int data_list::iterator::compare_out(wstring * original)
+	int data_list::__iterator::compare_out(wstring * original)
 	{
 		return letter->compare_out(original);
 	}
-	math_obj * data_list::iterator::find_math_obj(wstring * name)
+	Core::tree_ptr data_list::__iterator::find_math_obj(wstring * name)
 	{
 		return letter->find_math_obj(name);
 	}
-	int data_list::iterator::delete_after_this()
+	int data_list::__iterator::delete_after_this()
 	{
 		int k = 0;
 		if (letter->right) {
@@ -517,112 +506,112 @@ namespace Project {
 		}
 		return k;
 	}
-	bool data_list::iterator::build()
+	bool data_list::__iterator::build()
 	{
 		return letter->build();
 	}
-	wstring data_list::iterator::get_in()
+	wstring data_list::__iterator::get_in()
 	{
 		return letter->in;
 	}
-	wstring data_list::iterator::get_out()
+	wstring data_list::__iterator::get_out()
 	{
 		return letter->out;
 	}
-	Core::math_obj * data_list::iterator::get_obj()
+	Core::tree_ptr data_list::__iterator::get_obj()
 	{
 		return letter->object;
 	}
-	void data_list::iterator::assing_in(wstring & _in)
+	void data_list::__iterator::assing_in(wstring & _in)
 	{
 		letter->in = _in;
 	}
-	void data_list::iterator::assing_out(wstring & _out)
+	void data_list::__iterator::assing_out(wstring & _out)
 	{
 		letter->out = _out;
 	}
-	void data_list::iterator::assing_obj(Core::math_obj * _obj)
+	void data_list::__iterator::assing_obj(Core::math_obj * _obj)
 	{
 		letter->object = _obj;
 	}
-	data_list::iterator &data_list::iterator::operator=(const iterator _left)
+	data_list::__iterator &data_list::__iterator::operator=(const __iterator _right)
 	{
-		this->letter = _left.letter;
+		this->letter = _right.letter;
 		return *this;
 	}
-	data_list::iterator & data_list::iterator::operator=(data_list * _left)
+	data_list::__iterator & data_list::__iterator::operator=(data_list * _right)
 	{
-		this->letter = _left;
+		this->letter = _right;
 		return *this;
 	}
-	data_list::iterator & data_list::iterator::operator++(int)
+	data_list::__iterator & data_list::__iterator::operator++(int)
 	{
 		if (this->letter&&this->letter->right) {
 			this->letter = this->letter->right;
 		}
-		else{
+		else {
 			this->letter = nullptr;
 		}
 		return *this;
 	}
-	data_list::iterator & data_list::iterator::operator++()
+	data_list::__iterator & data_list::__iterator::operator++()
 	{
 		if (this->letter&&this->letter->right) {
 			this->letter = this->letter->right;
 		}
 		else {
-			  this->letter = nullptr;
+			this->letter = nullptr;
 		}
 		return *this;
 	}
-	data_list::iterator & data_list::iterator::operator--(int)
+	data_list::__iterator & data_list::__iterator::operator--(int)
 	{
 		if (this->letter&&this->letter->left) {//имеет ли смысл останавливать его на позиции start или продолжать идти дальше?
 			this->letter = this->letter->left;
 		}
 		else {
-			  this->letter = nullptr;
+			this->letter = nullptr;
 		}
 		return *this;
 	}
-	data_list::iterator & data_list::iterator::operator--()
+	data_list::__iterator & data_list::__iterator::operator--()
 	{
 		if (this->letter&&this->letter->left) {//имеет ли смысл останавливать его на позиции start или продолжать идти дальше?
 			this->letter = this->letter->left;
 		}
 		else {
-			  this->letter = nullptr;
+			this->letter = nullptr;
 		}
 		return *this;
 	}
-	bool data_list::iterator::operator==(const iterator _left)
+	bool data_list::__iterator::operator==(const __iterator _right)
 	{
-		if (this->letter == _left.letter)
+		if (this->letter == _right.letter)
 			return true;
 		return false;
 	}
-	bool data_list::iterator::operator==(const data_list * _left)
+	bool data_list::__iterator::operator==(const data_list * _right)
 	{
-		if (this->letter == _left)
+		if (this->letter == _right)
 			return true;
 		return false;
 	}
 
-	bool data_list::iterator::operator!=(const iterator _left)
+	bool data_list::__iterator::operator!=(const __iterator _right)
 	{
-		return !(*this==_left);
+		return !(*this == _right);
 	}
 
-	bool data_list::iterator::operator!=(const data_list * _left)
+	bool data_list::__iterator::operator!=(const data_list * _right)
 	{
-		return !(*this == _left);
+		return !(*this == _right);
 	}
 
-	data_list::iterator::operator data_list*() const
+	data_list::__iterator::operator data_list*() const
 	{
 		return letter;
-	}	
-	
+	}
+
 }
 
 

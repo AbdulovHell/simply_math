@@ -11,18 +11,17 @@ namespace Project {
 		protected:
 			wstring name;				//им€ переменной
 			//unsigned int num_var;		//наследуетс€ (math_dummy). номер переменной в списке, 0 если переменна€ единственна.
-			//math_obj* point_left;		//наследуетс€ (math_dummy).”казатель на "левый" элемент списка
-			//math_obj* point_right;	//наследуетс€ (math_dummy).”казатель на "правый" элемент списка
-			//math_obj* point_collar;	//наследуетс€ (math_dummy).”казатель "наверх"
-			//data_list* point_up;		//наследуетс€ (math_obj).
+			//uint32_t point_left;		//наследуетс€ (math_dummy).”казатель на "левый" элемент списка
+			//uint32_t point_right;	//наследуетс€ (math_dummy).”казатель на "правый" элемент списка
+			//uint32_t point_collar;	//наследуетс€ (math_dummy).”казатель "наверх"
+			
 		public:
 			variable();
 			variable(wstring _name);
-			variable(wstring _name, math_obj* _pl, math_obj* _pr, math_obj* _pc);
-			variable(math_obj* _pl, math_obj* _pr, math_obj* _pc);
-			variable(wstring _name, unsigned int _num, math_obj* _pl, math_obj* _pr, math_obj* _pc);
-			variable(unsigned int _num, math_obj* _pl, math_obj* _pr, math_obj* _pc);
-			variable(wstring _name, data_list * _data);
+			variable(wstring _name, leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
+			variable(leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
+			variable(wstring _name, uint32_t _num, leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
+			variable(uint32_t _num, leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
 			variable(variable * _original);
 			virtual ~variable();
 
@@ -30,12 +29,18 @@ namespace Project {
 			flags get_class_type();
 
 			//ћетод get. ЁЋ≈ћ≈Ќ“
-			math_obj* get_this();
+			void* get_this();
 
 			//ћетод get. »ћя
 			wstring get_name();
 			//ћетод assing. »ћя
 			void assing_name(wstring _name);
+
+			virtual int get_priority();
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
 			
 		};
 	}

@@ -6,19 +6,14 @@
 #include "IO.h"
 #include "error.h"
 
-#include "function.h"
-#include "constant.h"
-#include "variable.h"
-#include "number.h"
-#include "operations.h"
-#include "math_vector.h"
+#include "Common_math_obj.h"
 
 
 namespace Project {
-	//namespace Core{
+	
 	class data_list {
 	private:
-		friend struct Project::data_list::iterator;
+		//friend struct Project::data_list::iterator;
 		//Рекурсия для end
 		data_list*back_rec();
 		
@@ -33,55 +28,57 @@ namespace Project {
 
 		bool implace_p(data_list* _obj);
 
-		Core::math_obj* build_iternal( wchar_t * _str, wchar_t * _end);
+		Core::leaf_ptr build_iternal( wchar_t * _str, wchar_t * _end) throw(...);
 
-		Core::math_obj* build_tree(wchar_t* _str, wchar_t* _end);
+		Core::leaf_ptr& build_tree(wchar_t* _str, wchar_t* _end, Core::leaf_ptr  _current_obj)throw(...);
 
 	public:		
 		wstring in;
 		wstring out;
 		data_list* left;
 		data_list* right;
-		Core::math_obj* object;
+		Core::tree_ptr object;
 
-		typedef struct iterator {
+		struct __iterator {
 		private:
 			friend class data_list;
 			data_list * letter;			
 		public:
-			iterator();
+			__iterator();
 			//дублируется часть методов data_list  с перенаправлением вызова через внутренний указатель letter
 			bool implace_after_this(data_list*pointer);
 			int compare_in(wstring *original);
 			int compare_out(wstring *original);
-			Core::math_obj* find_math_obj(wstring* name);
+			Core::tree_ptr find_math_obj(wstring* name);
 			int delete_after_this();
 			bool build();
 
 			wstring get_in();
 			wstring get_out();
-			Core::math_obj * get_obj();
+			Core::tree_ptr get_obj();
 			void assing_in(wstring & _in);
 			void assing_out(wstring & _in);
 			void assing_obj(Core::math_obj * _obj);
 
-			iterator &operator= (const iterator _left);
-			iterator &operator= (data_list* _left);
+			__iterator &operator= (const __iterator _right);
+			__iterator &operator= (data_list* _right);
 			//постфиксный
-			iterator &operator++ (int);
+			__iterator &operator++ (int);
 			//префиксный
-			iterator &operator++ ();
+			__iterator &operator++ ();
 			//постфиксный
-			iterator &operator-- (int);
+			__iterator &operator-- (int);
 			//префиксный
-			iterator &operator-- ();
-			bool operator== (const iterator _left);
-			bool operator== (const data_list* _left);
-			bool operator!= (const iterator _left);
-			bool operator!= (const data_list* _left);
+			__iterator &operator-- ();
+			bool operator== (const __iterator _right);
+			bool operator== (const data_list* _right);
+			bool operator!= (const __iterator _right);
+			bool operator!= (const data_list* _right);
 
 			operator data_list * () const;
 		};
+
+		typedef __iterator iterator;
 
 		//Нулевой конструктор
 		data_list();
@@ -89,9 +86,9 @@ namespace Project {
 		data_list(wstring* _in);
 		data_list(wstring* _in, data_list* _start);
 		//Коструктор для строкой ввода in, мат. объекта object
-		data_list(wstring _in, Core::math_obj* _math);
+		data_list(wstring _in, Core::tree_ptr _math);
 
-		/*Метод вставляет элемент pointer в конец списока данных.
+		/*Метод вставляет элемент pointer в конец списка данных.
 		0 - в случае ошибки (номера place не существует)
 		1 - в случае успешного выполнения*/
 		bool push_back(data_list* pointer);
@@ -100,15 +97,15 @@ namespace Project {
 		Метод возвращает:
 		0 - в случае ошибки
 		1 - в случае успешного выполнения*/
-		bool push_left(Core::math_obj* pointer);
+		bool push_left(Core::tree_ptr pointer);
 
 		/*Метод возвращает указатель на "стартовый" элемент списка данных.
 		NULL - в случае ошибки (например, попытки поиска слева от нуля*/
 		data_list*begin();
 
-		iterator &front();
+		__iterator front();
 
-		iterator &back();
+		__iterator back();
 
 		/*Метод вставляет элемент pointer в список данных после номера place. Индексы следующих элементов списка сдвигаются на 1.
 		Метод возвращает:
@@ -140,7 +137,7 @@ namespace Project {
 		Метод возвращает:
 		- указатель math_obj* на нужный мат. объект
 		- NULL если ничего не найдено*/
-		Core::math_obj* find_math_obj(wstring* name);
+		Core::tree_ptr find_math_obj(wstring* name);
 
 		/*Метод вызыват конструктор математического объекта по строке in. Тут же происходит проверка ввода.
 		Метод возвращает:
@@ -170,6 +167,6 @@ namespace Project {
 
 
 	};
-//} //end namespace Core
+
 }
 #endif //DATA_LIST_H

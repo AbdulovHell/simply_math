@@ -9,18 +9,21 @@ namespace Project {
 			virtual public math_obj
 		{
 		protected:
-			math_obj* point_left;//указатель на дерево операций для выражения.			
+			leaf_ptr point_left;//указатель (относительный) на дерево операций для выражения.			
 		public:
 			expression();
-			expression(math_obj* _pl);
-			expression(math_obj* _pl);
+			expression(leaf_ptr _pl);
+
 			virtual ~expression();
 
 			//Метод get. ТИП
 			virtual flags get_class_type();
 
+			//Метод get. РАЗМЕР
+			virtual size_t get_sizeof();
+
 			//Метод get. ЭЛЕМЕНТ
-			virtual math_obj* get_this();
+			virtual void* get_this();
 
 			//Метод get. ИМЯ
 			virtual wstring get_name();//возможно вызов этого метода должен возвращать формальную запись выражения
@@ -33,21 +36,28 @@ namespace Project {
 			virtual void assing_num(long double _num);
 
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
-			virtual math_obj* get_pl();
+			virtual leaf_ptr get_pl();
 			//Метод assing. УКАЗАТЕЛЬ "левый рукав"
-			virtual void assing_pl(math_obj* _pointer);
+			virtual void assing_pl(leaf_ptr& _pointer);
 
 
 			//Метод get. УКАЗАТЕЛЬ "правый рукав"
-			virtual math_obj* get_pr();
+			virtual leaf_ptr get_pr();
 			//Метод assing. УКАЗАТЕЛЬ "правый рукав"
-			virtual void assing_pr(math_obj* _pointer);
+			virtual void assing_pr(leaf_ptr _pointer);
 
 
 			//Метод get. УКАЗАТЕЛЬ "воротник"
-			virtual math_obj* get_pc();
+			virtual leaf_ptr get_pc();
 			//Метод assing. УКАЗАТЕЛЬ "воротник"
-			virtual void assing_pc(math_obj* _pointer);
+			virtual void assing_pc(leaf_ptr _pointer);
+
+			virtual int get_priority();
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
+
 		};
 
 

@@ -11,7 +11,7 @@ namespace Project {
 		protected:
 			//Тип числа можно изменить.
 			long double num;
-			//data_list* point_up;  //наследуется (math_obj), по умолчанию не используется.
+			
 		public:
 
 			number();
@@ -22,7 +22,10 @@ namespace Project {
 			virtual flags get_class_type();
 
 			//Метод get. ЭЛЕМЕНТ
-			virtual math_obj* get_this();
+			virtual void* get_this();
+
+			//Метод get. РАЗМЕР
+			virtual size_t get_sizeof();
 
 			//Метод get. ИМЯ
 			virtual wstring get_name();
@@ -35,21 +38,28 @@ namespace Project {
 			virtual void assing_num(long double _num);
 
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
-			virtual math_obj* get_pl();
+			virtual leaf_ptr get_pl();
 			//Метод assing. УКАЗАТЕЛЬ "левый рукав"
-			virtual void assing_pl(math_obj* _pointer);
+			virtual void assing_pl(leaf_ptr& _pointer);
 
 
 			//Метод get. УКАЗАТЕЛЬ "правый рукав"
-			virtual math_obj* get_pr();
+			virtual leaf_ptr get_pr();
 			//Метод assing. УКАЗАТЕЛЬ "правый рукав"
-			virtual void assing_pr(math_obj* _pointer);
+			virtual void assing_pr(leaf_ptr _pointer);
 
 
 			//Метод get. УКАЗАТЕЛЬ "воротник"
-			virtual math_obj* get_pc();
+			virtual leaf_ptr get_pc();
 			//Метод assing. УКАЗАТЕЛЬ "воротник"
-			virtual void assing_pc(math_obj* _pointer);
+			virtual void assing_pc(leaf_ptr _pointer);
+
+			virtual int get_priority();
+
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
 		};
 	}
 }

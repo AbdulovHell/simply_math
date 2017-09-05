@@ -28,31 +28,53 @@ namespace Project {
 			num = _num;
 		}
 
-		math_obj * number::get_pl()
+		leaf_ptr number::get_pl()
 		{
+			return leaf_ptr();
+		}
+
+		void number::assing_pl(leaf_ptr& _pointer)
+		{
+		}
+
+		leaf_ptr number::get_pr()
+		{
+			return leaf_ptr();
+		}
+
+		void number::assing_pr(leaf_ptr _pointer)
+		{
+		}
+
+		leaf_ptr number::get_pc()
+		{
+			return leaf_ptr();
+		}
+
+		void number::assing_pc(leaf_ptr _pointer)
+		{
+		}
+
+		int number::get_priority()
+		{
+			return 0;
+		}
+
+		void number::copy_to(void * _ptr)
+		{
+			number temp = number();
+			std::memcpy(_ptr, &temp, temp.get_sizeof());
+			number *place = (number*)_ptr;			
+			place->copy(this);
+		}
+
+		math_obj * number::copy(math_obj * _original)
+		{
+			if (_original->get_class_type() == flags::number) {//копирование ограничено элементами данного класса.
+				this->num = _original->get_num();
+				return this;
+			}			
 			return nullptr;
-		}
-
-		void number::assing_pl(math_obj * _pointer)
-		{
-		}
-
-		math_obj * number::get_pr()
-		{
-			return nullptr;
-		}
-
-		void number::assing_pr(math_obj * _pointer)
-		{
-		}
-
-		math_obj * number::get_pc()
-		{
-			return nullptr;
-		}
-
-		void number::assing_pc(math_obj * _pointer)
-		{
 		}
 				
 
@@ -61,9 +83,14 @@ namespace Project {
 			return flags::number;
 		}
 
-		math_obj * number::get_this()
+		void * number::get_this()
 		{
 			return this;
+		}
+
+		size_t number::get_sizeof()
+		{
+			return sizeof(*this);
 		}
 
 		wstring number::get_name()

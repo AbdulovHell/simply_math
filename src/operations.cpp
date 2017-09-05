@@ -5,23 +5,23 @@ namespace Project {
 		using namespace std;
 		operations::operations() :math_obj()
 		{
-			point_left = nullptr;
-			point_right = nullptr;
-			point_collar = nullptr;
+			point_left = leaf_ptr();
+			point_right = leaf_ptr();
+			point_collar = leaf_ptr();
 		}
 
-		operations::operations(math_obj * _pl)
+		operations::operations(leaf_ptr _pl)
 		{
 			point_left = _pl;
-			point_right = nullptr;
-			point_collar = nullptr;
+			point_right = leaf_ptr();
+			point_collar = leaf_ptr();
 		}
 
-		operations::operations(math_obj * _pl, math_obj * _pr)
+		operations::operations(leaf_ptr _pl, leaf_ptr _pr)
 		{
 			point_left = _pl;
 			point_right = _pr;
-			point_collar = nullptr;
+			point_collar = leaf_ptr();
 		}
 			
 
@@ -29,107 +29,102 @@ namespace Project {
 		{
 		}
 
-		math_obj * operations::get_pl()
+		leaf_ptr operations::get_pl()
 		{
 			return point_left;
 		}
 
-		void operations::assing_pl(math_obj * _pointer)
+		void operations::assing_pl(leaf_ptr& _pointer)
 		{
 			point_left = _pointer;
 		}
 
-		math_obj * operations::get_pr()
+		leaf_ptr operations::get_pr()
 		{
 			return point_right;
 		}
 
-		void operations::assing_pr(math_obj * _pointer)
+		void operations::assing_pr(leaf_ptr _pointer)
 		{
 			point_right = _pointer;
 		}
 
-		math_obj * operations::get_pc()
+		leaf_ptr operations::get_pc()
 		{
 			return point_collar;
 		}
 
-		void operations::assing_pc(math_obj * _pointer)
+		void operations::assing_pc(leaf_ptr _pointer)
 		{
 			point_collar = _pointer;
 		}
 
-		bool operations::define_operation(operations * _high, math_obj * _low, math_obj * _obj)
+		bool operations::define_operation(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this)
 		{
-			if ((_high == nullptr) && (_high == nullptr)) {
+			if (_high.is_null_ptr() && _low.is_null_ptr()) {
 				//err
 				return false;
 			}
 			//если это первая операция в выражении
-			else if (_high != nullptr&&_low == nullptr) {
+			else if (_high.is_null_ptr() && !_low.is_null_ptr()) {
 				point_left = _low;
 				point_collar = _obj;
-				_obj->assing_pl(this);				
+				_obj->assing_pl(_this);
 			}
 			//если была какая-либо операция до этого
 			else {
-				//если приоритет предыдущей обработанной операции !МЕНЬШЕ! приоритету текущей
+				//если приоритет предыдущей обработанной операции !МЕНЬШЕ! приоритета текущей
 				if (_high->get_priority() < this->get_priority()) {
 					point_left = _low;
-					_high->assing_pr(this);
+					_high->assing_pr(_this);
 					point_collar = _high;
 				}
 				else {
-					operations* top;
-					math_obj * temp = _obj->get_pl();
-					flags type = temp->get_class_type();
-					if (type != flags::addit&&type != flags::minus&&type != flags::mltpl&&type != flags::divis&&type != flags::power)
-						return false; //err
-					top = (operations*)temp;
+					//leaf_ptr temp;
+					leaf_ptr top = _obj->get_pl();
+					flags type = top->get_class_type();
+					if (type != flags::addition&&type != flags::subtraction&&type != flags::multiplication&&type != flags::division&&type != flags::power)
+						return false; //err					
 					if (top->get_priority() >= this->get_priority()) {
 						point_left = top;//много преобразований указателей. Проверить правильность работы
 						point_collar = _obj;
-						_obj->assing_pl(this);
-						top->assing_pr(this);
+						_obj->assing_pl(_this);
+						top->assing_pr(_this);
 					}
 					else {
-						top = _high->prioritize(this->get_priority());//операция с нужным приоритетом
-						if (!top) {
+						top = ((operations*)_high.get_ptr_unsafe())->prioritize(this->get_priority());//операция с нужным приоритетом
+						if (top.is_null_ptr()) {
 							return false;
 						}
 						point_left = top->get_pr();
 						point_collar = top;
-						point_collar->assing_pr(this);
-						point_left->assing_pc(this);
+						point_collar->assing_pr(_this);
+						point_left->assing_pc(_this);
 					}
 				}
 			}
 			return true;
 		}
 
-		operations * operations::prioritize(int _priority)
+		leaf_ptr operations::prioritize(int _priority)
 		{
-			flags type = point_collar->get_class_type();
-			if (type != flags::addit&&type != flags::minus&&type != flags::mltpl&&type != flags::divis&&type != flags::power)
-				return nullptr; //err
-			operations* next = (operations*)point_collar;			
+			//flags type = point_collar->get_class_type();
+			//if (type != flags::addition&&type != flags::subtraction&&type != flags::multiplication&&type != flags::division&&type != flags::power)
+			//	return leaf_ptr(); //err
+			if (point_collar->get_priority() <= _priority)
+				return point_collar;
+			operations* next = (operations*)point_collar.get_ptr_unsafe();			
 			return next->prioritize_rec(&_priority);
 		}
 
-		operations * operations::prioritize_rec(int * _p)
+		
+
+		leaf_ptr operations::prioritize_rec(int * _p)
 		{
-			//если приоритет проверяемой операции !БОЛЬШЕ! текущей операции
-			if (this->get_priority() > *_p) {
-				flags type = point_collar->get_class_type();
-				if (type != flags::addit&&type != flags::minus&&type != flags::mltpl&&type != flags::divis&&type != flags::power)
-					return nullptr; //err
-				operations* next = (operations*)point_collar;
-				return next->prioritize_rec(_p);
-			}
-			else{
-				return this;
-			}
-			return nullptr;
+			if (point_collar->get_priority() <= *_p)
+				return point_collar;
+			operations* next = (operations*)point_collar.get_ptr_unsafe();
+			return next->prioritize_rec(_p);			
 		}
 
 		flags operations::get_class_type()
@@ -137,7 +132,12 @@ namespace Project {
 			return flags::operation;
 		}
 
-		math_obj * operations::get_this()
+		size_t operations::get_sizeof()
+		{
+			return sizeof(*this);
+		}
+
+		void * operations::get_this()
 		{
 			return nullptr;
 		}
@@ -166,17 +166,19 @@ namespace Project {
 		{
 		}
 
-		addition::addition(math_obj * _pl) : operations(_pl)
+		
+
+		addition::addition(leaf_ptr _pl) : operations(_pl)
 		{
 		}
 
-		addition::addition(math_obj * _pl, math_obj * _pr) : operations(_pl, _pr)
+		addition::addition(leaf_ptr _pl, leaf_ptr _pr) : operations(_pl, _pr)
 		{
 		}
 
-		addition::addition(operations * _high, math_obj * _low, math_obj * _obj): operations()
+		addition::addition(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this) : operations()
 		{
-			if (!define_operation(_high, _low, _obj)) {
+			if (!define_operation(_high, _low, _obj, _this)) {
 				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
 			}
 		}
@@ -187,17 +189,22 @@ namespace Project {
 
 		flags addition::get_class_type()
 		{
-			return flags::addit;
+			return flags::addition;
 		}
 
-		math_obj * addition::get_this()
+		/*math_obj * addition::get_this()
 		{
 			return this;
-		}
+		}*/
 
 		wstring addition::get_name()
 		{
 			return L"+";
+		}
+
+		math_obj * addition::get_result()
+		{
+			return nullptr;
 		}
 				
 
@@ -206,28 +213,48 @@ namespace Project {
 			return 1;
 		}
 
+		void addition::copy_to(void * _ptr)
+		{
+			addition temp = addition();
+			std::memcpy(_ptr, &temp, temp.get_sizeof());
+			addition *place = (addition*)_ptr;			
+			place->copy(this);
+		}
+
+		math_obj * addition::copy(math_obj * _original)
+		{
+			flags type = _original->get_class_type();
+			if (type == flags::addition|| type == flags::subtraction||type == flags::multiplication||type==flags::division||type==flags::power) {
+				this->point_left = _original->get_pl();				
+				this->point_collar = _original->get_pc();
+				this->point_right = _original->get_pr();
+				return this;
+			}
+			return nullptr;
+		}
+
 
 
 		subtraction::subtraction() :operations()
 		{
 		}
 
-		subtraction::subtraction(math_obj * _pl) : operations(_pl)
+		subtraction::subtraction(leaf_ptr _pl) : operations(_pl)
 		{
 		}
 
-		subtraction::subtraction(math_obj * _pl, math_obj * _pr) : operations(_pl, _pr)
+		subtraction::subtraction(leaf_ptr _pl, leaf_ptr _pr) : operations(_pl, _pr)
 		{
 		}
 
-		subtraction::subtraction(operations * _high, math_obj * _low, math_obj * _obj): operations()
+		subtraction::subtraction(leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc) : operations(_pl, _pr)
 		{
-			if (_high == nullptr&&_low == nullptr) {//если в начале строки находится минус
-				point_left = new number();//для конструктора вычитания (и только для него) требуется подключать number.h с реализацией класса number. Возможно имеет смысл такую проверку делать в builder
-				point_collar = _obj;
-				_obj->assing_pl(this);
-			}
-			else if (!define_operation(_high, _low, _obj)) {
+			point_collar = _pc;
+		}
+
+		subtraction::subtraction(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this): operations()
+		{
+			 if (!define_operation(_high, _low, _obj, _this)) {
 				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
 			}
 		}
@@ -238,22 +265,47 @@ namespace Project {
 
 		flags subtraction::get_class_type()
 		{
-			return flags::minus;
+			return flags::subtraction;
 		}
 
-		math_obj * subtraction::get_this()
+		/*math_obj * subtraction::get_this()
 		{
 			return this;
-		}
+		}*/
 
 		wstring subtraction::get_name()
 		{
 			return L"-";
-		}		
+		}
+
+		math_obj * subtraction::get_result()
+		{
+			return nullptr;
+		}
 
 		int subtraction::get_priority()
 		{
 			return 1;
+		}
+
+		void subtraction::copy_to(void * _ptr)
+		{
+			subtraction temp = subtraction();
+			std::memcpy(_ptr, &temp, temp.get_sizeof());
+			subtraction *place = (subtraction*)_ptr;			
+			place->copy(this);
+		}
+
+		math_obj * subtraction::copy(math_obj * _original)
+		{
+			flags type = _original->get_class_type();
+			if (type == flags::addition || type == flags::subtraction || type == flags::multiplication || type == flags::division || type == flags::power) {
+				this->point_left = _original->get_pl();
+				this->point_collar = _original->get_pc();
+				this->point_right = _original->get_pr();
+				return this;
+			}
+			return nullptr;
 		}
 		
 
@@ -261,17 +313,17 @@ namespace Project {
 		{
 		}
 
-		multiplication::multiplication(math_obj * _pl):operations(_pl)
+		multiplication::multiplication(leaf_ptr _pl):operations(_pl)
 		{
 		}
 
-		multiplication::multiplication(math_obj * _pl, math_obj * _pr) : operations(_pl, _pr)
+		multiplication::multiplication(leaf_ptr _pl, leaf_ptr _pr) : operations(_pl, _pr)
 		{
 		}
 
-		multiplication::multiplication(operations * _high, math_obj * _low, math_obj * _obj): operations()
+		multiplication::multiplication(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this): operations()
 		{
-			if (!define_operation(_high, _low, _obj)) {
+			if (!define_operation(_high, _low, _obj, _this)) {
 				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
 			}
 		}
@@ -282,17 +334,22 @@ namespace Project {
 
 		flags multiplication::get_class_type()
 		{
-			return flags::mltpl;
+			return flags::multiplication;
 		}
 
-		math_obj * multiplication::get_this()
+		/*math_obj * multiplication::get_this()
 		{
 			return this;
-		}
+		}*/
 
 		wstring multiplication::get_name()
 		{
 			return L"*";
+		}
+
+		math_obj * multiplication::get_result()
+		{
+			return nullptr;
 		}
 
 		int multiplication::get_priority()
@@ -300,21 +357,41 @@ namespace Project {
 			return 2;
 		}
 
+		void multiplication::copy_to(void * _ptr)
+		{
+			multiplication temp = multiplication();
+			std::memcpy(_ptr, &temp, temp.get_sizeof());
+			multiplication *place = (multiplication*)_ptr;			
+			place->copy(this);
+		}
+
+		math_obj * multiplication::copy(math_obj * _original)
+		{
+			flags type = _original->get_class_type();
+			if (type == flags::addition || type == flags::subtraction || type == flags::multiplication || type == flags::division || type == flags::power) {
+				this->point_left = _original->get_pl();
+				this->point_collar = _original->get_pc();
+				this->point_right = _original->get_pr();
+				return this;
+			}
+			return nullptr;
+		}
+
 		division::division() :operations()
 		{
 		}
 
-		division::division(math_obj * _pl) : operations(_pl)
+		division::division(leaf_ptr _pl) : operations(_pl)
 		{
 		}
 
-		division::division(math_obj * _pl, math_obj * _pr) : operations(_pl, _pr)
+		division::division(leaf_ptr _pl, leaf_ptr _pr) : operations(_pl, _pr)
 		{
 		}
 
-		division::division(operations * _high, math_obj * _low, math_obj * _obj): operations()
+		division::division(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this): operations()
 		{
-			if (!define_operation(_high, _low, _obj)) {
+			if (!define_operation(_high, _low, _obj, _this)) {
 				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
 			}
 		}
@@ -325,17 +402,22 @@ namespace Project {
 		
 		flags division::get_class_type()
 		{
-			return flags::divis;
+			return flags::division;
 		}
 
-		math_obj * division::get_this()
+		/*math_obj * division::get_this()
 		{
 			return this;
-		}
+		}*/
 
 		wstring division::get_name()
 		{
 			return L"/";
+		}
+
+		math_obj * division::get_result()
+		{
+			return nullptr;
 		}
 
 		int division::get_priority()
@@ -343,21 +425,41 @@ namespace Project {
 			return 2;
 		}
 
+		void division::copy_to(void * _ptr)
+		{
+			division temp = division();
+			std::memcpy(_ptr, &temp, temp.get_sizeof());
+			division *place = (division*)_ptr;			
+			place->copy(this);
+		}
+
+		math_obj * division::copy(math_obj * _original)
+		{
+			flags type = _original->get_class_type();
+			if (type == flags::addition || type == flags::subtraction || type == flags::multiplication || type == flags::division || type == flags::power) {
+				this->point_left = _original->get_pl();
+				this->point_collar = _original->get_pc();
+				this->point_right = _original->get_pr();
+				return this;
+			}
+			return nullptr;
+		}
+
 		power::power() :operations()
 		{
 		}
 
-		power::power(math_obj * _pl) : operations(_pl)
+		power::power(leaf_ptr _pl) : operations(_pl)
 		{
 		}
 
-		power::power(math_obj * _pl, math_obj * _pr) : operations(_pl, _pr)
+		power::power(leaf_ptr _pl, leaf_ptr _pr) : operations(_pl, _pr)
 		{
 		}
 
-		power::power(operations * _high, math_obj * _low, math_obj * _obj) : operations()
+		power::power(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this) : operations()
 		{
-			if (!define_operation(_high, _low, _obj)) {
+			if (!define_operation(_high, _low, _obj, _this)) {
 				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
 			}
 		}
@@ -371,19 +473,44 @@ namespace Project {
 			return flags::power;
 		}
 
-		math_obj * power::get_this()
+		/*math_obj * power::get_this()
 		{
 			return this;
-		}
+		}*/
 
 		wstring power::get_name()
 		{
 			return L"^";
 		}
 
+		math_obj * power::get_result()
+		{
+			return nullptr;
+		}
+
 		int power::get_priority()
 		{
 			return 3;
+		}
+
+		void power::copy_to(void * _ptr)
+		{
+			power temp = power();
+			std::memcpy(_ptr, &temp, temp.get_sizeof());
+			power *place = (power*)_ptr;			
+			place->copy(this);
+		}
+
+		math_obj * power::copy(math_obj * _original)
+		{
+			flags type = _original->get_class_type();
+			if (type == flags::addition || type == flags::subtraction || type == flags::multiplication || type == flags::division || type == flags::power) {
+				this->point_left = _original->get_pl();
+				this->point_collar = _original->get_pc();
+				this->point_right = _original->get_pr();
+				return this;
+			}
+			return nullptr;
 		}
 
 	}

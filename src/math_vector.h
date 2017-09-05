@@ -13,8 +13,7 @@ namespace Project {
 			//unsigned int num_var;		//наследуетс€ (math_dummy). число элементов вектора
 			//math_obj* point_left;		//наследуетс€ (math_dummy). 
 			//math_obj* point_right;	//наследуетс€ (math_dummy).
-			//math_obj* point_collar;	//наследуетс€ (math_dummy). ”казатель "наверх"
-			//data_list* point_up;		//наследуетс€ (math_obj).
+			//math_obj* point_collar;	//наследуетс€ (math_dummy). ”казатель "наверх"			
 
 		public:
 			math_vector();

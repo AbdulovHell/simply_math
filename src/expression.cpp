@@ -5,18 +5,13 @@ namespace Project {
 		using namespace std;
 		expression::expression() :math_obj()
 		{
-			point_left = nullptr;
+			point_left = leaf_ptr();
 		}
 
-		expression::expression(math_obj * _pl) : math_obj()
+		expression::expression(leaf_ptr _pl) : math_obj()
 		{
 			point_left = _pl;
-		}
-
-		expression::expression(math_obj * _pl)
-		{
-			point_left = _pl;			
-		}
+		}		
 
 		expression::~expression()
 		{
@@ -27,7 +22,12 @@ namespace Project {
 			return flags::expression;
 		}
 
-		math_obj * expression::get_this()
+		size_t expression::get_sizeof()
+		{
+			return sizeof(*this);
+		}
+
+		void * expression::get_this()
 		{
 			return this;
 		}
@@ -44,39 +44,61 @@ namespace Project {
 
 		long double expression::get_num()
 		{
-			return NAN;
+			return 0;
 		}
 
 		void expression::assing_num(long double _num)
 		{
 		}
 
-		math_obj * expression::get_pl()
+		leaf_ptr expression::get_pl()
 		{
 			return point_left;
 		}
 
-		void expression::assing_pl(math_obj * _pointer)
+		void expression::assing_pl(leaf_ptr& _pointer)
 		{
 			point_left = _pointer;
 		}
 
-		math_obj * expression::get_pr()
+		leaf_ptr expression::get_pr()
 		{
+			return leaf_ptr();
+		}
+
+		void expression::assing_pr(leaf_ptr _pointer)
+		{
+		}
+
+		leaf_ptr expression::get_pc()
+		{
+			return leaf_ptr();
+		}
+
+		void expression::assing_pc(leaf_ptr _pointer)
+		{
+		}
+
+		int expression::get_priority()
+		{
+			return 0;
+		}
+
+		void expression::copy_to(void * _ptr)
+		{
+			expression temp = expression();
+			std::memcpy(_ptr, &temp, temp.get_sizeof());
+			expression *place = (expression*)_ptr;			
+			place->copy(this);
+		}
+
+		math_obj * expression::copy(math_obj * _original)
+		{
+			if (_original->get_class_type() == flags::expression) {//копирование ограничено элементами данного класса.
+				this->point_left = _original->get_pl();
+				return this;
+			}
 			return nullptr;
-		}
-
-		void expression::assing_pr(math_obj * _pointer)
-		{
-		}
-
-		math_obj * expression::get_pc()
-		{
-			return nullptr;
-		}
-
-		void expression::assing_pc(math_obj * _pointer)
-		{
 		}
 
 

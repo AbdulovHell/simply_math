@@ -7,12 +7,12 @@ namespace Project {
 		math_dummy::math_dummy():math_obj()
 		{
 			num_var = 0;
-			point_left = nullptr;
-			point_right = nullptr;
-			point_collar = nullptr;
+			point_left = leaf_ptr();
+			point_right = leaf_ptr();
+			point_collar = leaf_ptr();
 		}
 
-		math_dummy::math_dummy(math_obj * _pl, math_obj * _pr, math_obj * _pc) :math_obj()
+		math_dummy::math_dummy(leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc) :math_obj()
 		{
 			num_var = 0;
 			point_left = _pl;
@@ -20,7 +20,7 @@ namespace Project {
 			point_collar = _pc;
 		}
 
-		math_dummy::math_dummy(unsigned int _num, math_obj * _pl, math_obj * _pr, math_obj * _pc) :math_obj()
+		math_dummy::math_dummy(uint32_t _num, leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc) :math_obj()
 		{			
 			num_var = _num;
 			point_left = _pl;
@@ -37,9 +37,14 @@ namespace Project {
 			return flags::math_dummy;
 		}
 
-		math_obj * math_dummy::get_this()
+		size_t math_dummy::get_sizeof()
 		{
-			return point_right;
+			return sizeof(*this);
+		}
+
+		void * math_dummy::get_this()
+		{
+			return this;
 		}
 
 		wstring math_dummy::get_name()
@@ -49,6 +54,7 @@ namespace Project {
 
 		void math_dummy::assing_name(wstring _name)
 		{
+
 		}
 		
 		long double math_dummy::get_num()
@@ -61,7 +67,7 @@ namespace Project {
 			num_var = (unsigned int)_num;
 		}
 
-		unsigned int math_dummy::get_num_var()
+		uint32_t math_dummy::get_num_var()
 		{
 			return num_var;
 		}
@@ -71,34 +77,57 @@ namespace Project {
 			num_var = _num;
 		}
 
-		math_obj * math_dummy::get_pl()
+		leaf_ptr math_dummy::get_pl()
 		{
 			return point_left;
 		}
 
-		void math_dummy::assing_pl(math_obj * _pointer)
+		void math_dummy::assing_pl(leaf_ptr& _pointer)
 		{
 			point_left = _pointer;
 		}
 
-		math_obj * math_dummy::get_pr()
+		leaf_ptr math_dummy::get_pr()
 		{
 			return point_right;
 		}
 
-		void math_dummy::assing_pr(math_obj * _pointer)
+		void math_dummy::assing_pr(leaf_ptr _pointer)
 		{
 			point_right = _pointer;
 		}
 
-		math_obj * math_dummy::get_pc()
+		leaf_ptr math_dummy::get_pc()
 		{
 			return point_collar;
 		}
 
-		void math_dummy::assing_pc(math_obj * _pointer)
+		void math_dummy::assing_pc(leaf_ptr _pointer)
 		{
 			point_collar = _pointer;
+		}
+		int math_dummy::get_priority()
+		{
+			return 0;
+		}
+		void math_dummy::copy_to(void * _ptr)
+		{
+			math_dummy temp = math_dummy();
+			std::memcpy(_ptr, &temp, temp.get_sizeof());
+			math_dummy *place = (math_dummy*)_ptr;			
+			place->copy(this);
+		}
+		math_obj * math_dummy::copy(math_obj * _original)
+		{
+			flags type = _original->get_class_type();
+			if (type == flags::math_dummy) {
+				this->point_left = _original->get_pl();
+				this->num_var = (uint32_t)_original->get_num();
+				this->point_collar = _original->get_pc();				
+				this->point_right = _original->get_pr();
+				return this;
+			}
+			return nullptr;
 		}
 	}
 }

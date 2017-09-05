@@ -9,10 +9,10 @@ namespace Project {
 			public expression
 		{
 		protected:			
-			unsigned int num_var;	//количество переменных функции
-			//math_obj* point_left; //наследуетс€ (expression)
-			math_obj* point_collar; //указатель на список переменных
-			//data_list* point_up;  //наследуетс€ (math_obj)
+			uint32_t num_var;	//количество переменных функции
+			//uint32_t point_left; //наследуетс€ (expression)
+			leaf_ptr point_collar; //указатель на список переменных
+			
 		public:
 			function();
 			virtual ~function();
@@ -31,9 +31,14 @@ namespace Project {
 			void assing_num_var(unsigned int _num);
 
 			//ћетод get. ” ј«ј“≈Ћ№ "воротник"
-			math_obj* get_pc();
+			leaf_ptr get_pc();
 			//ћетод assing. ” ј«ј“≈Ћ№ "воротник"
-			void assing_pc(math_obj* _pointer);
+			void assing_pc(leaf_ptr _pointer);
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
+
 
 		};
 
@@ -43,9 +48,9 @@ namespace Project {
 		protected:
 			wstring name;//им€ функции
 			//unsigned int num_var;	//наследуетс€ (function), количество переменных функции
-			//math_obj* point_left; //наследуетс€ (expression)
-			//math_obj* point_collar; //наследуетс€ (function)
-			//data_list* point_up;  //наследуетс€ (math_obj)
+			//math_ptr point_left; //наследуетс€ (expression)
+			//math_ptr point_collar; //наследуетс€ (function)
+			
 		public:
 			funct_defnd();
 			virtual ~funct_defnd();
@@ -57,6 +62,10 @@ namespace Project {
 			wstring get_name();
 			//ћетод assing. »ћя
 			void assing_name(wstring _name);
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
 		};
 
 
@@ -66,10 +75,10 @@ namespace Project {
 		protected :
 			//wstring name;//наследуетс€ (funct_defnd),им€ функции
 			//unsigned int num_var;	//наследуетс€ (function), количество переменных функции
-			//math_obj* point_left; //наследуетс€ (expression)
-			math_obj* point_right; //указатель на список аргументов
-			//math_obj* point_collar; //наследуетс€ (function)
-			//data_list* point_up;  //наследуетс€ (math_obj)
+			//math_ptr point_left; //наследуетс€ (expression)
+			leaf_ptr point_right; //указатель на список аргументов
+			//math_ptr point_collar; //наследуетс€ (function)
+			
 		public:
 			funct_arg_c();
 			~funct_arg_c();
@@ -78,9 +87,13 @@ namespace Project {
 			flags get_class_type();
 
 			//ћетод get. ” ј«ј“≈Ћ№ "правый рукав"
-			math_obj* get_pr();
+			leaf_ptr get_pr();
 			//ћетод assing. ” ј«ј“≈Ћ№ "правый рукав"
-			void assing_pr(math_obj* _pointer);
+			void assing_pr(leaf_ptr _pointer);
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
 		};
 
 
@@ -88,12 +101,12 @@ namespace Project {
 			public funct_defnd
 		{
 		protected:
-			//wstring name;//наследуетс€ (funct_defnd),им€ функции
-			//unsigned int num_var;	//наследуетс€ (function), количество переменных функции
-			//math_obj* point_left; //наследуетс€ (expression)
-			math_obj* point_right; //указатель на список аргументов
-			//math_obj* point_collar; //наследуетс€ (function)
-			//data_list* point_up;  //наследуетс€ (math_obj)
+			//wstring name;//наследуетс€ (funct_defnd),им€ функции   //28 байт! 28 байт только сам объект wstring.
+			//unsigned int num_var;	//наследуетс€ (function), количество переменных функции  
+			//math_ptr point_left; //наследуетс€ (expression)
+			leaf_ptr point_right; //указатель на список аргументов
+			//math_ptr point_collar; //наследуетс€ (function)
+			
 		public:
 			funct_arg_v();
 			~funct_arg_v();
@@ -102,9 +115,13 @@ namespace Project {
 			flags get_class_type();
 
 			//ћетод get. ” ј«ј“≈Ћ№ "правый рукав"
-			math_obj* get_pr();
+			leaf_ptr get_pr();
 			//ћетод assing. ” ј«ј“≈Ћ№ "правый рукав"
-			void assing_pr(math_obj* _pointer);
+			void assing_pr(leaf_ptr _pointer);
+
+			virtual void copy_to(void * _ptr);
+
+			virtual math_obj* copy(math_obj* _original);
 		};
 	}
 }

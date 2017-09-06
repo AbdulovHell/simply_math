@@ -147,9 +147,12 @@ namespace Project {
 			if (next_ref->shift && (last_ref + obj_size >= next_ref->shift)) {
 				this->realloc_plus();
 			}
+
 			_obj->copy_to(this->get_real_ptr(last_ref));
+
+
 			__leaf_ptr out = __leaf_ptr(*this,last_ref);
-			last_ref += obj_size;
+			last_ref += (obj_size);
 			return out;
 		}
 
@@ -277,7 +280,9 @@ namespace Project {
 
 		math_obj * tree_ptr::__leaf_ptr::operator->()
 		{
-			return (math_obj*)this->get_real_ptr();
+			math_obj * out = (math_obj*)this->get_real_ptr();
+			//out->__vfptr;
+			return out;
 		}
 
 		tree_ptr::__leaf_ptr & tree_ptr::__leaf_ptr::operator=(const __leaf_ptr & _leaf)

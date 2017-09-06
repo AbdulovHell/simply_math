@@ -25,31 +25,7 @@ namespace Project {
 		size_t expression::get_sizeof()
 		{
 			return sizeof(*this);
-		}
-
-		void * expression::get_this()
-		{
-			return this;
-		}
-
-		wstring expression::get_name()
-		{
-			return wstring();
-		}
-
-		void expression::assing_name(wstring _name)
-		{
-
-		}
-
-		long double expression::get_num()
-		{
-			return 0;
-		}
-
-		void expression::assing_num(long double _num)
-		{
-		}
+		}		
 
 		leaf_ptr expression::get_pl()
 		{
@@ -61,34 +37,12 @@ namespace Project {
 			point_left = _pointer;
 		}
 
-		leaf_ptr expression::get_pr()
-		{
-			return leaf_ptr();
-		}
-
-		void expression::assing_pr(leaf_ptr _pointer)
-		{
-		}
-
-		leaf_ptr expression::get_pc()
-		{
-			return leaf_ptr();
-		}
-
-		void expression::assing_pc(leaf_ptr _pointer)
-		{
-		}
-
-		int expression::get_priority()
-		{
-			return 0;
-		}
-
 		void expression::copy_to(void * _ptr)
-		{
-			expression temp = expression();
-			std::memcpy(_ptr, &temp, temp.get_sizeof());
-			expression *place = (expression*)_ptr;			
+		{			
+			expression *place;
+			place = new (_ptr) expression();		
+			int s = sizeof(*place);
+			int s2 = place->get_sizeof();
 			place->copy(this);
 		}
 

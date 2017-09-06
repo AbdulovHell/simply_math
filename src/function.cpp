@@ -47,9 +47,7 @@ namespace Project {
 
 		void function::copy_to(void * _ptr)
 		{
-			function temp = function();
-			std::memcpy(_ptr, &temp, temp.get_sizeof());
-			function *place = (function*)_ptr;			
+			function *place = new (_ptr) function();
 			place->copy(this);
 		}
 
@@ -93,9 +91,7 @@ namespace Project {
 
 		void funct_defnd::copy_to(void * _ptr)
 		{
-			funct_defnd temp = funct_defnd();
-			std::memcpy(_ptr, &temp, temp.get_sizeof());
-			funct_defnd *place = (funct_defnd*)_ptr;			
+			funct_defnd *place = new (_ptr) funct_defnd();
 			place->copy(this);
 		}
 
@@ -137,9 +133,7 @@ namespace Project {
 
 		void funct_arg_c::copy_to(void * _ptr)
 		{
-			funct_arg_c temp = funct_arg_c();
-			std::memcpy(_ptr, &temp, temp.get_sizeof());
-			funct_arg_c *place = (funct_arg_c*)_ptr;			
+			funct_arg_c *place = new (_ptr) funct_arg_c();
 			place->copy(this);
 		}
 
@@ -179,9 +173,7 @@ namespace Project {
 		}
 		void funct_arg_v::copy_to(void * _ptr)
 		{
-			funct_arg_v temp = funct_arg_v();
-			std::memcpy(_ptr, &temp, temp.get_sizeof());
-			funct_arg_v *place = (funct_arg_v*)_ptr;			
+			funct_arg_v *place = new (_ptr) funct_arg_v();
 			place->copy(this);
 		}
 

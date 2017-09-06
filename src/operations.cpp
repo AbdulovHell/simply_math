@@ -136,29 +136,6 @@ namespace Project {
 		{
 			return sizeof(*this);
 		}
-
-		void * operations::get_this()
-		{
-			return nullptr;
-		}
-
-		wstring operations::get_name()
-		{
-			return wstring();
-		}
-
-		void operations::assing_name(wstring _name)
-		{
-		}
-
-		long double operations::get_num()
-		{
-			return 0;
-		}
-
-		void operations::assing_num(long double _num)
-		{
-		}
 		
 			
 
@@ -215,9 +192,7 @@ namespace Project {
 
 		void addition::copy_to(void * _ptr)
 		{
-			addition temp = addition();
-			std::memcpy(_ptr, &temp, temp.get_sizeof());
-			addition *place = (addition*)_ptr;			
+			addition *place = new (_ptr) addition();
 			place->copy(this);
 		}
 
@@ -290,9 +265,7 @@ namespace Project {
 
 		void subtraction::copy_to(void * _ptr)
 		{
-			subtraction temp = subtraction();
-			std::memcpy(_ptr, &temp, temp.get_sizeof());
-			subtraction *place = (subtraction*)_ptr;			
+			subtraction *place = new (_ptr) subtraction();
 			place->copy(this);
 		}
 
@@ -359,9 +332,7 @@ namespace Project {
 
 		void multiplication::copy_to(void * _ptr)
 		{
-			multiplication temp = multiplication();
-			std::memcpy(_ptr, &temp, temp.get_sizeof());
-			multiplication *place = (multiplication*)_ptr;			
+			multiplication *place = new (_ptr) multiplication();
 			place->copy(this);
 		}
 
@@ -427,9 +398,7 @@ namespace Project {
 
 		void division::copy_to(void * _ptr)
 		{
-			division temp = division();
-			std::memcpy(_ptr, &temp, temp.get_sizeof());
-			division *place = (division*)_ptr;			
+			division *place = new (_ptr) division();
 			place->copy(this);
 		}
 
@@ -495,9 +464,7 @@ namespace Project {
 
 		void power::copy_to(void * _ptr)
 		{
-			power temp = power();
-			std::memcpy(_ptr, &temp, temp.get_sizeof());
-			power *place = (power*)_ptr;			
+			power *place = new (_ptr) power();
 			place->copy(this);
 		}
 

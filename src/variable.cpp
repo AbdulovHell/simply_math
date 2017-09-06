@@ -52,10 +52,7 @@ namespace Project {
 		{
 			return flags::variable;
 		}
-		void * variable::get_this()
-		{
-			return this;
-		}
+		
 		wstring variable::get_name()
 		{
 			return name;
@@ -66,16 +63,9 @@ namespace Project {
 			name = _name;
 		}
 
-		int variable::get_priority()
-		{
-			return 0;
-		}
-
 		void variable::copy_to(void * _ptr)
 		{
-			variable temp = variable();
-			std::memcpy(_ptr, &temp, temp.get_sizeof());
-			variable *place = (variable*)_ptr;			
+			variable *place = new (_ptr) variable();
 			place->copy(this);
 		}
 

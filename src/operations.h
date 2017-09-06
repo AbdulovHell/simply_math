@@ -10,7 +10,7 @@ namespace Project {
 		class operations :
 			public math_obj	{
 		protected:
-			leaf_ptr point_left;	//левый операнд
+			leaf_ptr point_left;	//левый операнд math_obj*
 			leaf_ptr point_right;	//правый операнд
 			leaf_ptr point_collar; //указатель на предыдущую операцию	
 
@@ -29,21 +29,8 @@ namespace Project {
 			virtual flags get_class_type();
 
 			//Метод get. РАЗМЕР
-			virtual size_t get_sizeof();
-
-			//Метод get. ЭЛЕМЕНТ
-			virtual void* get_this();
-
-			//Метод get. ИМЯ
-			virtual wstring get_name();
-			//Метод assing. ИМЯ
-			virtual void assing_name(wstring _name);
-
-			//Метод get. ЧИСЛО
-			virtual long double get_num();
-			//Метод assing. ЧИСЛО
-			virtual void assing_num(long double _num);
-
+			virtual size_t get_sizeof();			
+			
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
 			virtual leaf_ptr get_pl();
 			//Метод assing. УКАЗАТЕЛЬ "левый рукав"
@@ -63,13 +50,11 @@ namespace Project {
 			
 			//Возвращает результат выполнения операции в виде мат. объекта. 
 			virtual math_obj* get_result()=0;
-
 			
 			bool define_operation(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this);
 
 			leaf_ptr prioritize(int _priority);
-
-			virtual int get_priority() = 0;
+			
 			
 		};
 

@@ -383,7 +383,9 @@ namespace Project {
 		leaf_ptr last_obj; //последняя записанная константа/переменная/ф-ция/выражение
 		leaf_ptr temp_pointer;
 		leaf_ptr multiple_var;
-
+		flags type;
+		math_obj* unsafe_ptr = _current_obj.get_ptr_unsafe();
+		//type = unsafe_ptr->get_class_type();
 		wchar_t* temp/*, *temp_2*/;
 		wstring temp_str, name_str;
 		double buf;
@@ -411,11 +413,13 @@ namespace Project {
 				{//добавляется умножение
 					temp_pointer = leaf_ptr(object, &multiplication());
 					temp_pointer->copy(&multiplication(last_op, last_obj, _current_obj, temp_pointer));
+					last_op = temp_pointer;
 				}
 			}
 			else if (*s_iter == '+') {
 				temp_pointer = leaf_ptr(object, &addition());
 				temp_pointer->copy(&addition(last_op, last_obj, _current_obj, temp_pointer));
+				last_op = temp_pointer;
 				s_iter++;
 				temp = wcspbrk(s_iter, L")+-*^/=,");
 				if (s_iter == temp) {
@@ -424,14 +428,23 @@ namespace Project {
 			}
 			else if (*s_iter == '-') {
 				if (last_op.is_null_ptr() && last_obj.is_null_ptr()) {//если в начале строки находится минус
-					temp_pointer = leaf_ptr(object, &subtraction(leaf_ptr(object, &number()), leaf_ptr(), _current_obj));
-					_current_obj->assing_pl(temp_pointer);
+					last_obj = leaf_ptr(object, &number());
+					temp_pointer = leaf_ptr(object, &subtraction(last_obj, leaf_ptr(), _current_obj));				
+
+					unsafe_ptr = _current_obj.get_ptr_unsafe();
+					//flags type = unsafe_ptr->get_class_type();
+
+					expression* asdas1 = (expression*)((void*)unsafe_ptr);
+					expression* asdas = (expression*)unsafe_ptr->get_this();
+
+					asdas->assing_pl(temp_pointer);
+					unsafe_ptr->assing_pl(temp_pointer);
 				}
 				else	{
 					temp_pointer = leaf_ptr(object, &subtraction());
 					temp_pointer->copy(&subtraction(last_op, last_obj, _current_obj, temp_pointer));					
 				}
-
+				last_op = temp_pointer;
 				s_iter++;
 				temp = wcspbrk(s_iter, L")+-*^/=,");
 				if (s_iter == temp)	{
@@ -441,6 +454,7 @@ namespace Project {
 			else if (*s_iter == '*') {
 				temp_pointer = leaf_ptr(object, &multiplication());
 				temp_pointer->copy(&multiplication(last_op, last_obj, _current_obj, temp_pointer));
+				last_op = temp_pointer;
 				s_iter++;
 				temp = wcspbrk(s_iter, L")+-*^/=,");
 				if (s_iter == temp) {
@@ -450,6 +464,7 @@ namespace Project {
 			else if (*s_iter == '/') {
 				temp_pointer = leaf_ptr(object, &division());
 				temp_pointer->copy(&division(last_op, last_obj, _current_obj, temp_pointer));
+				last_op = temp_pointer;
 				s_iter++;
 				temp = wcspbrk(s_iter, L")+-*^/=,");
 				if (s_iter == temp) {
@@ -459,6 +474,7 @@ namespace Project {
 			else if (*s_iter == '^') {
 				temp_pointer = leaf_ptr(object, &power());
 				temp_pointer->copy(&power(last_op, last_obj, _current_obj, temp_pointer));
+				last_op = temp_pointer;
 				s_iter++;
 				temp = wcspbrk(s_iter, L")+-*^/=,");				
 			}

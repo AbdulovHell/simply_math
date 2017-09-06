@@ -25,10 +25,7 @@ namespace Project {
 			virtual flags get_class_type();
 
 			//Метод get. РАЗМЕР
-			virtual size_t get_sizeof();
-
-			//Метод get. ЭЛЕМЕНТ
-			virtual void* get_this();
+			virtual size_t get_sizeof();		
 
 			//Метод get. ИМЯ
 			virtual wstring get_name();
@@ -43,21 +40,7 @@ namespace Project {
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
 			virtual leaf_ptr get_pl();
 			//Метод assing. УКАЗАТЕЛЬ "левый рукав"
-			virtual void assing_pl(leaf_ptr& _pointer);
-
-
-			//Метод get. УКАЗАТЕЛЬ "правый рукав"
-			virtual leaf_ptr get_pr();
-			//Метод assing. УКАЗАТЕЛЬ "правый рукав"
-			virtual void assing_pr(leaf_ptr _pointer);
-
-
-			//Метод get. УКАЗАТЕЛЬ "воротник"
-			virtual leaf_ptr get_pc();
-			//Метод assing. УКАЗАТЕЛЬ "воротник"
-			virtual void assing_pc(leaf_ptr _pointer);
-
-			virtual int get_priority();
+			virtual void assing_pl(leaf_ptr& _pointer);							
 
 			virtual void copy_to(void * _ptr);
 

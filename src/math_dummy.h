@@ -24,15 +24,7 @@ namespace Project {
 			virtual flags get_class_type();
 
 			//Метод get. РАЗМЕР
-			virtual size_t get_sizeof();
-
-			//Метод get. ЭЛЕМЕНТ
-			virtual void* get_this();
-
-			//Метод get. ИМЯ
-			virtual wstring get_name();
-			//Метод assing. ИМЯ
-			virtual void assing_name(wstring _name);
+			virtual size_t get_sizeof();			
 
 			//Метод get. ЧИСЛО
 			virtual long double get_num();
@@ -59,9 +51,7 @@ namespace Project {
 			//Метод get. УКАЗАТЕЛЬ "воротник"
 			virtual leaf_ptr get_pc();
 			//Метод assing. УКАЗАТЕЛЬ "воротник"
-			virtual void assing_pc(leaf_ptr _pointer);
-
-			virtual int get_priority();
+			virtual void assing_pc(leaf_ptr _pointer);			
 
 			virtual void copy_to(void * _ptr);
 

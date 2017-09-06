@@ -15,7 +15,7 @@ namespace Project {
 		class tree_ptr //16b
 		{
 		private:
-			MemoryControl::_ref* s_ref; //12b
+			MemoryControl::_ref* s_ref; //8b - 4b
 			uint32_t last_ref;  //4b
 
 			bool check_if_can_continue(size_t size_of_type, size_t _new_size_of_arr);
@@ -98,36 +98,36 @@ namespace Project {
 			virtual size_t get_sizeof() = 0;
 
 			//Метод get. ЭЛЕМЕНТ
-			virtual void* get_this() =0;
+			void* get_this() { return this; }
 
 			//Метод get. ИМЯ
-			virtual wstring get_name() = 0;
+			virtual wstring get_name() { return wstring(); }
 			//Метод assing. ИМЯ
-			virtual void assing_name(wstring _name) = 0;
+			virtual void assing_name(wstring _name) {}
 
 			//Метод get. ЧИСЛО
-			virtual long double get_num() = 0;
+			virtual long double get_num() { return 0.0; }
 			//Метод assing. ЧИСЛО
-			virtual void assing_num(long double _num) = 0;
+			virtual void assing_num(long double _num) {}
 
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
-			virtual leaf_ptr get_pl() = 0;
+			virtual leaf_ptr get_pl() {	return leaf_ptr	();	}
 			//Метод assing. УКАЗАТЕЛЬ "левый рукав"
-			virtual void assing_pl(leaf_ptr& _pointer) = 0;
+			virtual void assing_pl(leaf_ptr& _pointer) {}
 
 
 			//Метод get. УКАЗАТЕЛЬ "правый рукав"
-			virtual leaf_ptr get_pr() = 0;
+			virtual leaf_ptr get_pr() { return leaf_ptr(); }
 			//Метод assing. УКАЗАТЕЛЬ "правый рукав"
-			virtual void assing_pr(leaf_ptr _pointer) = 0;
+			virtual void assing_pr(leaf_ptr _pointer) {}
 
 
 			//Метод get. УКАЗАТЕЛЬ "воротник"
-			virtual leaf_ptr get_pc() = 0;
+			virtual leaf_ptr get_pc() { return leaf_ptr(); }
 			//Метод assing. УКАЗАТЕЛЬ "воротник"
-			virtual void assing_pc(leaf_ptr _pointer) = 0;
+			virtual void assing_pc(leaf_ptr _pointer) {}
 
-			virtual int get_priority() = 0;
+			virtual int get_priority() { return 0; }
 
 			virtual void copy_to(void * _ptr) = 0;
 

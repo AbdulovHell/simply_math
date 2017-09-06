@@ -26,17 +26,12 @@ namespace Project {
 			virtual ~variable();
 
 			//Ìועמה get. ÒÈÏ
-			flags get_class_type();
-
-			//Ìועמה get. ÝËÅÌÅÍÒ
-			void* get_this();
+			flags get_class_type();			
 
 			//Ìועמה get. ÈÌ‗
 			wstring get_name();
 			//Ìועמה assing. ÈÌ‗
-			void assing_name(wstring _name);
-
-			virtual int get_priority();
+			void assing_name(wstring _name);			
 
 			virtual void copy_to(void * _ptr);
 

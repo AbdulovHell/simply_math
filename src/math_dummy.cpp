@@ -40,22 +40,7 @@ namespace Project {
 		size_t math_dummy::get_sizeof()
 		{
 			return sizeof(*this);
-		}
-
-		void * math_dummy::get_this()
-		{
-			return this;
-		}
-
-		wstring math_dummy::get_name()
-		{
-			return wstring();
-		}
-
-		void math_dummy::assing_name(wstring _name)
-		{
-
-		}
+		}		
 		
 		long double math_dummy::get_num()
 		{
@@ -106,15 +91,10 @@ namespace Project {
 		{
 			point_collar = _pointer;
 		}
-		int math_dummy::get_priority()
-		{
-			return 0;
-		}
+		
 		void math_dummy::copy_to(void * _ptr)
 		{
-			math_dummy temp = math_dummy();
-			std::memcpy(_ptr, &temp, temp.get_sizeof());
-			math_dummy *place = (math_dummy*)_ptr;			
+			math_dummy *place = new (_ptr) math_dummy();
 			place->copy(this);
 		}
 		math_obj * math_dummy::copy(math_obj * _original)

@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <Windows.h>
 #include <forward_list>
+#include <new>
 
 
 namespace Project {

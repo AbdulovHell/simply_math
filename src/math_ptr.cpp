@@ -197,7 +197,8 @@ namespace Project {
 
 		void * tree_ptr::__leaf_ptr::get_real_ptr()
 		{
-			return (this->is_null_ptr()) ? nullptr : ((int8_t*)ALLOCATOR.get_block() + s_ref->shift + relative_ref);
+			int8_t* temp=(this->is_null_ptr()) ? nullptr : ((int8_t*)ALLOCATOR.get_block() + s_ref->shift + relative_ref);
+			return temp;
 		}
 
 		tree_ptr::__leaf_ptr::__leaf_ptr() {
@@ -277,7 +278,8 @@ namespace Project {
 
 		math_obj * tree_ptr::__leaf_ptr::operator->()
 		{
-			return (math_obj*)this->get_real_ptr();
+			math_obj* temp=(math_obj*)this->get_real_ptr();
+			return temp;
 		}
 
 		tree_ptr::__leaf_ptr & tree_ptr::__leaf_ptr::operator=(const __leaf_ptr & _leaf)
@@ -290,9 +292,5 @@ namespace Project {
 			s_ref->ref_count++;
 			return *this;
 		}
-
-
-
-
 	}
 }

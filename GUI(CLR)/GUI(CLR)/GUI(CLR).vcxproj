@@ -148,6 +148,7 @@
     <ClCompile Include="..\..\src\html_addon.cpp" />
     <ClCompile Include="..\..\src\IO.cpp" />
     <ClCompile Include="..\..\src\math_dummy.cpp" />
+    <ClCompile Include="..\..\src\math_obj.cpp" />
     <ClCompile Include="..\..\src\math_ptr.cpp" />
     <ClCompile Include="..\..\src\math_vector.cpp" />
     <ClCompile Include="..\..\src\MemWiz.cpp" />

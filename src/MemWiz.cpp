@@ -144,8 +144,6 @@ namespace MemoryControl {
 			GetLastError();
 		}*/
 		block_end = (void*)((int8_t*)block + unit_memory * 1024);
-
-
 	}
 
 

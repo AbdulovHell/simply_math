@@ -14,17 +14,16 @@ namespace Project {
 			//uint32_t point_left;		//наследуется (math_dummy).Указатель на "левый" элемент списка
 			//uint32_t point_right;	//наследуется (math_dummy).Указатель на "правый" элемент списка
 			//uint32_t point_collar;	//наследуется (math_dummy).Указатель "наверх"
-			
-		public:
-			variable();
-			variable(wstring _name);
-			variable(wstring _name, leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
-			variable(leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
-			variable(wstring _name, uint32_t _num, leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
-			variable(uint32_t _num, leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
-			variable(variable * _original);
-			virtual ~variable();
 
+		public:
+			variable() :math_dummy() {};
+			variable(wstring _name) :math_dummy() { name = _name; };
+			variable(wstring _name, leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc) : math_dummy(_pl, _pr, _pc) { name = _name; };
+			variable(leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc) :math_dummy(_pl, _pr, _pc) {};
+			variable(wstring _name, uint32_t _num, leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc) :math_dummy(_num, _pl, _pr, _pc) { name = _name; };
+			variable(uint32_t _num, leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc) :math_dummy(_num, _pl, _pr, _pc) {};
+			variable(variable * _original);
+			
 			//Метод get. ТИП
 			flags get_class_type();
 
@@ -36,12 +35,12 @@ namespace Project {
 			//Метод assing. ИМЯ
 			void assing_name(wstring _name);
 
-			virtual int get_priority();
-
-			virtual void copy_to(void * _ptr);
-
-			virtual math_obj* copy(math_obj* _original);
+			int get_priority();
 			
+			void copy_to(void * _ptr);
+
+			bool copy(variable* _original);
+
 		};
 	}
 }

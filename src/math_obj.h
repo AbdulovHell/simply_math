@@ -9,9 +9,11 @@
 namespace Project {
 	namespace Core {
 		using namespace std;
-		using namespace Project;	
+		using namespace Project;
 		using namespace MemoryControl;
+		
 		class math_obj;
+		
 		class tree_ptr //16b
 		{
 		private:
@@ -40,7 +42,7 @@ namespace Project {
 				__leaf_ptr(__leaf_ptr&);
 				~__leaf_ptr();
 
-				bool is_null_ptr();				
+				bool is_null_ptr();
 				math_obj* get_ptr_unsafe();
 
 				math_obj* operator->();
@@ -57,84 +59,70 @@ namespace Project {
 			~tree_ptr();
 
 			void alloc(size_t);
-			void realloc(size_t );
-			void realloc_plus(size_t );
+			void realloc(size_t);
+			void realloc_plus(size_t);
 
-			bool is_null_ptr();			
+			bool is_null_ptr();
 
 			__leaf_ptr push_obj(math_obj*);
 
 			math_obj* get_ptr_unsafe();
 
 			math_obj* operator->();
-			tree_ptr operator =(const tree_ptr& );
+			tree_ptr operator =(const tree_ptr&);
 			operator __leaf_ptr();
 			operator __leaf_ptr() const;
-			
+
 			/*bool operator== ( tree_ptr&);
 
 			bool operator!=( tree_ptr&);*/
 		};
 
 		typedef tree_ptr::__leaf_ptr leaf_ptr;
-				
+
 		class math_obj {
-		private:			
-		protected://базовый класс не содержит ничего
-						
-		public:		
+		private:
+			leaf_ptr point_left;	//левый операнд
+			leaf_ptr point_right;	//правый операнд
+			leaf_ptr point_collar; //указатель на предыдущую операцию	
+		public:
 
 			//Нулевой конструктор
-			math_obj() {};
+			math_obj();
+			math_obj(leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
 
-			virtual ~math_obj() {};
+			~math_obj();
 
 			//Метод get. ТИП
-			virtual flags get_class_type() {
-				return flags::base;
-			};
+			flags get_class_type();
 
 			//Метод get. РАЗМЕР
-			virtual size_t get_sizeof() = 0;
+			size_t get_sizeof();
 
 			//Метод get. ЭЛЕМЕНТ
-			virtual void* get_this() =0;
-
-			//Метод get. ИМЯ
-			virtual wstring get_name() = 0;
-			//Метод assing. ИМЯ
-			virtual void assing_name(wstring _name) = 0;
-
-			//Метод get. ЧИСЛО
-			virtual long double get_num() = 0;
-			//Метод assing. ЧИСЛО
-			virtual void assing_num(long double _num) = 0;
+			void* get_this();
 
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
-			virtual leaf_ptr get_pl() = 0;
+			leaf_ptr get_pl();
 			//Метод assing. УКАЗАТЕЛЬ "левый рукав"
-			virtual void assing_pl(leaf_ptr& _pointer) = 0;
-
+			void assing_pl(leaf_ptr _pointer);
 
 			//Метод get. УКАЗАТЕЛЬ "правый рукав"
-			virtual leaf_ptr get_pr() = 0;
+			leaf_ptr get_pr();
 			//Метод assing. УКАЗАТЕЛЬ "правый рукав"
-			virtual void assing_pr(leaf_ptr _pointer) = 0;
-
+			void assing_pr(leaf_ptr _pointer);
 
 			//Метод get. УКАЗАТЕЛЬ "воротник"
-			virtual leaf_ptr get_pc() = 0;
+			leaf_ptr get_pc();
 			//Метод assing. УКАЗАТЕЛЬ "воротник"
-			virtual void assing_pc(leaf_ptr _pointer) = 0;
+			void assing_pc(leaf_ptr _pointer);
+
+			void copy_to(void * _ptr);
 
 			virtual int get_priority() = 0;
 
-			virtual void copy_to(void * _ptr) = 0;
-
-			virtual math_obj* copy(math_obj* _original) = 0;
-			
+			bool copy(math_obj* _original);
 		};
-				
 	}
 };
 #endif //MATH_OBJ_H

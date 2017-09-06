@@ -3,14 +3,6 @@ namespace Project {
 	namespace Core {
 		using namespace std;
 
-
-		function::function()
-		{
-		}
-
-		function::~function()
-		{
-		}
 		flags function::get_class_type()
 		{
 			return flags::function;
@@ -35,45 +27,25 @@ namespace Project {
 			num_var = _num;
 		}
 
-		leaf_ptr function::get_pc()
-		{
-			return point_collar;
-		}
-
-		void function::assing_pc(leaf_ptr _pointer)
-		{
-			point_collar = _pointer;
-		}
-
 		void function::copy_to(void * _ptr)
 		{
-			function temp = function();
+			function temp;
 			std::memcpy(_ptr, &temp, temp.get_sizeof());
 			function *place = (function*)_ptr;			
 			place->copy(this);
 		}
 
-		math_obj * function::copy(math_obj * _original)
+		bool function::copy(function * _original)
 		{
 			flags type = _original->get_class_type();
 			if (type == flags::function || type == flags::expression) {
-				this->point_left = _original->get_pl();
-				this->num_var =(uint32_t) _original->get_num();
-				this->point_collar = _original->get_pc();
-
-				return this;
+				//this->point_left = _original->get_pl();
+				this->num_var = (uint32_t)_original->get_num();
+				//this->point_collar = _original->get_pc();
+				math_obj::copy(_original);
+				return true;
 			}
-			return nullptr;
-		}
-
-
-
-		funct_defnd::funct_defnd()
-		{
-		}
-
-		funct_defnd::~funct_defnd()
-		{
+			return false;
 		}
 
 		flags funct_defnd::get_class_type()
@@ -93,110 +65,79 @@ namespace Project {
 
 		void funct_defnd::copy_to(void * _ptr)
 		{
-			funct_defnd temp = funct_defnd();
+			funct_defnd temp;
 			std::memcpy(_ptr, &temp, temp.get_sizeof());
 			funct_defnd *place = (funct_defnd*)_ptr;			
 			place->copy(this);
 		}
 
-		math_obj * funct_defnd::copy(math_obj * _original)
+		bool funct_defnd::copy(funct_defnd * _original)
 		{
 			flags type = _original->get_class_type();
-			if (type == flags::function || type == flags::expression|| type == flags::funct_defnd) {
-				this->point_left = _original->get_pl();
+			if (type == flags::function || type == flags::expression || type == flags::funct_defnd) {
+				//this->point_left = _original->get_pl();
 				this->num_var = (uint32_t)_original->get_num();
-				this->point_collar = _original->get_pc();
+				//this->point_collar = _original->get_pc();
 				this->name = _original->get_name();
-				return this;
+				math_obj::copy(_original);
+				return true;
 			}
-			return nullptr;
+			return false;
 		}
 
-
-
-		funct_arg_c::funct_arg_c()
-		{
-		}
-		funct_arg_c::~funct_arg_c()
-		{
-		}
 		flags funct_arg_c::get_class_type()
 		{
 			return flags::funct_arg_c;
 		}
 
-		leaf_ptr funct_arg_c::get_pr()
-		{
-			return point_right;
-		}
-
-		void funct_arg_c::assing_pr(leaf_ptr _pointer)
-		{
-			point_right = _pointer;
-		}
-
 		void funct_arg_c::copy_to(void * _ptr)
 		{
-			funct_arg_c temp = funct_arg_c();
+			funct_arg_c temp;
 			std::memcpy(_ptr, &temp, temp.get_sizeof());
 			funct_arg_c *place = (funct_arg_c*)_ptr;			
 			place->copy(this);
 		}
 
-		math_obj * funct_arg_c::copy(math_obj * _original)
+		bool funct_arg_c::copy(funct_arg_c * _original)
 		{
 			flags type = _original->get_class_type();
 			if (type == flags::function || type == flags::expression || type == flags::funct_defnd || type == flags::funct_arg_c) {
-				this->point_left = _original->get_pl();
+				//this->point_left = _original->get_pl();
 				this->num_var = (uint32_t)_original->get_num();
-				this->point_collar = _original->get_pc();
+				//this->point_collar = _original->get_pc();
 				this->name = _original->get_name();
-				this->point_right = _original->get_pr();
-				return this;
+				//this->point_right = _original->get_pr();
+				math_obj::copy(_original);
+				return true;
 			}
-			return nullptr;
+			return false;
 		}
 
-
-
-		funct_arg_v::funct_arg_v()
-		{
-		}
-		funct_arg_v::~funct_arg_v()
-		{
-		}
 		flags funct_arg_v::get_class_type()
 		{
 			return flags::funct_arg_v;
 		}
-		leaf_ptr funct_arg_v::get_pr()
-		{
-			return point_right;
-		}
-		void funct_arg_v::assing_pr(leaf_ptr _pointer)
-		{
-			point_right = _pointer;
-		}
 		void funct_arg_v::copy_to(void * _ptr)
 		{
-			funct_arg_v temp = funct_arg_v();
+			funct_arg_v temp;
 			std::memcpy(_ptr, &temp, temp.get_sizeof());
 			funct_arg_v *place = (funct_arg_v*)_ptr;			
 			place->copy(this);
 		}
 
-		math_obj * funct_arg_v::copy(math_obj * _original)
+		bool funct_arg_v::copy(funct_arg_v * _original)
 		{
 			flags type = _original->get_class_type();
 			if (type == flags::function || type == flags::expression || type == flags::funct_defnd || type == flags::funct_arg_v) {
-				this->point_left = _original->get_pl();
+				//this->point_left = _original->get_pl();
 				this->num_var = (uint32_t)_original->get_num();
-				this->point_collar = _original->get_pc();
+				//this->point_collar = _original->get_pc();
 				this->name = _original->get_name();
-				this->point_right = _original->get_pr();
-				return this;
+				//this->point_right = _original->get_pr();
+				math_obj::copy(_original);
+				return true;
 			}
-			return nullptr;
+			return false;
 		}
 	}
 }

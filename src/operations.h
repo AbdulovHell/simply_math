@@ -4,73 +4,44 @@
 #include "math_obj.h"
 #include "number.h"
 #include "error.h"
+
+#define MATH_OBJ(x) safe_cast<math_obj*>(x)
+
 namespace Project {
 	namespace Core {
 		using namespace std;
+
+		class math_obj;
+
 		class operations :
-			public math_obj	{
+			public math_obj {
 		protected:
-			leaf_ptr point_left;	//левый операнд
-			leaf_ptr point_right;	//правый операнд
-			leaf_ptr point_collar; //указатель на предыдущую операцию	
-
 			leaf_ptr prioritize_rec(int* _p);
+		public:
 
+			operations() : math_obj() {};
+			operations(leaf_ptr _pl) : math_obj(_pl, leaf_ptr(), leaf_ptr()) {};
+			operations(leaf_ptr _pl, leaf_ptr _pr) : math_obj(_pl, _pr, leaf_ptr()) {};
+			operations(leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc) :math_obj(_pl, _pr, _pc) {};
 
-
-		public:		
-			
-			operations();	
-			operations(leaf_ptr _pl);
-			operations(leaf_ptr _pl, leaf_ptr _pr);
-			virtual ~operations();
-			
 			//ћетод get. “»ѕ
-			virtual flags get_class_type();
+			flags get_class_type();
 
 			//ћетод get. –ј«ћ≈–
-			virtual size_t get_sizeof();
+			size_t get_sizeof();
 
 			//ћетод get. ЁЋ≈ћ≈Ќ“
-			virtual void* get_this();
+			void* get_this();
 
-			//ћетод get. »ћя
-			virtual wstring get_name();
-			//ћетод assing. »ћя
-			virtual void assing_name(wstring _name);
-
-			//ћетод get. „»—Ћќ
-			virtual long double get_num();
-			//ћетод assing. „»—Ћќ
-			virtual void assing_num(long double _num);
-
-			//ћетод get. ” ј«ј“≈Ћ№ "левый рукав"
-			virtual leaf_ptr get_pl();
-			//ћетод assing. ” ј«ј“≈Ћ№ "левый рукав"
-			virtual void assing_pl(leaf_ptr& _pointer);
-
-
-			//ћетод get. ” ј«ј“≈Ћ№ "правый рукав"
-			virtual leaf_ptr get_pr();
-			//ћетод assing. ” ј«ј“≈Ћ№ "правый рукав"
-			virtual void assing_pr(leaf_ptr _pointer);
-
-
-			//ћетод get. ” ј«ј“≈Ћ№ "воротник"
-			virtual leaf_ptr get_pc();
-			//ћетод assing. ” ј«ј“≈Ћ№ "воротник"
-			virtual void assing_pc(leaf_ptr _pointer);
-			
 			//¬озвращает результат выполнени€ операции в виде мат. объекта. 
-			virtual math_obj* get_result()=0;
+			virtual math_obj* get_result() = 0;
 
-			
 			bool define_operation(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this);
 
 			leaf_ptr prioritize(int _priority);
 
 			virtual int get_priority() = 0;
-			
+
 		};
 
 		class addition :
@@ -80,14 +51,12 @@ namespace Project {
 			//uint32_t point_right;	//наследуетс€ (operations), правый операнд
 			//uint32_t point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
 		public:
-			addition();
-			addition(leaf_ptr _pl);
-			addition(leaf_ptr _pl, leaf_ptr _pr);
-			addition(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this) throw (...);
+			addition() : operations() {}
+			addition(leaf_ptr _pl) : operations(_pl) {}
+			addition(leaf_ptr _pl, leaf_ptr _pr) :operations(_pl, _pr) {}
+			addition(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this);
 
-			~addition();
-			
-			flags get_class_type(); 
+			flags get_class_type();
 
 			//ћетод get. ЁЋ≈ћ≈Ќ“
 			//math_obj* get_this();
@@ -95,13 +64,13 @@ namespace Project {
 			//ћетод get. »ћя (символ операции)
 			wstring get_name();
 
-			math_obj* get_result();			
+			math_obj* get_result();
 
 			int get_priority();
 
-			virtual void copy_to(void * _ptr);
+			void copy_to(void* _ptr);
 
-			virtual math_obj* copy(math_obj* _original);
+			bool copy(addition* _original);
 
 		};
 
@@ -113,12 +82,11 @@ namespace Project {
 			//uint32_t point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
 
 		public:
-			subtraction();
-			subtraction(leaf_ptr _pl);
-			subtraction(leaf_ptr _pl, leaf_ptr _pr);
-			subtraction(leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc);
-			subtraction(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this)throw (...);
-			~subtraction();
+			subtraction() :operations() {}
+			subtraction(leaf_ptr _pl) :operations(_pl) {}
+			subtraction(leaf_ptr _pl, leaf_ptr _pr) :operations(_pl, _pr) {}
+			subtraction(leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc) : operations(_pl, _pr, _pc) {}
+			subtraction(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this);
 
 			flags get_class_type();
 
@@ -128,13 +96,13 @@ namespace Project {
 			//ћетод get. »ћя (символ операции)
 			wstring get_name();
 
-			math_obj* get_result();			
+			math_obj* get_result();
 
 			int get_priority();
 
-			virtual void copy_to(void * _ptr);
+			void copy_to(void * _ptr);
 
-			virtual math_obj* copy(math_obj* _original);
+			bool copy(subtraction* _original);
 		};
 
 		class multiplication :
@@ -144,12 +112,11 @@ namespace Project {
 			//uint32_t point_right;	//наследуетс€ (operations), правый операнд
 			//uint32_t point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
 		public:
-			multiplication();
-			multiplication(leaf_ptr _pl);
-			multiplication(leaf_ptr _pl, leaf_ptr _pr);
-			multiplication(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this)throw (...);
-			~multiplication();
-						
+			multiplication() :operations() {};
+			multiplication(leaf_ptr _pl) :operations(_pl) {};
+			multiplication(leaf_ptr _pl, leaf_ptr _pr) :operations(_pl,_pr) {};
+			multiplication(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this);
+			
 			flags get_class_type();
 
 			//ћетод get. ЁЋ≈ћ≈Ќ“
@@ -162,10 +129,10 @@ namespace Project {
 
 			int get_priority();
 
-			virtual void copy_to(void * _ptr);
+			void copy_to(void * _ptr);
 
-			virtual math_obj* copy(math_obj* _original);
-		};		
+			bool copy(multiplication* _original);
+		};
 
 		class division :
 			public operations {
@@ -174,12 +141,11 @@ namespace Project {
 			//uint32_t point_right;	//наследуетс€ (operations), правый операнд
 			//uint32_t point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
 		public:
-			division();
-			division(leaf_ptr _pl);
-			division(leaf_ptr _pl, leaf_ptr _pr);
-			division(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this)throw (...);
-			~division();
-			
+			division() :operations() {};
+			division(leaf_ptr _pl) :operations(_pl) {};
+			division(leaf_ptr _pl, leaf_ptr _pr) :operations(_pl, _pr) {};
+			division(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this);
+
 			flags get_class_type();
 
 			//ћетод get. ЁЋ≈ћ≈Ќ“
@@ -192,10 +158,10 @@ namespace Project {
 
 			int get_priority();
 
-			virtual void copy_to(void * _ptr);
+			void copy_to(void * _ptr);
 
-			virtual math_obj* copy(math_obj* _original);
-		};	
+			bool copy(division* _original);
+		};
 
 		class power :
 			public operations {
@@ -204,12 +170,11 @@ namespace Project {
 			//uint32_t point_right;	//наследуетс€ (operations), правый операнд
 			//uint32_t point_collar;	//наследуетс€ (operations), указатель на предыдущую операцию
 		public:
-			power();
-			power(leaf_ptr _pl);
-			power(leaf_ptr _pl, leaf_ptr _pr);
-			power(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this) throw (...);
-			~power();
-			
+			power() :operations() {};
+			power(leaf_ptr _pl) :operations(_pl) {};
+			power(leaf_ptr _pl, leaf_ptr _pr) :operations(_pl,_pr) {};
+			power(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this);
+
 			flags get_class_type();
 
 			//ћетод get. ЁЋ≈ћ≈Ќ“
@@ -222,9 +187,9 @@ namespace Project {
 
 			int get_priority();
 
-			virtual void copy_to(void * _ptr);
+			void copy_to(void * _ptr);
 
-			virtual math_obj* copy(math_obj* _original);
+			bool copy(power* _original);
 		};
 	}
 }

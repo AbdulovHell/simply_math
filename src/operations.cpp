@@ -3,62 +3,7 @@
 namespace Project {
 	namespace Core {
 		using namespace std;
-		operations::operations() :math_obj()
-		{
-			point_left = leaf_ptr();
-			point_right = leaf_ptr();
-			point_collar = leaf_ptr();
-		}
-
-		operations::operations(leaf_ptr _pl)
-		{
-			point_left = _pl;
-			point_right = leaf_ptr();
-			point_collar = leaf_ptr();
-		}
-
-		operations::operations(leaf_ptr _pl, leaf_ptr _pr)
-		{
-			point_left = _pl;
-			point_right = _pr;
-			point_collar = leaf_ptr();
-		}
-			
-
-		operations::~operations()
-		{
-		}
-
-		leaf_ptr operations::get_pl()
-		{
-			return point_left;
-		}
-
-		void operations::assing_pl(leaf_ptr& _pointer)
-		{
-			point_left = _pointer;
-		}
-
-		leaf_ptr operations::get_pr()
-		{
-			return point_right;
-		}
-
-		void operations::assing_pr(leaf_ptr _pointer)
-		{
-			point_right = _pointer;
-		}
-
-		leaf_ptr operations::get_pc()
-		{
-			return point_collar;
-		}
-
-		void operations::assing_pc(leaf_ptr _pointer)
-		{
-			point_collar = _pointer;
-		}
-
+				
 		bool operations::define_operation(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this)
 		{
 			if (_high.is_null_ptr() && _low.is_null_ptr()) {
@@ -67,17 +12,17 @@ namespace Project {
 			}
 			//если это первая операция в выражении
 			else if (_high.is_null_ptr() && !_low.is_null_ptr()) {
-				point_left = _low;
-				point_collar = _obj;
+				this->assing_pl(_low);
+				this->assing_pc(_obj);
 				_obj->assing_pl(_this);
 			}
 			//если была какая-либо операция до этого
 			else {
 				//если приоритет предыдущей обработанной операции !МЕНЬШЕ! приоритета текущей
 				if (_high->get_priority() < this->get_priority()) {
-					point_left = _low;
+					this->assing_pl(_low);
 					_high->assing_pr(_this);
-					point_collar = _high;
+					this->assing_pc(_high);
 				}
 				else {
 					//leaf_ptr temp;
@@ -86,8 +31,8 @@ namespace Project {
 					if (type != flags::addition&&type != flags::subtraction&&type != flags::multiplication&&type != flags::division&&type != flags::power)
 						return false; //err					
 					if (top->get_priority() >= this->get_priority()) {
-						point_left = top;//много преобразований указателей. Проверить правильность работы
-						point_collar = _obj;
+						this->assing_pl(top);	//много преобразований указателей. Проверить правильность работы
+						this->assing_pc(_obj);
 						_obj->assing_pl(_this);
 						top->assing_pr(_this);
 					}
@@ -96,10 +41,10 @@ namespace Project {
 						if (top.is_null_ptr()) {
 							return false;
 						}
-						point_left = top->get_pr();
-						point_collar = top;
-						point_collar->assing_pr(_this);
-						point_left->assing_pc(_this);
+						this->assing_pl(top->get_pr());
+						this->assing_pc(top);
+						this->get_pc()->assing_pr(_this);
+						this->get_pl()->assing_pc(_this);
 					}
 				}
 			}
@@ -111,9 +56,9 @@ namespace Project {
 			//flags type = point_collar->get_class_type();
 			//if (type != flags::addition&&type != flags::subtraction&&type != flags::multiplication&&type != flags::division&&type != flags::power)
 			//	return leaf_ptr(); //err
-			if (point_collar->get_priority() <= _priority)
-				return point_collar;
-			operations* next = (operations*)point_collar.get_ptr_unsafe();			
+			if (get_pc()->get_priority() <= _priority)
+				return get_pc();
+			operations* next = (operations*)get_pc().get_ptr_unsafe();
 			return next->prioritize_rec(&_priority);
 		}
 
@@ -121,9 +66,9 @@ namespace Project {
 
 		leaf_ptr operations::prioritize_rec(int * _p)
 		{
-			if (point_collar->get_priority() <= *_p)
-				return point_collar;
-			operations* next = (operations*)point_collar.get_ptr_unsafe();
+			if (get_pc()->get_priority() <= *_p)
+				return get_pc();
+			operations* next = (operations*)get_pc().get_ptr_unsafe();
 			return next->prioritize_rec(_p);			
 		}
 
@@ -140,41 +85,7 @@ namespace Project {
 		void * operations::get_this()
 		{
 			return nullptr;
-		}
-
-		wstring operations::get_name()
-		{
-			return wstring();
-		}
-
-		void operations::assing_name(wstring _name)
-		{
-		}
-
-		long double operations::get_num()
-		{
-			return 0;
-		}
-
-		void operations::assing_num(long double _num)
-		{
-		}
-		
-			
-
-		addition::addition() :operations()
-		{
-		}
-
-		
-
-		addition::addition(leaf_ptr _pl) : operations(_pl)
-		{
-		}
-
-		addition::addition(leaf_ptr _pl, leaf_ptr _pr) : operations(_pl, _pr)
-		{
-		}
+		}			
 
 		addition::addition(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this) : operations()
 		{
@@ -182,10 +93,6 @@ namespace Project {
 				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
 			}
 		}
-
-		addition::~addition()
-		{
-		}		
 
 		flags addition::get_class_type()
 		{
@@ -215,53 +122,31 @@ namespace Project {
 
 		void addition::copy_to(void * _ptr)
 		{
-			addition temp = addition();
+			addition temp;
 			std::memcpy(_ptr, &temp, temp.get_sizeof());
 			addition *place = (addition*)_ptr;			
 			place->copy(this);
 		}
 
-		math_obj * addition::copy(math_obj * _original)
+		bool addition::copy(addition * _original)
 		{
 			flags type = _original->get_class_type();
-			if (type == flags::addition|| type == flags::subtraction||type == flags::multiplication||type==flags::division||type==flags::power) {
-				this->point_left = _original->get_pl();				
-				this->point_collar = _original->get_pc();
-				this->point_right = _original->get_pr();
-				return this;
+			if (type == flags::addition || type == flags::subtraction || type == flags::multiplication || type == flags::division || type == flags::power) {
+				//this->point_left = _original->get_pl();
+				//this->point_collar = _original->get_pc();
+				//this->point_right = _original->get_pr();
+				math_obj::copy(_original);
+				return true;
 			}
-			return nullptr;
+			return false;
 		}
 
-
-
-		subtraction::subtraction() :operations()
+		subtraction::subtraction(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this) : operations()
 		{
-		}
-
-		subtraction::subtraction(leaf_ptr _pl) : operations(_pl)
-		{
-		}
-
-		subtraction::subtraction(leaf_ptr _pl, leaf_ptr _pr) : operations(_pl, _pr)
-		{
-		}
-
-		subtraction::subtraction(leaf_ptr _pl, leaf_ptr _pr, leaf_ptr _pc) : operations(_pl, _pr)
-		{
-			point_collar = _pc;
-		}
-
-		subtraction::subtraction(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this): operations()
-		{
-			 if (!define_operation(_high, _low, _obj, _this)) {
+			if (!define_operation(_high, _low, _obj, _this)) {
 				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
 			}
 		}
-
-		subtraction::~subtraction()
-		{
-		}		
 
 		flags subtraction::get_class_type()
 		{
@@ -290,35 +175,23 @@ namespace Project {
 
 		void subtraction::copy_to(void * _ptr)
 		{
-			subtraction temp = subtraction();
+			subtraction temp;
 			std::memcpy(_ptr, &temp, temp.get_sizeof());
 			subtraction *place = (subtraction*)_ptr;			
 			place->copy(this);
 		}
 
-		math_obj * subtraction::copy(math_obj * _original)
+		bool subtraction::copy(subtraction * _original)
 		{
 			flags type = _original->get_class_type();
 			if (type == flags::addition || type == flags::subtraction || type == flags::multiplication || type == flags::division || type == flags::power) {
-				this->point_left = _original->get_pl();
-				this->point_collar = _original->get_pc();
-				this->point_right = _original->get_pr();
-				return this;
+				//this->point_left = _original->get_pl();
+				//this->point_collar = _original->get_pc();
+				//this->point_right = _original->get_pr();
+				math_obj::copy(_original);
+				return true;
 			}
-			return nullptr;
-		}
-		
-
-		multiplication::multiplication() :operations()
-		{
-		}
-
-		multiplication::multiplication(leaf_ptr _pl):operations(_pl)
-		{
-		}
-
-		multiplication::multiplication(leaf_ptr _pl, leaf_ptr _pr) : operations(_pl, _pr)
-		{
+			return false;
 		}
 
 		multiplication::multiplication(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this): operations()
@@ -327,10 +200,6 @@ namespace Project {
 				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
 			}
 		}
-
-		multiplication::~multiplication()
-		{
-		}		
 
 		flags multiplication::get_class_type()
 		{
@@ -359,34 +228,23 @@ namespace Project {
 
 		void multiplication::copy_to(void * _ptr)
 		{
-			multiplication temp = multiplication();
+			multiplication temp;
 			std::memcpy(_ptr, &temp, temp.get_sizeof());
 			multiplication *place = (multiplication*)_ptr;			
 			place->copy(this);
 		}
 
-		math_obj * multiplication::copy(math_obj * _original)
+		bool multiplication::copy(multiplication * _original)
 		{
 			flags type = _original->get_class_type();
 			if (type == flags::addition || type == flags::subtraction || type == flags::multiplication || type == flags::division || type == flags::power) {
-				this->point_left = _original->get_pl();
-				this->point_collar = _original->get_pc();
-				this->point_right = _original->get_pr();
-				return this;
+				//this->point_left = _original->get_pl();
+				//this->point_collar = _original->get_pc();
+				//this->point_right = _original->get_pr();
+				math_obj::copy(_original);
+				return true;
 			}
-			return nullptr;
-		}
-
-		division::division() :operations()
-		{
-		}
-
-		division::division(leaf_ptr _pl) : operations(_pl)
-		{
-		}
-
-		division::division(leaf_ptr _pl, leaf_ptr _pr) : operations(_pl, _pr)
-		{
+			return false;
 		}
 
 		division::division(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this): operations()
@@ -396,10 +254,6 @@ namespace Project {
 			}
 		}
 
-		division::~division()
-		{
-		}
-		
 		flags division::get_class_type()
 		{
 			return flags::division;
@@ -427,34 +281,23 @@ namespace Project {
 
 		void division::copy_to(void * _ptr)
 		{
-			division temp = division();
+			division temp;
 			std::memcpy(_ptr, &temp, temp.get_sizeof());
 			division *place = (division*)_ptr;			
 			place->copy(this);
 		}
 
-		math_obj * division::copy(math_obj * _original)
+		bool division::copy(division * _original)
 		{
 			flags type = _original->get_class_type();
 			if (type == flags::addition || type == flags::subtraction || type == flags::multiplication || type == flags::division || type == flags::power) {
-				this->point_left = _original->get_pl();
-				this->point_collar = _original->get_pc();
-				this->point_right = _original->get_pr();
-				return this;
+				//this->point_left = _original->get_pl();
+				//this->point_collar = _original->get_pc();
+				//this->point_right = _original->get_pr();
+				math_obj::copy(_original);
+				return true;
 			}
-			return nullptr;
-		}
-
-		power::power() :operations()
-		{
-		}
-
-		power::power(leaf_ptr _pl) : operations(_pl)
-		{
-		}
-
-		power::power(leaf_ptr _pl, leaf_ptr _pr) : operations(_pl, _pr)
-		{
+			return false;
 		}
 
 		power::power(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this) : operations()
@@ -463,10 +306,6 @@ namespace Project {
 				throw ProjectError::ErrorCode::OPERATIONS_CONSTRUCT_FAILED;
 			}
 		}
-
-		power::~power()
-		{
-		}				
 
 		flags power::get_class_type()
 		{
@@ -495,24 +334,24 @@ namespace Project {
 
 		void power::copy_to(void * _ptr)
 		{
-			power temp = power();
+			power temp;
 			std::memcpy(_ptr, &temp, temp.get_sizeof());
 			power *place = (power*)_ptr;			
 			place->copy(this);
 		}
 
-		math_obj * power::copy(math_obj * _original)
+		bool power::copy(power * _original)
 		{
 			flags type = _original->get_class_type();
 			if (type == flags::addition || type == flags::subtraction || type == flags::multiplication || type == flags::division || type == flags::power) {
-				this->point_left = _original->get_pl();
-				this->point_collar = _original->get_pc();
-				this->point_right = _original->get_pr();
-				return this;
+				//this->point_left = _original->get_pl();
+				//this->point_collar = _original->get_pc();
+				//this->point_right = _original->get_pr();
+				math_obj::copy(_original);
+				return true;
 			}
-			return nullptr;
+			return false;
 		}
-
 	}
 }
 

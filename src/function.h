@@ -11,14 +11,13 @@ namespace Project {
 		protected:			
 			uint32_t num_var;	//количество переменных функции
 			//uint32_t point_left; //наследуется (expression)
-			leaf_ptr point_collar; //указатель на список переменных
+			//leaf_ptr point_collar; //указатель на список переменных
 			
 		public:
-			function();
-			virtual ~function();
-
+			function() :expression() {};
+			
 			//Метод get. ТИП
-			virtual flags get_class_type();
+			flags get_class_type();
 
 			//Метод get. ЧИСЛО
 			long double get_num();
@@ -30,16 +29,9 @@ namespace Project {
 			//Метод assing. Поправка для перечисляемых элементов
 			void assing_num_var(unsigned int _num);
 
-			//Метод get. УКАЗАТЕЛЬ "воротник"
-			leaf_ptr get_pc();
-			//Метод assing. УКАЗАТЕЛЬ "воротник"
-			void assing_pc(leaf_ptr _pointer);
+			void copy_to(void * _ptr);
 
-			virtual void copy_to(void * _ptr);
-
-			virtual math_obj* copy(math_obj* _original);
-
-
+			bool copy(function* _original);
 		};
 
 		class funct_defnd :
@@ -52,20 +44,19 @@ namespace Project {
 			//math_ptr point_collar; //наследуется (function)
 			
 		public:
-			funct_defnd();
-			virtual ~funct_defnd();
-
+			funct_defnd() :function() {};
+			
 			//Метод get. ТИП
-			virtual flags get_class_type();
+			flags get_class_type();
 
 			//Метод get. ИМЯ
 			wstring get_name();
 			//Метод assing. ИМЯ
 			void assing_name(wstring _name);
 
-			virtual void copy_to(void * _ptr);
+			void copy_to(void * _ptr);
 
-			virtual math_obj* copy(math_obj* _original);
+			bool copy(funct_defnd* _original);
 		};
 
 
@@ -76,24 +67,18 @@ namespace Project {
 			//wstring name;//наследуется (funct_defnd),имя функции
 			//unsigned int num_var;	//наследуется (function), количество переменных функции
 			//math_ptr point_left; //наследуется (expression)
-			leaf_ptr point_right; //указатель на список аргументов
+			//leaf_ptr point_right; //указатель на список аргументов
 			//math_ptr point_collar; //наследуется (function)
 			
 		public:
-			funct_arg_c();
-			~funct_arg_c();
-
+			funct_arg_c() :funct_defnd() {};
+			
 			//Метод get. ТИП
 			flags get_class_type();
 
-			//Метод get. УКАЗАТЕЛЬ "правый рукав"
-			leaf_ptr get_pr();
-			//Метод assing. УКАЗАТЕЛЬ "правый рукав"
-			void assing_pr(leaf_ptr _pointer);
+			void copy_to(void * _ptr);
 
-			virtual void copy_to(void * _ptr);
-
-			virtual math_obj* copy(math_obj* _original);
+			bool copy(funct_arg_c* _original);
 		};
 
 
@@ -104,24 +89,18 @@ namespace Project {
 			//wstring name;//наследуется (funct_defnd),имя функции   //28 байт! 28 байт только сам объект wstring.
 			//unsigned int num_var;	//наследуется (function), количество переменных функции  
 			//math_ptr point_left; //наследуется (expression)
-			leaf_ptr point_right; //указатель на список аргументов
+			//leaf_ptr point_right; //указатель на список аргументов
 			//math_ptr point_collar; //наследуется (function)
 			
 		public:
-			funct_arg_v();
-			~funct_arg_v();
-
+			funct_arg_v() :funct_defnd() {};
+			
 			//Метод get. ТИП
 			flags get_class_type();
 
-			//Метод get. УКАЗАТЕЛЬ "правый рукав"
-			leaf_ptr get_pr();
-			//Метод assing. УКАЗАТЕЛЬ "правый рукав"
-			void assing_pr(leaf_ptr _pointer);
+			void copy_to(void * _ptr);
 
-			virtual void copy_to(void * _ptr);
-
-			virtual math_obj* copy(math_obj* _original);
+			bool copy(funct_arg_v* _original);
 		};
 	}
 }

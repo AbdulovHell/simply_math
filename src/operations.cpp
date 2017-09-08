@@ -131,12 +131,7 @@ namespace Project {
 		{
 			return flags::operation;
 		}
-
-		size_t operations::get_sizeof()
-		{
-			return sizeof(*this);
-		}
-		
+				
 			
 
 		addition::addition() :operations()
@@ -169,6 +164,16 @@ namespace Project {
 			return flags::addition;
 		}
 
+		size_t addition::get_sizeof()
+		{
+			return sizeof(*this);
+		}
+
+		math_obj * addition::get_this()
+		{
+			return this;
+		}
+
 		/*math_obj * addition::get_this()
 		{
 			return this;
@@ -190,10 +195,11 @@ namespace Project {
 			return 1;
 		}
 
-		void addition::copy_to(void * _ptr)
+		uint16_t addition::copy_to(void * _ptr)
 		{
-			addition *place = new (_ptr) addition();
+			math_obj *place = new(_ptr) addition();
 			place->copy(this);
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 
 		math_obj * addition::copy(math_obj * _original)
@@ -243,6 +249,16 @@ namespace Project {
 			return flags::subtraction;
 		}
 
+		size_t subtraction::get_sizeof()
+		{
+			return sizeof(*this);
+		}
+
+		math_obj * subtraction::get_this()
+		{
+			return this;
+		}
+
 		/*math_obj * subtraction::get_this()
 		{
 			return this;
@@ -263,10 +279,11 @@ namespace Project {
 			return 1;
 		}
 
-		void subtraction::copy_to(void * _ptr)
+		uint16_t subtraction::copy_to(void * _ptr)
 		{
-			subtraction *place = new (_ptr) subtraction();
+			math_obj *place = new(_ptr) subtraction();
 			place->copy(this);
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 
 		math_obj * subtraction::copy(math_obj * _original)
@@ -310,6 +327,16 @@ namespace Project {
 			return flags::multiplication;
 		}
 
+		size_t multiplication::get_sizeof()
+		{
+			return sizeof(*this);
+		}
+
+		math_obj * multiplication::get_this()
+		{
+			return this;
+		}
+
 		/*math_obj * multiplication::get_this()
 		{
 			return this;
@@ -330,10 +357,11 @@ namespace Project {
 			return 2;
 		}
 
-		void multiplication::copy_to(void * _ptr)
+		uint16_t multiplication::copy_to(void * _ptr)
 		{
-			multiplication *place = new (_ptr) multiplication();
+			math_obj *place = new(_ptr) multiplication();
 			place->copy(this);
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 
 		math_obj * multiplication::copy(math_obj * _original)
@@ -376,6 +404,16 @@ namespace Project {
 			return flags::division;
 		}
 
+		size_t division::get_sizeof()
+		{
+			return sizeof(*this);
+		}
+
+		math_obj * division::get_this()
+		{
+			return this;
+		}
+
 		/*math_obj * division::get_this()
 		{
 			return this;
@@ -396,10 +434,11 @@ namespace Project {
 			return 2;
 		}
 
-		void division::copy_to(void * _ptr)
+		uint16_t division::copy_to(void * _ptr)
 		{
-			division *place = new (_ptr) division();
+			math_obj *place = new(_ptr) division();
 			place->copy(this);
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 
 		math_obj * division::copy(math_obj * _original)
@@ -442,6 +481,16 @@ namespace Project {
 			return flags::power;
 		}
 
+		size_t power::get_sizeof()
+		{
+			return sizeof(*this);
+		}
+
+		math_obj * power::get_this()
+		{
+			return this;
+		}
+
 		/*math_obj * power::get_this()
 		{
 			return this;
@@ -462,10 +511,11 @@ namespace Project {
 			return 3;
 		}
 
-		void power::copy_to(void * _ptr)
+		uint16_t power::copy_to(void * _ptr)
 		{
-			power *place = new (_ptr) power();
+			math_obj *place = new(_ptr) power();
 			place->copy(this);
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 
 		math_obj * power::copy(math_obj * _original)

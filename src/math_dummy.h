@@ -23,9 +23,10 @@ namespace Project {
 			//Метод get. ТИП
 			virtual flags get_class_type();
 
-			//Метод get. РАЗМЕР
-			virtual size_t get_sizeof();			
+			virtual size_t get_sizeof();
 
+			virtual math_obj* get_this();
+			
 			//Метод get. ЧИСЛО
 			virtual long double get_num();
 			//Метод assing. ЧИСЛО
@@ -51,9 +52,9 @@ namespace Project {
 			//Метод get. УКАЗАТЕЛЬ "воротник"
 			virtual leaf_ptr get_pc();
 			//Метод assing. УКАЗАТЕЛЬ "воротник"
-			virtual void assing_pc(leaf_ptr _pointer);			
-
-			virtual void copy_to(void * _ptr);
+			virtual void assing_pc(leaf_ptr _pointer);
+			
+			virtual uint16_t copy_to(void * _ptr);
 
 			virtual math_obj* copy(math_obj* _original);
 		};

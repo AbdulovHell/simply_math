@@ -26,14 +26,18 @@ namespace Project {
 			virtual ~variable();
 
 			//Ìועמה get. ÒÈÏ
-			flags get_class_type();			
+			flags get_class_type();
 
+			virtual size_t get_sizeof();
+
+			virtual math_obj* get_this();
+						
 			//Ìועמה get. ÈÌ‗
 			wstring get_name();
 			//Ìועמה assing. ÈÌ‗
 			void assing_name(wstring _name);			
 
-			virtual void copy_to(void * _ptr);
+			virtual uint16_t copy_to(void * _ptr);
 
 			virtual math_obj* copy(math_obj* _original);
 			

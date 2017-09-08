@@ -45,25 +45,21 @@ namespace Project {
 		{
 			s_ref = nullptr;
 			last_ref = 0;
+			virtual_ref = 0;
 		}
-
-		tree_ptr::tree_ptr(uint32_t _ref)
-		{
-			s_ref = nullptr;
-			last_ref = _ref;
-		}
+			
 
 		tree_ptr::tree_ptr(math_obj *_obj)
 		{
 			s_ref = ALLOCATOR.allocate_mem(max_size);
-			_obj->copy_to(this->get_real_ptr());
+			virtual_ref = _obj->copy_to(this->get_real_ptr());
 			last_ref = max_size;
 		}
 
 		tree_ptr::tree_ptr(math_obj *_obj, size_t _num)
 		{
 			s_ref = ALLOCATOR.allocate_mem(max_size, _num);
-			_obj->copy_to(this->get_real_ptr());
+			virtual_ref = _obj->copy_to(this->get_real_ptr());
 			last_ref = max_size;
 		}
 
@@ -71,6 +67,7 @@ namespace Project {
 		{
 			this->s_ref = _ptr.s_ref;
 			this->last_ref = _ptr.last_ref;
+			this->virtual_ref = _ptr.virtual_ref;
 			if (!this->is_null_ptr())
 				this->s_ref->ref_count++;
 		}
@@ -133,8 +130,6 @@ namespace Project {
 			return s_ref == nullptr || !s_ref->ref_count;
 		}
 
-
-
 		tree_ptr::__leaf_ptr tree_ptr::push_obj(math_obj *_obj)
 		{
 
@@ -147,23 +142,28 @@ namespace Project {
 			if (next_ref->shift && (last_ref + obj_size >= next_ref->shift)) {
 				this->realloc_plus();
 			}
-
-			_obj->copy_to(this->get_real_ptr(last_ref));
-
-
-			__leaf_ptr out = __leaf_ptr(*this,last_ref);
-			last_ref += (obj_size);
+			uint16_t virt_ref = _obj->copy_to(this->get_real_ptr(last_ref));
+			__leaf_ptr out = __leaf_ptr(*this,last_ref + virt_ref);
+			last_ref += obj_size;
 			return out;
 		}
 
 		math_obj * tree_ptr::get_ptr_unsafe()
 		{
-			return (math_obj*)(this->get_real_ptr());
+			uint8_t* temp = (uint8_t*)(this->get_real_ptr());
+			temp += virtual_ref;
+			math_obj* out = (math_obj*)temp;
+			out = out->get_this();
+			return out;
 		}
 
 		math_obj * tree_ptr::operator->()
 		{			
-			return (math_obj*)(this->get_real_ptr());
+			uint8_t* temp = (uint8_t*)(this->get_real_ptr());
+			temp += virtual_ref;
+			math_obj* out = (math_obj*)temp;
+			out = out->get_this();
+			return out;
 		}
 
 		tree_ptr tree_ptr::operator=(const tree_ptr& _right)
@@ -172,6 +172,7 @@ namespace Project {
 				this->s_ref->ref_count--;
 			this->s_ref = _right.s_ref;
 			this->last_ref = _right.last_ref;
+			this->virtual_ref = _right.virtual_ref;
 			if (this->is_null_ptr()) return *this;
 			this->s_ref->ref_count++;
 			return *this;
@@ -205,21 +206,21 @@ namespace Project {
 
 		tree_ptr::__leaf_ptr::__leaf_ptr() {
 			s_ref = nullptr;
-			relative_ref = 0;
+			relative_ref = 0;			
 		}
 
 		tree_ptr::__leaf_ptr::__leaf_ptr(tree_ptr &_tree)
 		{
-			s_ref = _tree.s_ref;
+			s_ref = _tree.s_ref;			
 			if (!this->is_null_ptr()) 
 				s_ref->ref_count++;
-			relative_ref = 0;
+			relative_ref = _tree.virtual_ref;
 		}
 		tree_ptr::__leaf_ptr::__leaf_ptr(const tree_ptr &_tree) {
-			s_ref = _tree.s_ref;
+			s_ref = _tree.s_ref;			
 			if (!this->is_null_ptr())
 				s_ref->ref_count++;
-			relative_ref = 0;
+			relative_ref = _tree.virtual_ref;
 		}
 
 		tree_ptr::__leaf_ptr::__leaf_ptr(tree_ptr &_tree, math_obj *_obj)
@@ -234,22 +235,19 @@ namespace Project {
 			}*/
 		}
 
-		tree_ptr::__leaf_ptr::__leaf_ptr(tree_ptr &_tree , uint32_t _ref)
+		tree_ptr::__leaf_ptr::__leaf_ptr(tree_ptr &_tree, uint32_t _new_ref)
 		{
 			s_ref = _tree.s_ref;
-			if (!_tree.is_null_ptr()) {
+			relative_ref = _new_ref;
+			if (!this->is_null_ptr())
 				s_ref->ref_count++;
-			}
-			relative_ref = _ref;
 		}
-
-		tree_ptr::__leaf_ptr::__leaf_ptr(const tree_ptr &_tree, uint32_t _ref)
-		{
+				
+		tree_ptr::__leaf_ptr::__leaf_ptr(const tree_ptr &_tree, uint32_t _new_ref) {
 			s_ref = _tree.s_ref;
-			if (!this->is_null_ptr()) {
+			relative_ref = _new_ref;
+			if (!this->is_null_ptr())
 				s_ref->ref_count++;
-			}
-			relative_ref = _ref;
 		}
 
 		tree_ptr::__leaf_ptr::__leaf_ptr(__leaf_ptr & _leaf)
@@ -280,8 +278,12 @@ namespace Project {
 
 		math_obj * tree_ptr::__leaf_ptr::operator->()
 		{
-			math_obj * out = (math_obj*)this->get_real_ptr();
-			//out->__vfptr;
+			/*uint8_t* temp = (uint8_t*)(this->get_real_ptr());
+			math_obj* temp1 = (math_obj*)(temp);
+			math_obj* temp2 = (math_obj*)(temp + 32);*/
+			math_obj* out = (math_obj*)this->get_real_ptr();
+			//temp = (uint8_t*)temp2->get_this_void();
+			//out = temp1->get_this();
 			return out;
 		}
 

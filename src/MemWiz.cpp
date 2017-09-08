@@ -137,14 +137,15 @@ namespace MemoryControl {
 		//WriteProcessMemory(hDF, (void*)Inject_point, modsrc, 13, NULL);
 		//ReadProcessMemory(hDF, (void*)PauseStateAddr, &PauseState, 1, NULL);
 		do {
-			//block = calloc(unit_memory, 1024);
-			block = VirtualAllocEx(GetCurrentProcess(), NULL, unit_memory * 1024, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+			block = VirtualAllocEx(GetCurrentProcess(), NULL, unit_memory * 1024, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 			try_count++;
 		} while (!block&&try_count < 5);
 		/*if (!block) { //err
 			GetLastError();
 		}*/
 		block_end = (void*)((int8_t*)block + unit_memory * 1024);
+
+
 	}
 
 
@@ -152,7 +153,6 @@ namespace MemoryControl {
 	{
 		//TODO:проверка счётчика ссылок. При завершении работы программы в принципе не требуется. но возможно потребуется переинициализация пула памяти в течение работы, например если реализовать сохранение/загрузку программ
 		ref_iterator iter = this->reference_table.begin();
-		//free(block);
 		VirtualFreeEx(GetCurrentProcess(), this->block, unit_memory * 1024, MEM_RELEASE);
 
 		this->reference_table.~forward_list();

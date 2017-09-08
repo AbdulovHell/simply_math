@@ -52,6 +52,16 @@ namespace Project {
 		{
 			return flags::variable;
 		}
+
+		size_t variable::get_sizeof()
+		{
+			return sizeof(*this);
+		}
+
+		math_obj * variable::get_this()
+		{
+			return this;
+		}
 		
 		wstring variable::get_name()
 		{
@@ -62,11 +72,13 @@ namespace Project {
 		{
 			name = _name;
 		}
+				
 
-		void variable::copy_to(void * _ptr)
+		uint16_t variable::copy_to(void * _ptr)
 		{
-			variable *place = new (_ptr) variable();
+			math_obj *place = new(_ptr) variable();
 			place->copy(this);
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 
 		math_obj * variable::copy(math_obj * _original)

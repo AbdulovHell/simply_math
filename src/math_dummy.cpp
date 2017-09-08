@@ -40,7 +40,13 @@ namespace Project {
 		size_t math_dummy::get_sizeof()
 		{
 			return sizeof(*this);
-		}		
+		}
+
+		math_obj * math_dummy::get_this()
+		{
+			return this; 
+		}
+			
 		
 		long double math_dummy::get_num()
 		{
@@ -92,10 +98,11 @@ namespace Project {
 			point_collar = _pointer;
 		}
 		
-		void math_dummy::copy_to(void * _ptr)
+		uint16_t math_dummy::copy_to(void * _ptr)
 		{
-			math_dummy *place = new (_ptr) math_dummy();
+			math_obj *place = new(_ptr) math_dummy();
 			place->copy(this);
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 		math_obj * math_dummy::copy(math_obj * _original)
 		{

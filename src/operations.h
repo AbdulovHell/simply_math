@@ -10,7 +10,7 @@ namespace Project {
 		class operations :
 			public math_obj	{
 		protected:
-			leaf_ptr point_left;	//левый операнд math_obj*
+			leaf_ptr point_left;	//левый операнд
 			leaf_ptr point_right;	//правый операнд
 			leaf_ptr point_collar; //указатель на предыдущую операцию	
 
@@ -27,10 +27,8 @@ namespace Project {
 			
 			//Метод get. ТИП
 			virtual flags get_class_type();
-
-			//Метод get. РАЗМЕР
-			virtual size_t get_sizeof();			
 			
+
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
 			virtual leaf_ptr get_pl();
 			//Метод assing. УКАЗАТЕЛЬ "левый рукав"
@@ -54,7 +52,8 @@ namespace Project {
 			bool define_operation(leaf_ptr _high, leaf_ptr _low, leaf_ptr _obj, leaf_ptr _this);
 
 			leaf_ptr prioritize(int _priority);
-			
+
+			virtual int get_priority() = 0;
 			
 		};
 
@@ -74,6 +73,10 @@ namespace Project {
 			
 			flags get_class_type(); 
 
+			virtual size_t get_sizeof();
+
+			virtual math_obj* get_this();
+
 			//Метод get. ЭЛЕМЕНТ
 			//math_obj* get_this();
 
@@ -84,7 +87,7 @@ namespace Project {
 
 			int get_priority();
 
-			virtual void copy_to(void * _ptr);
+			virtual uint16_t copy_to(void * _ptr);
 
 			virtual math_obj* copy(math_obj* _original);
 
@@ -107,6 +110,10 @@ namespace Project {
 
 			flags get_class_type();
 
+			virtual size_t get_sizeof();
+
+			virtual math_obj* get_this();
+
 			//Метод get. ЭЛЕМЕНТ
 			//virtual math_obj* get_this();
 
@@ -117,7 +124,7 @@ namespace Project {
 
 			int get_priority();
 
-			virtual void copy_to(void * _ptr);
+			virtual uint16_t copy_to(void * _ptr);
 
 			virtual math_obj* copy(math_obj* _original);
 		};
@@ -137,6 +144,10 @@ namespace Project {
 						
 			flags get_class_type();
 
+			virtual size_t get_sizeof();
+
+			virtual math_obj* get_this();
+
 			//Метод get. ЭЛЕМЕНТ
 			//virtual math_obj* get_this();
 
@@ -147,7 +158,7 @@ namespace Project {
 
 			int get_priority();
 
-			virtual void copy_to(void * _ptr);
+			virtual uint16_t copy_to(void * _ptr);
 
 			virtual math_obj* copy(math_obj* _original);
 		};		
@@ -167,6 +178,10 @@ namespace Project {
 			
 			flags get_class_type();
 
+			virtual size_t get_sizeof();
+
+			virtual math_obj* get_this();
+
 			//Метод get. ЭЛЕМЕНТ
 			//virtual math_obj* get_this();
 
@@ -177,7 +192,7 @@ namespace Project {
 
 			int get_priority();
 
-			virtual void copy_to(void * _ptr);
+			virtual uint16_t copy_to(void * _ptr);
 
 			virtual math_obj* copy(math_obj* _original);
 		};	
@@ -197,6 +212,10 @@ namespace Project {
 			
 			flags get_class_type();
 
+			virtual size_t get_sizeof();
+
+			virtual math_obj* get_this();
+
 			//Метод get. ЭЛЕМЕНТ
 			//virtual math_obj* get_this();
 
@@ -207,7 +226,7 @@ namespace Project {
 
 			int get_priority();
 
-			virtual void copy_to(void * _ptr);
+			virtual uint16_t copy_to(void * _ptr);
 
 			virtual math_obj* copy(math_obj* _original);
 		};

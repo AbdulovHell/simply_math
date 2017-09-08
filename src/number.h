@@ -21,15 +21,16 @@ namespace Project {
 			//Ìועמה get. ÒÈÏ
 			virtual flags get_class_type();			
 
-			//Ìועמה get. ÐÀÇÌÅÐ
-			virtual size_t get_sizeof();					
+			virtual size_t get_sizeof();
+
+			virtual math_obj* get_this();
 
 			//Ìועמה get. ×ÈÑËÎ
 			virtual long double get_num();
 			//Ìועמה assing. ×ÈÑËÎ
-			virtual void assing_num(long double _num);		
-
-			virtual void copy_to(void * _ptr);
+			virtual void assing_num(long double _num);
+			
+			virtual uint16_t copy_to(void * _ptr);
 
 			virtual math_obj* copy(math_obj* _original);
 		};

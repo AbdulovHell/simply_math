@@ -13,24 +13,30 @@ namespace Project {
 		public:
 			expression();
 			expression(leaf_ptr _pl);
+			expression(expression&);
 
-			virtual ~expression();
+			~expression();
 
 			//Метод get. ТИП
-			virtual flags get_class_type();
+			flags get_class_type();
 
-			//Метод get. РАЗМЕР
 			virtual size_t get_sizeof();
-			
+
+			math_obj* get_this();
+						
+			//Метод get. ЧИСЛО
+			long double get_num();
+			//Метод assing. ЧИСЛО
+			void assing_num(long double _num);
+
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
-			virtual leaf_ptr get_pl();
+			leaf_ptr get_pl();
 			//Метод assing. УКАЗАТЕЛЬ "левый рукав"
-			virtual void assing_pl(leaf_ptr& _pointer);	
+			void assing_pl(leaf_ptr& _pointer);
+			
+			uint16_t copy_to(void * _ptr);
 
-			virtual void copy_to(void * _ptr);
-
-			virtual math_obj* copy(math_obj* _original);
-
+			math_obj* copy(math_obj* _original);
 		};
 
 

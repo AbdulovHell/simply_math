@@ -15,8 +15,9 @@ namespace Project {
 		class tree_ptr //16b
 		{
 		private:
-			MemoryControl::_ref* s_ref; //8b - 4b
+			MemoryControl::_ref* s_ref; //4-8b
 			uint32_t last_ref;  //4b
+			uint16_t virtual_ref;//2
 
 			bool check_if_can_continue(size_t size_of_type, size_t _new_size_of_arr);
 
@@ -26,8 +27,8 @@ namespace Project {
 
 			class __leaf_ptr {
 			private:
-				MemoryControl::_ref* s_ref; //12b
-				uint32_t relative_ref;  //4b
+				MemoryControl::_ref* s_ref; //4-8b
+				uint32_t relative_ref;  //4b				
 
 				void* get_real_ptr();
 			public:
@@ -49,8 +50,7 @@ namespace Project {
 
 
 
-			tree_ptr();
-			tree_ptr(uint32_t);
+			tree_ptr();			
 			tree_ptr(math_obj* _obj);
 			tree_ptr(math_obj*, size_t);
 			tree_ptr(const tree_ptr&);
@@ -80,14 +80,15 @@ namespace Project {
 				
 		class math_obj {
 		private:			
-		protected://базовый класс не содержит ничего
-						
+		protected:
+			
 		public:		
 
 			//Нулевой конструктор
-			math_obj() {};
+			math_obj() { };
 
 			virtual ~math_obj() {};
+			
 
 			//Метод get. ТИП
 			virtual flags get_class_type() {
@@ -95,10 +96,12 @@ namespace Project {
 			};
 
 			//Метод get. РАЗМЕР
-			virtual size_t get_sizeof() = 0;
+			virtual size_t get_sizeof() { return sizeof(*this); }
 
 			//Метод get. ЭЛЕМЕНТ
-			void* get_this() { return this; }
+			void* get_this_void() { return this; }
+
+			virtual math_obj* get_this(){ return this; }
 
 			//Метод get. ИМЯ
 			virtual wstring get_name() { return wstring(); }
@@ -106,12 +109,12 @@ namespace Project {
 			virtual void assing_name(wstring _name) {}
 
 			//Метод get. ЧИСЛО
-			virtual long double get_num() { return 0.0; }
+			virtual long double get_num() { return 0; }
 			//Метод assing. ЧИСЛО
 			virtual void assing_num(long double _num) {}
 
 			//Метод get. УКАЗАТЕЛЬ "левый рукав"
-			virtual leaf_ptr get_pl() {	return leaf_ptr	();	}
+			virtual leaf_ptr get_pl() { return leaf_ptr(); }
 			//Метод assing. УКАЗАТЕЛЬ "левый рукав"
 			virtual void assing_pl(leaf_ptr& _pointer) {}
 
@@ -127,9 +130,9 @@ namespace Project {
 			//Метод assing. УКАЗАТЕЛЬ "воротник"
 			virtual void assing_pc(leaf_ptr _pointer) {}
 
-			virtual int get_priority() { return 0; }
+			int get_priority() { return 0; }
 
-			virtual void copy_to(void * _ptr) = 0;
+			virtual uint16_t copy_to(void * _ptr) = 0;
 
 			virtual math_obj* copy(math_obj* _original) = 0;
 			

@@ -27,12 +27,15 @@ namespace Project {
 		{
 			num = _num;
 		}
+
 		
 
-		void number::copy_to(void * _ptr)
+		uint16_t number::copy_to(void * _ptr)
 		{
-			number *place = new (_ptr) number();
+			math_obj *place = new(_ptr) number();
 			place->copy(this);
+			void*k = place->get_this_void();
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 
 		math_obj * number::copy(math_obj * _original)
@@ -50,12 +53,16 @@ namespace Project {
 			return flags::number;
 		}
 
-
 		size_t number::get_sizeof()
 		{
 			return sizeof(*this);
 		}
-				
+
+		math_obj * number::get_this()
+		{
+			 return this; 
+		}
+			
 		
 	}
 }

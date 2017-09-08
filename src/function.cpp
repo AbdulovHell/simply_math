@@ -15,6 +15,14 @@ namespace Project {
 		{
 			return flags::function;
 		}
+		size_t function::get_sizeof()
+		{
+			return sizeof(*this);
+		}
+		math_obj * function::get_this()
+		{
+			return this;
+		}
 		long double function::get_num()
 		{
 			return (double)num_var;
@@ -45,10 +53,11 @@ namespace Project {
 			point_collar = _pointer;
 		}
 
-		void function::copy_to(void * _ptr)
+		uint16_t function::copy_to(void * _ptr)
 		{
-			function *place = new (_ptr) function();
+			math_obj *place = new(_ptr) function();
 			place->copy(this);
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 
 		math_obj * function::copy(math_obj * _original)
@@ -79,6 +88,16 @@ namespace Project {
 			return flags::funct_defnd;
 		}
 
+		size_t funct_defnd::get_sizeof()
+		{
+			return sizeof(*this);
+		}
+
+		math_obj * funct_defnd::get_this()
+		{
+			return this;
+		}
+
 		wstring funct_defnd::get_name()
 		{
 			return name;
@@ -89,10 +108,11 @@ namespace Project {
 			name = _name;
 		}
 
-		void funct_defnd::copy_to(void * _ptr)
+		uint16_t funct_defnd::copy_to(void * _ptr)
 		{
-			funct_defnd *place = new (_ptr) funct_defnd();
+			math_obj *place = new(_ptr) funct_defnd();
 			place->copy(this);
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 
 		math_obj * funct_defnd::copy(math_obj * _original)
@@ -121,6 +141,16 @@ namespace Project {
 			return flags::funct_arg_c;
 		}
 
+		size_t funct_arg_c::get_sizeof()
+		{
+			return sizeof(*this);
+		}
+
+		math_obj * funct_arg_c::get_this()
+		{
+			return this;
+		}
+
 		leaf_ptr funct_arg_c::get_pr()
 		{
 			return point_right;
@@ -131,10 +161,11 @@ namespace Project {
 			point_right = _pointer;
 		}
 
-		void funct_arg_c::copy_to(void * _ptr)
+		uint16_t funct_arg_c::copy_to(void * _ptr)
 		{
-			funct_arg_c *place = new (_ptr) funct_arg_c();
+			math_obj *place = new(_ptr) funct_arg_c();
 			place->copy(this);
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 
 		math_obj * funct_arg_c::copy(math_obj * _original)
@@ -163,6 +194,14 @@ namespace Project {
 		{
 			return flags::funct_arg_v;
 		}
+		size_t funct_arg_v::get_sizeof()
+		{
+			return sizeof(*this);
+		}
+		math_obj * funct_arg_v::get_this()
+		{
+			return this;
+		}
 		leaf_ptr funct_arg_v::get_pr()
 		{
 			return point_right;
@@ -171,10 +210,11 @@ namespace Project {
 		{
 			point_right = _pointer;
 		}
-		void funct_arg_v::copy_to(void * _ptr)
+		uint16_t funct_arg_v::copy_to(void * _ptr)
 		{
-			funct_arg_v *place = new (_ptr) funct_arg_v();
+			math_obj *place = new(_ptr) funct_arg_v();
 			place->copy(this);
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 
 		math_obj * funct_arg_v::copy(math_obj * _original)

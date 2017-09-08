@@ -42,9 +42,15 @@ namespace Project {
 		{
 			return flags::constant;
 		}
+
 		size_t constant::get_sizeof()
 		{
 			return sizeof(*this);
+		}
+
+		math_obj * constant::get_this()
+		{
+			return this; 
 		}
 		
 		wstring constant::get_name()
@@ -72,10 +78,11 @@ namespace Project {
 			point_left = _pointer;
 		}
 		
-		void constant::copy_to(void * _ptr)
+		uint16_t constant::copy_to(void * _ptr)
 		{
-			constant *place = new (_ptr) constant();
+			math_obj *place = new(_ptr) constant();
 			place->copy(this);
+			return (uint16_t)((uint8_t*)place->get_this_void() - (uint8_t*)_ptr);
 		}
 		math_obj * constant::copy(math_obj * _original)
 		{
